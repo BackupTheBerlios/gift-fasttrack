@@ -1,5 +1,5 @@
 /*
- * $Id: fst_meta.c,v 1.8 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_meta.c,v 1.9 2003/12/23 11:37:40 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -28,7 +28,7 @@ struct
 } 
 TagTable[] = 
 {
-	{ FILE_TAG_YEAR,        FILE_TAG_DATA_STRING, "year"        },
+	{ FILE_TAG_YEAR,        FILE_TAG_DATA_INT,    "year"        },
 	{ FILE_TAG_FILENAME,    FILE_TAG_DATA_STRING, "filename"    },
     { FILE_TAG_HASH,        FILE_TAG_DATA_RAW,    "hash"        },
 	{ FILE_TAG_TITLE,       FILE_TAG_DATA_STRING, "title"       },
