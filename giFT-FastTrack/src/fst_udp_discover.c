@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.23 2004/03/11 17:02:38 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.24 2004/04/05 09:13:03 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -155,7 +155,6 @@ void fst_udp_discover_free (FSTUdpDiscover *discover)
 
 int fst_udp_discover_ping_node (FSTUdpDiscover *discover, FSTNode *node)
 {
-	struct hostent *he;
 	FSTUdpNode *udp_node;
 	FSTPacket *packet;
 	struct sockaddr_in addr;
@@ -167,17 +166,22 @@ int fst_udp_discover_ping_node (FSTUdpDiscover *discover, FSTNode *node)
 	if (!(udp_node = fst_udp_node_create (node)))
 		return FALSE;
 
-	/* TODO: make this non-blocking */
-	if (! (he = gethostbyname (node->host)))
+	if ((udp_node->ip = net_ip (node->host)) == INADDR_NONE)
 	{
-		fst_udp_node_free (udp_node);
-		FST_WARN_1 ("fst_udp_discover_ping_node: gethostbyname failed for host %s",
-		            node->host);
-		return FALSE;
-	}
+		struct hostent *he;
 
-	/* hmm */
-	udp_node->ip = *((in_addr_t*)he->h_addr_list[0]);
+		/* TODO: make this non-blocking */
+		if (! (he = gethostbyname (node->host)))
+		{
+			fst_udp_node_free (udp_node);
+			FST_WARN_1 ("fst_udp_discover_ping_node: gethostbyname failed for host %s",
+			            node->host);
+			return FALSE;
+		}
+
+		/* hmm */
+		udp_node->ip = *((in_addr_t*)he->h_addr_list[0]);
+	}
 
 	FST_HEAVY_DBG_3 ("sending udp ping to %s(%s):%d", udp_node->node->host,
 	                 net_ip_str(udp_node->ip), udp_node->node->port);

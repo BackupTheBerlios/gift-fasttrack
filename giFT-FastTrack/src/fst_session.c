@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.21 2004/03/11 12:05:49 mkern Exp $
+ * $Id: fst_session.c,v 1.22 2004/04/05 09:13:03 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -93,26 +93,33 @@ void fst_session_free (FSTSession *session)
 /* connect to node, node is automatically freed in fst_session_free() */
 int fst_session_connect (FSTSession *session, FSTNode *node)
 {
-	struct hostent *he;
+	in_addr_t ip;
 
 	if (!session || session->state != SessNew || !node)
 		return FALSE;
 
 	session->state = SessConnecting;
 
-	/* TODO: make this non-blocking */
-	if (! (he = gethostbyname (node->host)))
+	if ((ip = net_ip (node->host)) == INADDR_NONE)
 	{
-		session->state = SessDisconnected;
-		FST_WARN_1 ("gethostbyname failed for host %s", node->host);
-		return FALSE;
+		struct hostent *he;
+
+		/* TODO: make this non-blocking */
+		if (! (he = gethostbyname (node->host)))
+		{
+			session->state = SessDisconnected;
+			FST_WARN_1 ("gethostbyname failed for host %s", node->host);
+			return FALSE;
+		}
+
+		/* hmm */
+		ip = *((in_addr_t*)he->h_addr_list[0]);
 	}
 
 	FST_DBG_3 ("connecting to %s:%d, load: %d%%",
 	           node->host, node->port, node->load);
 
-	session->tcpcon = tcp_open (*((in_addr_t*)he->h_addr_list[0]),
-								node->port, FALSE);
+	session->tcpcon = tcp_open (ip, node->port, FALSE);
 
 	if (!session->tcpcon)
 	{
