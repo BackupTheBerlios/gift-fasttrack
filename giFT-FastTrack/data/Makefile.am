@@ -1,12 +1,12 @@
-# $Id: Makefile.am,v 1.3 2003/09/12 22:30:21 mkern Exp $
+# $Id: Makefile.am,v 1.4 2004/03/03 17:34:46 mkern Exp $
 
 EXTRA_DIST = \
-	FastTrack.conf \
+	FastTrack.conf.template \
 	nodes \
 	banlist
 
 FTdatadir = $(datadir)/FastTrack
 FTdata_DATA = \
-	FastTrack.conf \
+	FastTrack.conf.template \
 	nodes \
 	banlist
