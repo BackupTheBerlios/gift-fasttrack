@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.22 2004/03/11 14:47:31 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.23 2004/03/11 17:02:38 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -314,7 +314,7 @@ static void udp_discover_receive (int fd, input_id input,
 		fst_uint8 time_inc;
 		fst_uint8 outdegree; /* unconfirmed, confidence < 10% */
 		fst_uint8 children;  /* unconfirmed, confidence < 30% */
-		fst_int8 unknown2;
+		fst_uint8 unknown2;
 		
 		/* update udp_node with the new data */
 		udp_node->min_enc_type = ntohl (fst_packet_get_uint32 (packet));
