@@ -1,5 +1,5 @@
 /*
- * $Id: sniff.c,v 1.1 2003/11/28 23:33:55 hex Exp $
+ * $Id: sniff.c,v 1.2 2003/11/28 23:56:49 hex Exp $
  *
  * Based on printall.c from libnids/samples, which is
  * copyright (c) 1999 Rafal Wojtczuk <nergal@avet.com.pl>. All rights reserved.
@@ -330,7 +330,7 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 				if (len>=5) {
 					unsigned int *xinu = server?&c->in_xinu:&c->out_xinu;
 					int xtype = *xinu % 3;
-					int type, msglen, unk;
+					int type, msglen;
 
 #if 0
 					if (data[1]==0x80) {
@@ -349,26 +349,23 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 
 					switch(xtype) {
 					case 0:
-						type=data[1];
+						type=(data[2]<<8)+data[1];
 						msglen=(data[3]<<8)+data[4];
-						unk=data[2];
 						break;
 					case 1:
-						type=data[3];
+						type=(data[1]<<8)+data[3];
 						msglen=(data[2]<<8)+data[4];
-						unk=data[1];
 						break;
 					case 2:
-						type=data[4];
+						type=(data[1]<<8)+data[4];
 						msglen=(data[3]<<8)+data[2];
-						unk=data[1];
 						break;
 					}
 
 					if (len>=msglen+5) {
 						read=msglen+5;
-						fprintf(stderr, "%s message type %02x, len %d unk=%02x [%d: %02x %02x %02x %02x]\n", buf, type, msglen, unk, xtype, data[1], data[2], data[3], data[4]);
-						*xinu ^= ~(type + msglen + (unk<<8));
+						fprintf(stderr, "%s message type %02x, len %d\n", buf, type, msglen);
+						*xinu ^= ~(type + msglen);
 						print_bin_data(data+5,msglen);
 					} else {
 						fprintf(stderr, "%s (%02x %d/%d... [%d: %02x %02x %02x %02x])\n", buf, type, len, msglen, xtype, data[1], data[2], data[3], data[4]);
