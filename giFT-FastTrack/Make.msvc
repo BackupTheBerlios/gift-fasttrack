@@ -1,4 +1,4 @@
-# $Id: Make.msvc,v 1.8 2004/11/11 17:24:38 mkern Exp $
+# $Id: Make.msvc,v 1.9 2004/11/19 19:35:03 mkern Exp $
 
 VERSION = 0.8.8
 O = .obj
@@ -80,7 +80,7 @@ FASTTRACK_DLL         	= FastTrack.dll
 FASTTRACK_STATIC       	= FastTrackstatic$(DEXT).lib
 
 CFLAGS   = $(CFLAGS) -nologo
-DEFS     = $(DEFS) -DHAVE_CONFIG_H -DWIN32 -DNO_STRICT
+DEFS     = $(DEFS) -DHAVE_CONFIG_H -DWIN32 -DNO_STRICT -DVERSION=\"$(VERSION)\"
 
 # need this for building crypt lib for the plugin
 DEFS     = $(DEFS) -DGIFT_PLUGIN
