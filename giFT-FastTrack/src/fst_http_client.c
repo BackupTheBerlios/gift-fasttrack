@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.c,v 1.11 2004/11/10 20:00:57 mkern Exp $
+ * $Id: fst_http_client.c,v 1.12 2005/02/23 21:33:38 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -473,9 +473,11 @@ static int client_write_data (FSTHttpClient *client)
 
 	if (client->content_received == client->content_length)
 	{
-		char *con_str = strdup (fst_http_header_get_field (client->reply,
-														   "Connection"));
-		string_lower (con_str);
+		char *con_str = gift_strdup (fst_http_header_get_field (client->reply,
+														        "Connection"));
+
+		if (con_str)
+			string_lower (con_str);
 
 		/* a new request may be made from the callback and we need to make
 		 * sure it's only reusing the connection if that actually makes
@@ -488,7 +490,7 @@ static int client_write_data (FSTHttpClient *client)
 		 * for now we leave the cleaning up to the next request/free for
 		 * this client.
 		 */
-		if (client->persistent && strstr (con_str, "keep-alive"))
+		if (client->persistent && con_str && strstr (con_str, "keep-alive"))
 		{
 			FST_HEAVY_DBG_3 ("received all data keeping alive %s [%s]:%d",
 							 client->host, net_ip_str(client->ip), client->port);
