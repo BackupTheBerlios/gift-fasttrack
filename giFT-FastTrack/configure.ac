@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.8 2003/06/22 12:19:47 mkern Exp $
+# $Id: configure.ac,v 1.9 2003/06/22 14:38:34 beren12 Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -185,6 +185,7 @@ dnl ###########################################################################
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+src/crypt/Makefile
 data/Makefile
 ])
 AC_OUTPUT
