@@ -1,5 +1,5 @@
-1/*
- * $Id: enc_type_2.c,v 1.8 2003/06/29 07:06:57 beren12 Exp $
+/*
+ * $Id: enc_type_2.c,v 1.9 2003/06/29 07:31:17 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
