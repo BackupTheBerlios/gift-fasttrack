@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.26 2004/11/10 21:46:35 mkern Exp $
+ * $Id: fst_download.c,v 1.27 2004/12/19 13:25:09 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -631,7 +631,7 @@ static FSTSession *session_from_ip (in_addr_t ip)
 {
 	List *l;
 
-	if (FST_PLUGIN->session->tcpcon->host == ip)
+	if (FST_PLUGIN->session && FST_PLUGIN->session->tcpcon->host == ip)
 		return FST_PLUGIN->session;
 
 	/* Check additional connections. */
