@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.11 2003/06/24 15:18:37 rasa Exp $
+# $Id: configure.ac,v 1.12 2003/06/29 13:36:07 beren12 Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -100,7 +100,7 @@ dnl Architecture specific stuff
 dnl ###########################################################################
 
 # AC_CANONICAL_HOST is already REQUIRED by libtool, i think
-#AC_CANONICAL_HOST
+# AC_CANONICAL_HOST
 
 PROGRAM_EXT=
 SO_SUFFIX=so
