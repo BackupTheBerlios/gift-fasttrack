@@ -320,6 +320,10 @@ static void fst_plugin_setup_functbl (Protocol *p)
 
 int FastTrack_init (Protocol *p)
 {
+	// make sure we're loaded with the correct plugin interface version
+	if (protocol_compat (LIBGIFTPROTO_VERSION) != 0)
+		return FALSE;
+	
 	// put protocol in global variable so we always have access to it
 	fst_proto = p;
 

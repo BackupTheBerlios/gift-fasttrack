@@ -57,7 +57,7 @@ typedef uint32_t fst_uint32;
 #include <ctype.h>
 
 #include <libgift/proto/protocol.h>
-#include <libgift/proto/if_event.h>
+//#include <libgift/proto/if_event.h>
 #include <libgift/file.h>
 #include <libgift/parse.h>
 #include <libgift/network.h>
