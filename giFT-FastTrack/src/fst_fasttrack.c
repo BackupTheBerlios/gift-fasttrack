@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.38 2004/01/02 14:04:03 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.39 2004/01/02 21:50:27 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -44,7 +44,7 @@ int discover_callback (FSTUdpDiscover *discover, FSTNode *node)
 		fst_udp_discover_free (FST_PLUGIN->discover, TRUE);
 		FST_PLUGIN->discover = NULL;
 
-		return TRUE;
+		return FALSE;
 	}	
 
 	/* if there is no open session try to connect again */

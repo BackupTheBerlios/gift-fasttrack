@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.3 2004/01/02 14:04:03 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.4 2004/01/02 21:50:27 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -104,7 +104,11 @@ FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback,
 	/* sort the cache so we start with the best nodes */
 	fst_nodecache_sort (discover->cache);
 
-	udp_discover_ping_nodes (discover);
+	if (udp_discover_ping_nodes (discover) == -2)
+	{
+		/* callback freed us */
+		return NULL;
+	}
 
 	return discover;
 }
@@ -288,27 +292,32 @@ static void udp_discover_receive (int fd, input_id input,
 		FST_DBG_4 ("received udp reply 0x%02x (pong) from %s:%d, pinged nodes: %d",
 		           type, net_ip_str (udp_node->ip), udp_node->port,
 		           discover->pinged_nodes);
-		discover->callback (discover, node);
-	}
-	else
-	{
-		FST_DBG_4 ("received udp reply 0x%02x from %s:%d, pinged nodes: %d",
-		           type, net_ip_str (udp_node->ip), udp_node->port,
-		           discover->pinged_nodes);
-		
-		/* remove udp_node from list */
-		discover->nodes = list_remove_link(discover->nodes, udp_node_link);
-		
-		/* add this node back to cache with high load */
-		fst_nodecache_add (discover->cache, NodeKlassSuper,
-		                   net_ip_str (udp_node->ip), udp_node->port,
-		                   100, udp_node->last_seen);
 
-		fst_udp_node_free (udp_node);
+		/* callback may free us */
+		discover->callback (discover, node);
+	
+		/* don't send another ping right now since this was a pong */
+		fst_node_free (node);
+		return;
 	}
 
 	fst_node_free (node);
 
+	FST_DBG_4 ("received udp reply 0x%02x from %s:%d, pinged nodes: %d",
+	           type, net_ip_str (udp_node->ip), udp_node->port,
+		       discover->pinged_nodes);
+		
+	/* remove udp_node from list */
+	discover->nodes = list_remove_link(discover->nodes, udp_node_link);
+		
+	/* add this node back to cache with high load */
+	fst_nodecache_add (discover->cache, NodeKlassSuper,
+		               net_ip_str (udp_node->ip), udp_node->port,
+		               100, udp_node->last_seen);
+
+	fst_udp_node_free (udp_node);
+
+	/* callback may free us */
 	udp_discover_ping_nodes (discover);
 
 	/* wait for next packet */
@@ -345,7 +354,11 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 		item = discover->nodes;
 	}
 	
-	udp_discover_ping_nodes (discover);
+	if (udp_discover_ping_nodes (discover) == -2)
+	{
+		/* callback freed us */
+		return FALSE;
+	}
 	
 	/* raise us again after FST_UDP_DISCOVER_TIMEOUT */
 	return TRUE;
@@ -355,7 +368,8 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 
 /*
  * sends enough pings so FST_UDP_DISCOVER_MAX_PINGS is reached
- * returns number of currently pinged nodes or -1 if network is down
+ * returns number of currently pinged nodes, -1 if network is down and -2 if
+ * callback freed us.
  */
 static int udp_discover_ping_nodes (FSTUdpDiscover *discover)
 {
@@ -383,7 +397,11 @@ static int udp_discover_ping_nodes (FSTUdpDiscover *discover)
 	if (discover->pinged_nodes == 0)
 	{
 		/* notify plugin via callback */
-		discover->callback (discover, NULL);
+		if (!discover->callback (discover, NULL))
+		{
+			/* callback freed us */
+			return -2;
+		}
 	}
 
 	return discover->pinged_nodes;

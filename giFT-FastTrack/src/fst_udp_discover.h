@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.h,v 1.3 2004/01/02 14:04:03 mkern Exp $
+ * $Id: fst_udp_discover.h,v 1.4 2004/01/02 21:50:27 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -76,6 +76,7 @@ typedef struct _FSTUdpDiscover FSTUdpDiscover;
 
 /* 
  * if udp_node is NULL we ran out of nodes to try.
+ * if callback returns FALSE discover has been freed by callback.
  */
 typedef int (*FSTUdpDiscoverCallback) (FSTUdpDiscover *discover,
                                        FSTNode *node);
