@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.50 2004/07/08 17:58:44 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.51 2004/07/08 18:49:41 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -222,7 +222,7 @@ typedef uint32_t fst_uint32;
 #define FST_UDP_DISCOVER_MAX_PINGS      (10)
 
 /* number of supernode sessions we keep besides the main one */
-#define FST_ADDITIONAL_SESSIONS (5)
+#define FST_ADDITIONAL_SESSIONS (config_get_int (FST_PLUGIN->conf, "main/additional_sessions=0"))
 
 /*****************************************************************************/
 

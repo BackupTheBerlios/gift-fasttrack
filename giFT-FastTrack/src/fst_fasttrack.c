@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.69 2004/07/08 17:58:44 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.70 2004/07/08 18:49:41 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -486,9 +486,9 @@ static int fst_plugin_session_callback (FSTSession *session,
 	case SessMsgQueryEnd:
 	{
 		/* TODO: handle multi-searchnode case */
-#if 0
-		fst_searchlist_process_reply (FST_PLUGIN->searches, msg_type, msg_data);
-#endif
+
+		if (!FST_ADDITIONAL_SESSIONS)
+			fst_searchlist_process_reply (FST_PLUGIN->searches, msg_type, msg_data);
 		break;
 	}
 
