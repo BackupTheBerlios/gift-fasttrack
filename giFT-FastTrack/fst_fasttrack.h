@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Markus Kern (mkern@users.sourceforge.net)
+ * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -100,7 +100,7 @@ typedef unsigned int fst_uint32;
 #define FST_MAX_SEARCH_RESULTS 0xFF	// max number of results we want to be returned per search
 
 // various timeouts in ms
-#define FST_SESSION_CONNECT_TIMEOUT		(3*1000)
+#define FST_SESSION_CONNECT_TIMEOUT		(5*1000)
 #define FST_SESSION_HANDSHAKE_TIMEOUT	(8*1000)
 
 #define FST_DOWNLOAD_CONNECT_TIMEOUT		(20*1000)

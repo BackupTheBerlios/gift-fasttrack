@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Markus Kern (mkern@users.sourceforge.net)
+ * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -23,9 +23,24 @@ typedef unsigned int u32;
 
 static u32 mix_major0(u32 *state, u32 extra_state);
 
-void enc_type_2 (unsigned char *key, unsigned int seed)
+static void reverse_bytes (unsigned char *buf, unsigned int longs)
 {
-	mix_major0 ((unsigned int *)key, seed);
+	for(; longs; longs--, buf+=4) {
+		*((unsigned int *)buf)= ((unsigned int) buf[3] << 8 | buf[2]) << 16 |
+								((unsigned int) buf[1] << 8 | buf[0]);
+	}
+}
+
+void enc_type_2 (unsigned int *key, unsigned int seed)
+{
+	// reverse byte order for big-endian machines, this is harmles on little-endian
+	reverse_bytes ((unsigned char*)key, 20);
+	reverse_bytes ((unsigned char*)&seed, 1);
+
+	mix_major0 (key, seed);
+
+	// and reverse again
+	reverse_bytes ((unsigned char*)key, 20);
 }
 
 static u32 mix_major0(u32 *state, u32 extra_state);

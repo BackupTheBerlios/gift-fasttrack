@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Markus Kern (mkern@users.sourceforge.net)
+ * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -32,7 +32,7 @@ typedef int THROWS_RET;
 
 /* some constants and helper funcs */ 
 
-double math_const_1 = 1.e-003;
+double math_const_1 = 0.001;
 double math_const_2 = 0;
 
 static unsigned int ROR(unsigned int value, unsigned int count)
@@ -52,13 +52,28 @@ static unsigned int my_ftol (double var)
 	return (unsigned int)var;
 }
 
+static void reverse_bytes (unsigned char *buf, unsigned int longs)
+{
+	for(; longs; longs--, buf+=4) {
+		*((unsigned int *)buf)= ((unsigned int) buf[3] << 8 | buf[2]) << 16 |
+								((unsigned int) buf[1] << 8 | buf[0]);
+	}
+}
+
 /* the entry point of this mess */
 
 THROWS_RET enc_20_mix (unsigned char *key, unsigned int seed);
 
-void enc_type_20 (unsigned char *key, unsigned int seed)
+void enc_type_20 (unsigned int *key, unsigned int seed)
 {
-	enc_20_mix (key, seed);
+	// reverse byte order for big-endian machines, this is harmles on little-endian
+	reverse_bytes ((unsigned char*)key, 20);
+	reverse_bytes ((unsigned char*)&seed, 1);
+
+	enc_20_mix ((unsigned char*)key, seed);
+
+	// and reverse again
+	reverse_bytes ((unsigned char*)key, 20);
 }
 
 /* major functions which make calls to other funcs */

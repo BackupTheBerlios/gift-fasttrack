@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Markus Kern (mkern@users.sourceforge.net)
+ * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -138,6 +138,7 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 		// something else with a size of 37 byte follows, dunno what it is
 
 		FST_DBG_3 ("received network stats: %d users, %d files, %d GB", FST_PLUGIN->stats->users, FST_PLUGIN->stats->files, FST_PLUGIN->stats->size);
+//		print_bin_data(msg_data->data, fst_packet_remaining(msg_data));
 		break;
 	}
 

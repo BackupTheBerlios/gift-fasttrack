@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Markus Kern (mkern@users.sourceforge.net)
+ * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -45,13 +45,13 @@ void gift_cb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk, Sourc
 
 	if(complete)
 	{
-		FST_HEAVY_DBG_2 ("removing completed download from %s:%d", net_ip_str(download->ip), download->port);
+		FST_DBG_2 ("removing completed download from %s:%d", net_ip_str(download->ip), download->port);
 		FST_PROTO->source_status (FST_PROTO, chunk->source, SOURCE_COMPLETE, "Complete");
 		fst_download_stop (download);
 	}
 	else
 	{
-		FST_HEAVY_DBG_2 ("removing cancelled download from %s:%d", net_ip_str(download->ip), download->port);
+		FST_DBG_2 ("removing cancelled download from %s:%d", net_ip_str(download->ip), download->port);
 		FST_PROTO->source_status (FST_PROTO, chunk->source, SOURCE_CANCELLED, "Cancelled");
 		fst_download_stop (download);
 	}
@@ -184,6 +184,8 @@ static void download_connected(int fd, input_id input, FSTDownload *download)
 	fst_http_request_set_header (request, "Connection", "close");
 	fst_http_request_set_header (request, "X-Kazaa-Network", FST_NETWORK_NAME);
 	fst_http_request_set_header (request, "X-Kazaa-Username", FST_USER_NAME);
+	// participation level testing
+//	fst_http_request_set_header (request, "X-Kazaa-Xfer-Uid", "tT0kQl2MowSPzOeAySiXxpmLVdzyQN9sxn6aUnDNxmM=");
 	// host
 	sprintf (buf, "%s:%d", net_ip_str (download->ip), download->port);
 	fst_http_request_set_header (request, "Host", buf);
@@ -280,11 +282,11 @@ static void download_read_header(int fd, input_id input, FSTDownload *download)
 		int start, stop;
 		sscanf (p, "bytes %d-%d", &start, &stop);
 
-		if(start != download->chunk->start || stop != download->chunk->stop-1)
+		// longer ranges than requested should be ok since giFT handles this
+		if(start != download->chunk->start + download->chunk->transmit || stop < download->chunk->stop-1)
 		{
-			// longer ranges than requested should be ok since giFT handles this
 			FST_DBG ("WARNING: removing source due to range mismatch");
-			FST_DBG_2 ("\trequested range: %d-%d", download->chunk->start, download->chunk->stop - 1);
+			FST_DBG_2 ("\trequested range: %d-%d", download->chunk->start + download->chunk->transmit, download->chunk->stop - 1);
 			FST_DBG_2 ("\treceived range: %d-%d", start, stop);
 			if((p = fst_http_reply_get_header (reply, "content-length")))
 				FST_DBG_1 ("\tcontent-length: %s", p);

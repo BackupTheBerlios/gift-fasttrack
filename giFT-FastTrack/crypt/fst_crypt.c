@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Markus Kern (mkern@users.sourceforge.net)
+ * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -19,9 +19,9 @@
 /*****************************************************************************/
 
 // crypt functions
-void enc_type_1 (unsigned char *out_key, unsigned char *in_key);
-void enc_type_2 (unsigned char *key, unsigned int seed);
-void enc_type_20 (unsigned char *key, unsigned int seed);
+void enc_type_1 (unsigned int *out_key, unsigned int *in_key);
+void enc_type_2 (unsigned int *key, unsigned int seed);
+void enc_type_20 (unsigned int *key, unsigned int seed);
 
 
 /*****************************************************************************/
@@ -168,11 +168,8 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 
 	if((enc_type & 1) || !(enc_type & 0x1E7))
 	{
-		unsigned char key_256[256];
-		unsigned char key3_256[256];
-//		unsigned int *p_table = cipher_table_1;
-//		unsigned char *p_key = key_256;
-//		unsigned char *p_key3 = key3_256;
+		unsigned char key_256_in[256];
+		unsigned char key_256_out[256];
 
 		FST_HEAVY_DBG ("pad_init: enc_type & 1");
 
@@ -180,38 +177,20 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 		{
 			seed = seed_step(seed);
 			temp = seed >> 0x11;
-			key_256[i] = (unsigned char) (temp % 0xE0);
+			key_256_in[i] = (unsigned char) (temp % 0xE0);
 		}
-/*
-#ifdef WIN32
-		__asm push p_key
-		__asm push p_key3
-		__asm mov ecx, p_table
-		__asm call enc_type_1
-#else
 
-		__asm__(
-			"push %0\n
-			push %2\n
-			mov %1,%%ecx\n
-			call enc_type_1"
-			:
-			:"g"(p_key), "g"(p_table), "g"(p_key3));
-#endif
-*/
-		enc_type_1 (key3_256, key_256);
+		enc_type_1 ((unsigned int*)key_256_out, (unsigned int*)key_256_in);
 
 		// merge with pad
 		for(i=0; i<pad_size; i++)
-//			pad[i] ^= p_key3[i];
-			pad[i] ^= key3_256[i];
+			pad[i] ^= key_256_out[i];
 
 	}
 
 	if(enc_type & 0x1E6)
 	{
 		unsigned int key_80[20];
-		unsigned char *p_key = (unsigned char*)key_80;
 
 		FST_HEAVY_DBG ("pad_init: enc_type & 0x1E6");
 
@@ -226,28 +205,13 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 			FST_HEAVY_DBG ("pad_init: enc_type & 0x02");
 			seed = seed_step(seed);
 
-			enc_type_2 (p_key, seed);
+			enc_type_2 (key_80, seed);
 		}
 
 		if(enc_type & 0x04)
 		{
 			FST_DBG ("pad_init: enc_type & 0x04, WARNING: not implemented");
 			seed = seed_step(seed);
-
-/*
-#ifdef WIN32
-			__asm mov ecx, p_key
-			__asm mov edx, seed
-			__asm call enc_type_4
-#else
-			__asm__(
-				"mov %0,%%ecx\n
-				mov %1,%%edx\n
-				call enc_type_4"
-				:
-				:"g"(p_key), "g"(seed));
-#endif
-*/
 		}
 
 		if(enc_type & 0x20)
@@ -255,54 +219,24 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 			FST_HEAVY_DBG ("pad_init: enc_type & 0x20");
 			seed = seed_step(seed);
 
-			enc_type_20 (p_key, seed);
+			enc_type_20 (key_80, seed);
 		}
 
 		if(enc_type & 0x80)
 		{
 			FST_DBG ("pad_init: enc_type & 0x80, WARNING: not implemented");
 			seed = seed_step(seed);
-
-/*
-#ifdef WIN32
-			__asm mov ecx, p_key
-			__asm mov edx, seed
-			__asm call enc_type_80
-#else
-			__asm__(
-				"mov %0,%%ecx\n
-				mov %1,%%edx\n
-				call enc_type_80"
-				:
-				:"g"(p_key), "g"(seed));
-#endif
-*/
 		}
 
 		if(enc_type & 0x100)
 		{
 			FST_DBG ("pad_init: enc_type & 0x100, WARNING: not implemented");
 			seed = seed_step(seed);
-
-/*
-#ifdef WIN32
-			__asm mov ecx, p_key
-			__asm mov edx, seed
-			__asm call enc_type_100
-#else
-			__asm__(
-				"mov %0,%%ecx\n
-				mov %1,%%edx\n
-				call enc_type_100"
-				:
-				:"g"(p_key), "g"(seed));
-#endif
-*/
 		}
 
 		// merge with pad
 		for(i=0; i<pad_size; i++)
-			pad[i] ^= p_key[i];
+			pad[i] ^= ((unsigned char*)key_80)[i];
 
 	}
 	*pseed = seed;
@@ -436,7 +370,7 @@ static unsigned int calculate_num_xor(unsigned int seed)
 	}
 
 	seed = seed_step(seed);
-	enc_type_2 ((unsigned char *)key_80, seed);
+	enc_type_2 (key_80, seed);
 
 	return key_80[7];
 }
@@ -498,7 +432,6 @@ static unsigned int seed_step(unsigned int seed)
  */
 static int qsort_cmp_func(const void *ap, const void *bp)
 {
-
     int a = (int)*(unsigned char *)ap;
     int b = (int)*(unsigned char *)bp;
 
