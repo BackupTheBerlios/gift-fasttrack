@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.53 2004/03/04 09:44:13 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.54 2004/03/04 09:48:16 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -461,8 +461,8 @@ static int fst_giftcb_start (Protocol *proto)
 
 	if (p != FST_PLUGIN->username)
 	{
-		FST_WARN_1 ("Invalid character '%c' found in username. Truncating to \"%s\"",
-		            ,p[-1], FST_PLUGIN->username);
+		FST_WARN_2 ("Invalid character '%c' found in username. Truncating to \"%s\"",
+		            p[-1], FST_PLUGIN->username);
 
 		if (strlen (FST_PLUGIN->username) == 0)
 		{
