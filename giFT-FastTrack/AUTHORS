@@ -1,7 +1,9 @@
- $Id: AUTHORS,v 1.6 2003/07/14 19:52:50 mkern Exp $
+ $Id: AUTHORS,v 1.7 2003/09/19 14:42:40 mkern Exp $
 
 (pretender) mkern@users.berlios.de    [Developer / Project Admin]
 (cirdan)    beren12@users.berlios.de  [Developer]
 (weinholt)  weinholt@users.berlios.de [Developer]
 (rasa)      rasa@users.berlios.de     [Developer / windows port]
 (HEx)       HEx@users.berlios.de      [Developer]
+            fcatrin@tuxpan.com        [Packager / RPM]
+            fcatrin@tuxpan.com        [Packager / RPM]
