@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.48 2004/03/02 23:14:38 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.49 2004/03/03 16:57:07 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -366,13 +366,13 @@ static int fst_plugin_session_callback (FSTSession *session,
 
 /*****************************************************************************/
 
-int copy_default_file (const char *filename)
+static int copy_default_file (const char *srcfile, const char *dstfile)
 {
 	char *local_path, *default_path, *target_dir;
 
 	target_dir = stringf_dup ("%s/FastTrack", platform_local_dir());
-	local_path = stringf_dup ("%s/FastTrack/%s", platform_local_dir(), filename);
-	default_path = stringf_dup ("%s/FastTrack/%s", platform_data_dir(), filename);
+	local_path = stringf_dup ("%s/FastTrack/%s", platform_local_dir(), dstfile);
+	default_path = stringf_dup ("%s/FastTrack/%s", platform_data_dir(), srcfile);
 
 	if (!file_exists (local_path))
 	{
@@ -415,7 +415,7 @@ static int fst_giftcb_start (Protocol *p)
 {
 	FSTPlugin *plugin;
 	int i;
-	char *filepath;
+	char *filepath, *p;
 	in_port_t server_port;
 
 	FST_DBG ("starting up");
@@ -424,7 +424,7 @@ static int fst_giftcb_start (Protocol *p)
 		return FALSE;
 
 	/* init config and copy to local config if missing */
-	copy_default_file ("FastTrack.conf");
+	copy_default_file ("FastTrack.conf.template", "FastTrack.conf");
 	
 	if (! (plugin->conf = gift_config_new ("FastTrack")))
 	{
@@ -440,11 +440,27 @@ static int fst_giftcb_start (Protocol *p)
 	FST_PLUGIN->username = strdup (config_get_str (FST_PLUGIN->conf,
 	                                               "main/alias=giFTed"));
 
+	/* Make sure there are no spaces in the user name. Should probably filter
+	 * other stuff too.
+	 */
+	if ((p = strchr (FST_PLUGIN->username, ' ')))
+	{
+		FST_WARN_1 ("Whitespace found in username \"%s\". Truncating at first occurrence.",
+		            FST_PLUGIN->username);
+		*p = 0;
+
+		if (strlen (FST_PLUGIN->username) == 0)
+		{
+			free (FST_PLUGIN->username);
+			FST_PLUGIN->username = strdup ("giFTed");
+		}
+	}
+
 	/* init node cache */
 	FST_PLUGIN->nodecache = fst_nodecache_create ();
 
 	/* load nodes file, copy default if necessary */
-	copy_default_file ("nodes");
+	copy_default_file ("nodes", "nodes");
 
 	filepath = gift_conf_path ("FastTrack/nodes");
 	i = fst_nodecache_load (plugin->nodecache, filepath);
@@ -459,7 +475,7 @@ static int fst_giftcb_start (Protocol *p)
 	FST_PLUGIN->banlist = fst_ipset_create ();
 
 	/* load ban list, copy default if necessary */
-	copy_default_file ("banlist");
+	copy_default_file ("banlist", "banlist");
 
 	filepath = gift_conf_path ("FastTrack/banlist");
 	i = fst_ipset_load (FST_PLUGIN->banlist, filepath);

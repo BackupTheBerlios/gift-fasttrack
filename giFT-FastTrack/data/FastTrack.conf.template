@@ -1,23 +1,21 @@
-
 # FastTrack/FastTrack.conf
 ###############################################################################
 
 ###############################################################################
+# MAIN
 
 [main]
 
 #
 # Your username. FastTrack will not allow access to the network without a
 # username. The username is not unique on the network and is not to be trusted.
-# The username _must not_ contain spaces!
+# The username must _not_ contain _whitespaces_!
 #
-
 alias = giFTed
 
 #
-# The port FastTrack will listen on for incoming connections.
+# The port FastTrack will listen on for incoming connections. Both TCP and UDP.
 #
-
 port = 1214
 
 #
@@ -26,7 +24,6 @@ port = 1214
 # outside_ip and inside_ip are determined automatically.
 # Set this to zero if you are not forwarding.
 #
-
 forwarding = 0
 
 #
@@ -34,12 +31,10 @@ forwarding = 0
 # If set to 0 files will never be shared on FastTrack even if giFT
 # shares on other networks.
 #
-
 allow_sharing = 1
 
 #
 # If set to 1 FastTrack will filter out all search results which come from
 # ips matching the ranges specified in the file ~/.giFT/FastTrack/banlist
 #
-
 banlist_filter = 1

@@ -1,12 +1,14 @@
- $Id: ChangeLog,v 1.16 2004/03/03 16:09:09 mkern Exp $
+ $Id: ChangeLog,v 1.17 2004/03/03 16:57:07 mkern Exp $
 
 2004-03-03  Markus Kern <mkern@users.berlios.de>
 
-	* Calculate availability based on reported bandwidth
+	* Calculate availability based on reported bandwidth.
+	* Let gift-setup handle the config file.
+	* Check for invalid whitespaces in usernames.
 
 2004-03-02  Markus Kern <mkern@users.berlios.de>
 
-	* Don't sort out index nodes when saving node list
+	* Don't sort out index nodes when saving node list.
 	* Limit number of shared files so supernodes don't reject us.
 
 2004-02-29  Markus Kern <mkern@users.berlios.de>
