@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.56 2004/03/04 14:19:40 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.57 2004/03/04 14:37:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -40,6 +40,12 @@ static int fst_plugin_session_callback (FSTSession *session,
 /*
  * Note: the connect control flow is wicked. modify with extreme care.
  */
+
+static BOOL fst_plugin_netfail_timer (void *udata)
+{
+	fst_plugin_connect_next ();
+	return FALSE;
+}
 
 static void fst_plugin_connect_next ()
 {
@@ -90,11 +96,24 @@ static void fst_plugin_connect_next ()
 		}
 		else
 		{
-			/* TODO: if connect fails due to net down idle for a while */
-
 			/* free session */
 			fst_session_free (FST_PLUGIN->session);
 			FST_PLUGIN->session = NULL;
+
+			/* TODO: check if name resolution in fst_session_connect() failed */
+			if (1)
+			{
+				/* network down, wait a while before retrying */
+				FST_WARN_1 ("Internet connection seems down, sleeping for %d seconds.",
+				            FST_SESSION_NETFAIL_INTERVAL / SECONDS);
+
+				timer_add (FST_SESSION_NETFAIL_INTERVAL,
+				           fst_plugin_netfail_timer,NULL);
+
+				fst_node_free (node);
+				return;
+			}
+
 			/* remove this node from cache */
 			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
 			fst_node_free (node);
