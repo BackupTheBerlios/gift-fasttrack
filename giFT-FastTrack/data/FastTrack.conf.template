@@ -24,14 +24,14 @@ port = 1214
 # outside_ip and inside_ip are determined automatically.
 # Set this to zero if you are not forwarding.
 #
-forwarding = 0
+forwarding = 1
 
 #
 # If set to 1 FastTrack will share files as configured with giFT.
 # If set to 0 files will never be shared on FastTrack even if giFT
 # shares on other networks.
 #
-allow_sharing = 1
+allow_sharing = 0
 
 #
 # If set to 1 FastTrack will filter out all search results which come from
@@ -46,7 +46,7 @@ banlist_filter = 1
 # search after the initial one.
 # Don't overdo it! The supernode will disconnect you for excessive searching.
 #
-auto_search_more = 1
+auto_search_more = 2
 
 #
 # Number of additional supernode connections we keep besides the main one.
