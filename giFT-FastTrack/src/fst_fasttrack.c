@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_fasttrack.c,v 1.3 2003/06/20 21:16:22 beren12 Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -33,7 +33,7 @@ static int fst_plugin_connect_next()
 	FSTNode *node;
 
 	// remove old node from node cache
-	if(FST_PLUGIN->session && FST_PLUGIN->session->node)
+	if (FST_PLUGIN->session && FST_PLUGIN->session->node)
 		fst_nodecache_remove (FST_PLUGIN->nodecache, FST_PLUGIN->session->node->host);
 
 	// free old session
@@ -105,7 +105,7 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 		FST_DBG_1 ("added %d received supernode IPs to nodes list", i);
 
 		// if we got this from an index node disconnect now and use a supernode
-		if(session->node->klass == NodeKlassIndex)
+		if (session->node->klass == NodeKlassIndex)
 		{
 			fst_session_disconnect (session); // this calls us back with SessMsgDisconnected
 			return FALSE;
@@ -117,7 +117,7 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 	{
 		unsigned int mantissa, exponent;
 
-		if(fst_packet_remaining(msg_data) < 12) // 97 bytes total now? was 60?
+		if (fst_packet_remaining(msg_data) < 12) // 97 bytes total now? was 60?
 			break;
 
 		FST_PLUGIN->stats->users = ntohl(fst_packet_get_uint32 (msg_data));	// number of users
@@ -152,7 +152,7 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 		packet = fst_packet_create();
 		fst_packet_put_ustr (packet, FST_NETWORK_NAME, strlen(FST_NETWORK_NAME));
 
-		if(fst_session_send_message (session, SessMsgNetworkName, packet) == FALSE)
+		if (fst_session_send_message (session, SessMsgNetworkName, packet) == FALSE)
 		{
 			fst_packet_free (packet);
 			fst_session_disconnect (session);
@@ -189,12 +189,14 @@ static int gift_cb_start (Protocol *p)
 	FSTPlugin *plugin = malloc (sizeof(FSTPlugin));
 	int i;
 	char *nodesfile;
+	char *local_nodes;
+
 
 	FST_DBG ("fst_cb_start: starting up");
 
 	// init config
 /*
-	if((plugin->conf = gift_config_new ("FastTrack")) == NULL)
+	if ((plugin->conf = gift_config_new ("FastTrack")) == NULL)
 	{
 		free (plugin);
 		FST_DBG ("unable to load fasttrack configuration");
@@ -211,13 +213,29 @@ static int gift_cb_start (Protocol *p)
 	// init node cache
 	plugin->nodecache = fst_nodecache_create ();
 
+	if (!(local_nodes = gift_conf_path ("FastTrack/nodes")))
+	{
+		FST_DBG ("Unable to open local nodes file.");
+			return 0;
+	}
+
+        /* Attempt to open the locally installed nodes file; if this fails we
+         * should try the global cache. */
+
+
 	nodesfile = gift_conf_path ("FastTrack/nodes");
 	i = fst_nodecache_load (plugin->nodecache, nodesfile);
 
-	if(i < 0)
-		FST_DBG_1 ("couldn't open nodes file \"%s\". fix that!", nodesfile);
-	else
-		FST_DBG_2 ("loaded %d supernode addresses from nodes file \"%s\"", i, nodesfile);
+	if (i < 0) {
+		FST_DBG_1 ("couldn't find any nodes in \"%s\". Trying global list", nodesfile);
+		nodesfile = stringf ("%s/FastTrack/nodes", platform_data_dir());
+		i = fst_nodecache_load (plugin->nodecache, nodesfile);
+		if (i < 0)
+			FST_DBG_1 ("couldn't find any nodes in \"%s\".", nodesfile);
+		else
+			FST_DBG_2 ("loaded %d supernode addresses from global nodes file \"%s\"", i, nodesfile);
+	} else
+		FST_DBG_2 ("loaded %d supernode addresses from local nodes file \"%s\"", i, nodesfile);
 
 	// init searches
 	plugin->searches = fst_searchlist_create();
@@ -239,7 +257,7 @@ static void gift_cb_destroy (Protocol *p)
 
 	FST_DBG ("fst_cb_destroy: shutting down");
 
-	if(!FST_PLUGIN)
+	if (!FST_PLUGIN)
 		return;
 
 	// free stats
@@ -254,7 +272,7 @@ static void gift_cb_destroy (Protocol *p)
 	// save and free nodes
 	nodesfile = gift_conf_path ("FastTrack/nodes");
 	i = fst_nodecache_save (FST_PLUGIN->nodecache, nodesfile);
-	if(i < 0)
+	if (i < 0)
 		FST_DBG_1 ("couldn't save nodes file \"%s\"", nodesfile);
 	else
 		FST_DBG_2 ("saved %d supernode addresses to nodes file \"%s\"", i, nodesfile);

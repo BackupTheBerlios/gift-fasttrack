@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.3 2003/06/20 20:15:30 beren12 Exp $
+ * $Id: fst_fasttrack.h,v 1.4 2003/06/20 21:16:22 beren12 Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -18,21 +18,6 @@
 #define __FASTTRACK_H
 
 /*****************************************************************************/
-
-#include <libgift/giftconfig.h>
-
-#if TIME_WITH_SYS_TIME
-# include <time.h>
-# include <sys/time.h>
-#else /* !TIME_WITH_SYS_TIME */
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif /* TIME_WITH_SYS_TIME */
- 
-#include <stdint.h>
 
 #define FILE_LINE_FUNC __FILE__,__LINE__,__PRETTY_FUNCTION__
 
@@ -61,6 +46,21 @@
 
 #define GIFT_PLUGIN
 #include <libgift/libgift.h>
+
+#include <libgift/giftconfig.h>
+
+#if TIME_WITH_SYS_TIME
+# include <time.h>
+# include <sys/time.h>
+#else /* !TIME_WITH_SYS_TIME */
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif /* TIME_WITH_SYS_TIME */
+
+#include <stdint.h>
 
 typedef int8_t   fst_int8;
 typedef uint8_t  fst_uint8;
