@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.c,v 1.4 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_http_client.c,v 1.5 2003/12/23 18:04:38 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -412,6 +412,8 @@ static void client_read_header (int fd, input_id input, FSTHttpClient *client)
 
 static void client_read_body (int fd, input_id input, FSTHttpClient *client)
 {
+	int len;
+	
 	if (net_sock_error (fd))
 	{
 		/* request failed */
@@ -424,10 +426,9 @@ static void client_read_body (int fd, input_id input, FSTHttpClient *client)
 	}
 
 	/* read next part of body */
-	client->data_len = tcp_recv(client->tcpcon, client->data,
-								HTCL_DATA_BUFFER_SIZE);
+	len = tcp_recv(client->tcpcon, client->data, HTCL_DATA_BUFFER_SIZE);
 
-	if (client->data_len <= 0)
+	if (len <= 0)
 	{
 		/* connection closed */
 		FST_HEAVY_DBG_3 ("tcp_recv() <= 0 for %s [%s]:%d",
@@ -437,6 +438,8 @@ static void client_read_body (int fd, input_id input, FSTHttpClient *client)
 		client->callback (client, HTCL_CB_DATA_LAST);
 		return;
 	}
+
+	client->data_len = len;
 
 	if (! client_write_data (client))
 	{
