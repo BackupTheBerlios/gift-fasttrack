@@ -1,5 +1,5 @@
 /*
- * $Id: fst_upload.c,v 1.1 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_upload.c,v 1.2 2003/11/28 17:09:40 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -213,7 +213,7 @@ void fst_giftcb_upload_stop (Protocol *p, Transfer *transfer,
 		return;
 	}
 
-	FST_DBG_2 ("fst_giftcb_upload_stop called for uri %s, uploaded %d bytes",
+	FST_DBG_2 ("finished upload for uri %s, uploaded %d bytes",
 	           upload->request->uri, chunk->transmit);
 
 	fst_upload_free (upload);
