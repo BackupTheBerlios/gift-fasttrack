@@ -1,6 +1,6 @@
-$Id: TODO,v 1.16 2003/11/28 14:50:14 mkern Exp $
+$Id: TODO,v 1.17 2004/01/23 15:21:23 mkern Exp $
 
-- make node cache smarter / use udp discovery
+- redo udp discovery, only use it as a supplemental to tcp
 - make dowloading less greedy, custom throttle?
 - automatically search more supernodes?
 - make the README clearer
@@ -9,3 +9,5 @@ $Id: TODO,v 1.16 2003/11/28 14:50:14 mkern Exp $
 - respond to push requests
 - make http parser accept "\n\n"
 - add meta tags to http reply
+- remove firewalled sources from incomplete downloads on shutdown
+
