@@ -15,7 +15,13 @@ Compilation & Installation
 --------------------------
 
 run ./autogen.sh and this will run automake and friends, then configure.
+
+Mac OS X users should run LIBTOOL=glibtool LIBTOOLIZE=glibtoolize ./autogen.sh
+(or if use fink to install it, if you have it)
+
 All that is left to do is run make
+
+
 
 There is currently one configure option, --disable-ltdl, if you do not
 want to build libtool libs.
