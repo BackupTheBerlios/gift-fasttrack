@@ -145,6 +145,10 @@ SOURCE=..\src\fst_packet.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\fst_push.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\fst_search.c
 # End Source File
 # Begin Source File
@@ -210,6 +214,10 @@ SOURCE=..\src\fst_node.h
 # Begin Source File
 
 SOURCE=..\src\fst_packet.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\fst_push.h
 # End Source File
 # Begin Source File
 

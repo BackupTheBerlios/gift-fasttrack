@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.11 2003/09/18 19:50:02 mkern Exp $
+ * $Id: fst_search.c,v 1.12 2003/09/19 14:23:46 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -127,7 +127,7 @@ void fst_search_free (FSTSearch *search)
 	free (search);
 }
 
-// send search request to supernode via this session
+/* send search request to supernode via this session */
 int fst_search_send_query (FSTSearch *search, FSTSession *session)
 {
 	FSTPacket *packet = fst_packet_create();
@@ -327,8 +327,8 @@ int fst_searchlist_send_queries (FSTSearchList *searchlist,
 	for (; node; node = node->next)
 	{
 		search = (FSTSearch*)node->data;
-		if(!search->sent || resent)
-			if(fst_search_send_query (search, session) == FALSE)
+		if (!search->sent || resent)
+			if (!fst_search_send_query (search, session))
 				return FALSE;
 		i++;
 	}

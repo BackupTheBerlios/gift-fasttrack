@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.27 2003/09/18 19:50:02 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.28 2003/09/19 14:23:46 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -25,7 +25,9 @@ Protocol *fst_proto = NULL;
 
 /*****************************************************************************/
 
-static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_type, FSTPacket *msg_data);
+static int fst_plugin_session_callback (FSTSession *session,
+										FSTSessionMsg msg_type,
+										FSTPacket *msg_data);
 
 /*****************************************************************************/
 
@@ -39,7 +41,10 @@ static int fst_plugin_connect_next()
 		{
 			/* remove old node from node cache */
 			if (FST_PLUGIN->session->node)
-				fst_nodecache_remove (FST_PLUGIN->nodecache, FST_PLUGIN->session->node->host);
+			{
+				fst_nodecache_remove (FST_PLUGIN->nodecache,
+									  FST_PLUGIN->session->node->host);
+			}
 
 			/* free old session */
 			fst_session_free (FST_PLUGIN->session);
@@ -53,11 +58,14 @@ static int fst_plugin_connect_next()
 		{
 			FST_WARN ("Ran out of nodes. Trying some static hosts");
 
-			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex, "fm2.imesh.com", 1214, 0, 0);
+			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex,
+							   "fm2.imesh.com", 1214, 0, 0);
 			node = fst_nodecache_get_front (FST_PLUGIN->nodecache);
 		}
 
-		/* remove new node from cache so restarting can be used to force use of another node */
+		/* remove new node from cache so restarting can be used to
+		 * force use of another node
+		 */
 		fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
 
 		/* create session */
@@ -93,13 +101,18 @@ static in_addr_t my_net_local_ip (int fd, in_port_t *port)
 /*****************************************************************************/
 
 
-static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_type, FSTPacket *msg_data)
+static int fst_plugin_session_callback (FSTSession *session,
+										FSTSessionMsg msg_type,
+										FSTPacket *msg_data)
 {
 	switch (msg_type)
 	{
 	/* session management messages */
 	case SessMsgConnected:
 	{
+		/* determine local ip */
+		FST_PLUGIN->local_ip = my_net_local_ip (session->tcpcon->fd, NULL);
+		FST_DBG_1 ("local ip: %s", net_ip_str (FST_PLUGIN->local_ip));
 		break;
 	}
 
@@ -108,15 +121,8 @@ static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_t
 		FST_DBG_3 ("supernode connection established to %s:%d, load: %d%%",
 				   session->node->host, session->node->port, session->node->load);
 
-		/* determine local ip */
-		FST_PLUGIN->local_ip = my_net_local_ip (session->tcpcon->fd, NULL);
-		FST_DBG_1 ("local ip: %s", net_ip_str (FST_PLUGIN->local_ip));
-
-		/* resent queries for all running searches */
-		/* TODO: greet supernode first! */
-/*
-*		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
-*/
+		/* resend queries for all running searches */
+		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
 		break;
 	}
 
@@ -132,42 +138,47 @@ static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_t
 	}
 
 	/* FastTrack messages */
-	case SessMsgNodeList:	/* supernode sent ip list */
+	case SessMsgNodeList:
 	{
 		int i;
 		time_t now = time (NULL); 
 
-		for(i=0; fst_packet_remaining(msg_data) >= 8; i++)
+		for (i=0; fst_packet_remaining (msg_data) >= 8; i++)
 		{
 			unsigned long ip		= fst_packet_get_uint32 (msg_data);			
 			unsigned short port		= ntohs (fst_packet_get_uint16 (msg_data));	
-			unsigned int last_seen		= fst_packet_get_uint8 (msg_data);			
+			unsigned int last_seen	= fst_packet_get_uint8 (msg_data);			
 			unsigned int load		= fst_packet_get_uint8 (msg_data);		
-
-//			FST_DBG_4 ("node: %s:%d   load: %d%% last_seen: %d mins ago", net_ip_str(ip), port, load, last_seen);
-			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper, net_ip_str (ip), port, load, now - last_seen * 60);
+/*
+			FST_DBG_4 ("node: %s:%d   load: %d%% last_seen: %d mins ago",
+					   net_ip_str(ip), port, load, last_seen);
+*/
+			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
+							   net_ip_str (ip), port, load, now - last_seen * 60);
 		}
+
 		FST_DBG_1 ("added %d received supernode IPs to nodes list", i);
 
 		/* if we got this from an index node disconnect now and use a supernode */
 		if (session->node->klass == NodeKlassIndex)
 		{
 			FST_DBG ("disconnecting from index node");
-			fst_session_disconnect (session);	/* this calls us back with SessMsgDisconnected */
+			/* this calls us back with SessMsgDisconnected */
+			fst_session_disconnect (session);
 			return FALSE;
 		}
 		break;
 	}
 
-	case SessMsgNetworkStats:	/* network statistics */
+	case SessMsgNetworkStats:
 	{
 		unsigned int mantissa, exponent;
 
-		if (fst_packet_remaining (msg_data) < 12)	/* 97 bytes total now? was 60? */
+		if (fst_packet_remaining (msg_data) < 12)
 			break;
 
-		FST_PLUGIN->stats->users = ntohl (fst_packet_get_uint32 (msg_data));	/* number of users */
-		FST_PLUGIN->stats->files = ntohl(fst_packet_get_uint32 (msg_data));	/* number of files */
+		FST_PLUGIN->stats->users = ntohl (fst_packet_get_uint32 (msg_data));
+		FST_PLUGIN->stats->files = ntohl (fst_packet_get_uint32 (msg_data));
 
 		mantissa = ntohs(fst_packet_get_uint16 (msg_data));	/* mantissa of size */
 		exponent = ntohs(fst_packet_get_uint16 (msg_data));	/* exponent of size */
@@ -177,9 +188,12 @@ static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_t
     	else
 			FST_PLUGIN->stats->size = mantissa >> (30 - exponent);
 
-		/* what follows in the packet is the number of files and their size per media type (6 times)
+		/* what follows in the packet is the number of files and their size
+		 * per media type (6 times).
+		 * Then optionally the different network names and the number of
+		 * their users.
 		 * we do not currently care for those
-		 * something else with a size of 37 byte follows, dunno what it is */
+		 */
 
 		FST_DBG_3 ("received network stats: %d users, %d files, %d GB",
 				   FST_PLUGIN->stats->users,
@@ -188,46 +202,53 @@ static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_t
 		break;
 	}
 
-	case SessMsgNetworkName:		/* remote network name */
+	case SessMsgNetworkName:
 	{
 		FSTPacket *packet;
 		char *net_name = STRDUP_N (msg_data->data, fst_packet_size(msg_data));
 
-		FST_DBG_2 ("received network name: \"%s\", sending ours: \"%s\"", net_name ,FST_NETWORK_NAME);
+		FST_DBG_2 ("received network name: \"%s\", sending ours: \"%s\"",
+				   net_name ,FST_NETWORK_NAME);
 		free (net_name);
 
-		packet = fst_packet_create();
-		fst_packet_put_ustr (packet, FST_NETWORK_NAME, strlen(FST_NETWORK_NAME));
+		if (! (packet = fst_packet_create ()))
+			break; /* not overly important, just don't send it */
 
-		if (fst_session_send_message (session, SessMsgNetworkName, packet) == FALSE)
+		fst_packet_put_ustr (packet, FST_NETWORK_NAME, strlen (FST_NETWORK_NAME));
+
+		if (!fst_session_send_message (session, SessMsgNetworkName, packet))
 		{
 			fst_packet_free (packet);
 			fst_session_disconnect (session);
 			return FALSE;
 		}
 
-		fst_packet_free(packet);
+		fst_packet_free (packet);
 		break;
 	}
 
 	case SessMsgExternalIp:
+	{
 		FST_PLUGIN->external_ip = fst_packet_get_uint32 (msg_data);
-		FST_DBG_1 ("received external ip: %s", net_ip_str (FST_PLUGIN->external_ip));
+		FST_DBG_1 ("received external ip: %s",
+				   net_ip_str (FST_PLUGIN->external_ip));
 		break;
+	}
 
 	case SessMsgQueryReply:
 	case SessMsgQueryEnd:
 	{
-//		save_bin_data(msg_data->data, fst_packet_remaining(msg_data));
 		fst_searchlist_process_reply (FST_PLUGIN->searches, msg_type, msg_data);
 		break;
 	}
 
 	default:
 /*
-*		FST_DBG_2 ("unhandled message: type = 0x%02x, length = %d", msg_type, fst_packet_size(msg_data));
-*		printf("\nunhandled message: type = 0x%02x, length = %d", msg_type, fst_packet_size(msg_data));
-*		print_bin_data(msg_data->data, fst_packet_remaining(msg_data));
+		FST_DBG_2 ("unhandled message: type = 0x%02x, length = %d",
+				   msg_type, fst_packet_size(msg_data));
+		printf("\nunhandled message: type = 0x%02x, length = %d",
+			   msg_type, fst_packet_size(msg_data));
+		print_bin_data(msg_data->data, fst_packet_remaining(msg_data));
 */
 		break;
 	}
@@ -293,7 +314,8 @@ static int fst_giftcb_start (Protocol *p)
 	p->udata = (void*)plugin;
 
 	/* cache user name */
-	FST_PLUGIN->username = strdup (config_get_str (FST_PLUGIN->conf, "main/alias=giFTed"));
+	FST_PLUGIN->username = strdup (config_get_str (FST_PLUGIN->conf,
+												   "main/alias=giFTed"));
 
 	/* init node cache */
 	FST_PLUGIN->nodecache = fst_nodecache_create ();
@@ -307,7 +329,8 @@ static int fst_giftcb_start (Protocol *p)
 	if (i < 0)
 		FST_WARN_1 ("Couldn't find nodes file \"%s\". Fix that!", filepath);
 	else
-		FST_DBG_2 ("Loaded %d supernode addresses from nodes file \"%s\"", i, filepath);
+		FST_DBG_2 ("Loaded %d supernode addresses from nodes file \"%s\"",
+				   i, filepath);
 
 	/* create list of banned ips */
 	FST_PLUGIN->banlist = fst_ipset_create ();
@@ -369,7 +392,8 @@ static int fst_giftcb_start (Protocol *p)
 
 	/* temporary, until we have a way to find useful nodes faster */
 	FST_DBG ("adding fm2.imesh.com:1214 as temporary index node");
-	fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex, "fm2.imesh.com", 1214, 0, time(NULL));
+	fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex,
+					   "fm2.imesh.com", 1214, 0, time (NULL));
 
 	/* start first connection */
 	fst_plugin_connect_next ();
@@ -412,7 +436,8 @@ static void fst_giftcb_destroy (Protocol *p)
 	if (i < 0)
 		FST_WARN_1 ("couldn't save nodes file \"%s\"", nodesfile);
 	else
-		FST_DBG_2 ("saved %d supernode addresses to nodes file \"%s\"", i, nodesfile);
+		FST_DBG_2 ("saved %d supernode addresses to nodes file \"%s\"",
+				   i, nodesfile);
 	fst_nodecache_free (FST_PLUGIN->nodecache);
 
 	/* free cached user name */
