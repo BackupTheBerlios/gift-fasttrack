@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.9 2003/06/21 17:17:08 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.10 2003/06/22 12:21:18 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project http://developer.berlios.de/projects/gift-fasttrack
  *
@@ -43,6 +43,16 @@
 # define FST_HEAVY_DBG_4(fmt,a,b,c,d)
 # define FST_HEAVY_DBG_5(fmt,a,b,c,d,e)
 #endif
+
+#define FST_WARN(fmt)			FST_PROTO->warn(FST_PROTO,fmt)
+#define FST_WARN_1(fmt,a)		FST_PROTO->warn(FST_PROTO,fmt,a)
+#define FST_WARN_2(fmt,a,b)		FST_PROTO->warn(FST_PROTO,fmt,a,b)
+#define FST_WARN_3(fmt,a,b,c)	FST_PROTO->warn(FST_PROTO,fmt,a,b,c)
+
+#define FST_ERR(fmt)			FST_PROTO->err(FST_PROTO,fmt)
+#define FST_ERR_1(fmt,a)		FST_PROTO->err(FST_PROTO,fmt,a)
+#define FST_ERR_2(fmt,a,b)		FST_PROTO->err(FST_PROTO,fmt,a,b)
+#define FST_ERR_3(fmt,a,b,c)	FST_PROTO->err(FST_PROTO,fmt,a,b,c)
 
 #define GIFT_PLUGIN
 #include <libgift/libgift.h>

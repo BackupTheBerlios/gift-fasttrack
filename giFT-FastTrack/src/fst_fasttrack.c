@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.9 2003/06/21 17:26:00 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.10 2003/06/22 12:21:18 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project http://developer.berlios.de/projects/gift-fasttrack
  *
@@ -32,32 +32,38 @@ static int fst_plugin_connect_next()
 {
 	FSTNode *node;
 
-	// remove old node from node cache
-	if (FST_PLUGIN->session && FST_PLUGIN->session->node)
-		fst_nodecache_remove (FST_PLUGIN->nodecache, FST_PLUGIN->session->node->host);
-
-	// free old session
-	fst_session_free (FST_PLUGIN->session);
-	FST_PLUGIN->session = NULL;
-
-	// fetch next node
-	node = fst_nodecache_get_freshest(FST_PLUGIN->nodecache);
-	if (node == NULL)
+	do
 	{
-		FST_DBG ("WARNING: ran out of nodes, trying some static hosts");
-//		fst_nodecache_add (FST_PLUGIN->nodecache, "fm1.imesh.com", 1214, NodeKlassIndex);
-		fst_nodecache_add (FST_PLUGIN->nodecache, "fm2.imesh.com", 1214, NodeKlassIndex);
+		if (FST_PLUGIN->session)
+		{
+			// remove old node from node cache
+			if (FST_PLUGIN->session->node)
+				fst_nodecache_remove (FST_PLUGIN->nodecache, FST_PLUGIN->session->node->host);
+
+			// free old session
+			fst_session_free (FST_PLUGIN->session);
+			FST_PLUGIN->session = NULL;
+		}
+
+		// fetch next node
 		node = fst_nodecache_get_freshest(FST_PLUGIN->nodecache);
 
-//		FST_DBG ("ERROR: ran out of nodes. giving up.");
-//		return FALSE;
-	}
+		if (node == NULL)
+		{
+			FST_WARN ("Ran out of nodes. Trying some static hosts");
 
-	// remove new node from cache so restarting can be used to force use of another node
-	fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+//			fst_nodecache_add (FST_PLUGIN->nodecache, "fm1.imesh.com", 1214, NodeKlassIndex);
+			fst_nodecache_add (FST_PLUGIN->nodecache, "fm2.imesh.com", 1214, NodeKlassIndex);
+			node = fst_nodecache_get_freshest(FST_PLUGIN->nodecache);
+		}
 
-	FST_PLUGIN->session = fst_session_create (fst_plugin_session_callback);
-	fst_session_connect (FST_PLUGIN->session, node);
+		// remove new node from cache so restarting can be used to force use of another node
+		fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+
+		// create session
+		FST_PLUGIN->session = fst_session_create (fst_plugin_session_callback);
+
+	} while(!fst_session_connect (FST_PLUGIN->session, node));
 
 	return TRUE;
 }
@@ -78,7 +84,7 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 	{
 		FST_DBG_2 ("connection established to %s:%d", session->node->host, session->node->port);
 		// resent queries for all running searches
-		fst_searchlist_send_queries (FST_PLUGIN->searches, FST_PLUGIN->session, TRUE);
+		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
 		break;
 	}
 
@@ -138,7 +144,6 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 
 		// what follows in the packet is the number of files and their size per media type (6 times)
 		// we do not currently care for those
-
 		// something else with a size of 37 byte follows, dunno what it is
 
 		FST_DBG_3 ("received network stats: %d users, %d files, %d GB", FST_PLUGIN->stats->users, FST_PLUGIN->stats->files, FST_PLUGIN->stats->size);
@@ -195,7 +200,7 @@ static int gift_cb_start (Protocol *p)
 	char *nodesfile;
 	char *conf_path, *default_conf_path;
 
-	FST_DBG ("fst_cb_start: starting up");
+	FST_DBG ("starting up");
 
 	// init config
 	// copy local config if missing
@@ -203,14 +208,14 @@ static int gift_cb_start (Protocol *p)
 
 	if (!file_exists (conf_path))
 	{
-		FST_DBG ("Local config does not exist, copying default config.");
+		FST_WARN ("Local config does not exist, copying default config.");
 
 		default_conf_path = stringf ("%s/%s", platform_data_dir(), "FastTrack/FastTrack.conf");
 
 		if (!file_cp (default_conf_path, conf_path))
 		{		
 			free (plugin);
-			FST_DBG ("Unable to copy default fasttrack configuration, exiting plugin.");
+			FST_ERR ("Unable to copy default fasttrack configuration, exiting plugin.");
 			return FALSE;
 		}
 	}
@@ -218,7 +223,7 @@ static int gift_cb_start (Protocol *p)
 	if (!(plugin->conf = gift_config_new ("FastTrack"))) // this only fails on low mem
 	{
 		free (plugin);
-		FST_DBG ("Unable to open fasttrack configuration, exiting plugin.");
+		FST_ERR ("Unable to open fasttrack configuration, exiting plugin.");
 		return FALSE;
 	}
 
@@ -239,19 +244,19 @@ static int gift_cb_start (Protocol *p)
 
 	if (i < 0)
 	{
-		FST_DBG_1 ("couldn't find any nodes in \"%s\". Trying global list", nodesfile);
+		FST_WARN_1 ("Couldn't find any nodes in local \"%s\". Trying global list", nodesfile);
 
 		nodesfile = stringf ("%s/FastTrack/nodes", platform_data_dir());
 		i = fst_nodecache_load (plugin->nodecache, nodesfile);
 
 		if (i < 0)
-			FST_DBG_1 ("couldn't find any nodes in \"%s\".", nodesfile);
+			FST_WARN_1 ("Couldn't find any nodes in global \"%s\".", nodesfile);
 		else
-			FST_DBG_2 ("loaded %d supernode addresses from global nodes file \"%s\"", i, nodesfile);
+			FST_DBG_2 ("Loaded %d supernode addresses from global nodes file \"%s\"", i, nodesfile);
 	}
 	else
 	{
-		FST_DBG_2 ("loaded %d supernode addresses from local nodes file \"%s\"", i, nodesfile);
+		FST_DBG_2 ("Loaded %d supernode addresses from local nodes file \"%s\"", i, nodesfile);
 	}
 
 	// init searches
@@ -272,7 +277,7 @@ static void gift_cb_destroy (Protocol *p)
 	char *nodesfile;
 	int i;
 
-	FST_DBG ("fst_cb_destroy: shutting down");
+	FST_DBG ("shutting down");
 
 	if (!FST_PLUGIN)
 		return;
@@ -290,7 +295,7 @@ static void gift_cb_destroy (Protocol *p)
 	nodesfile = gift_conf_path ("FastTrack/nodes");
 	i = fst_nodecache_save (FST_PLUGIN->nodecache, nodesfile);
 	if (i < 0)
-		FST_DBG_1 ("couldn't save nodes file \"%s\"", nodesfile);
+		FST_WARN_1 ("couldn't save nodes file \"%s\"", nodesfile);
 	else
 		FST_DBG_2 ("saved %d supernode addresses to nodes file \"%s\"", i, nodesfile);
 	fst_nodecache_free (FST_PLUGIN->nodecache);
