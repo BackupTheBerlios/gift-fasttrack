@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.10 2004/03/06 22:31:14 mkern Exp $
+$Id: PROTOCOL,v 1.11 2004/03/07 01:34:06 mkern Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -818,7 +818,9 @@ Most of these need verifying.
   0x00     N/A     any
   0x01     int     year
   0x02     string  filename
-  0x03     hash    hash (used for searching, overpeer also sends it with shares)
+  0x03     hash    hash (Used for searching). Sometimes search results also
+                   contain this tag. Where Overpeer sends it as  20 byte binary
+                   and some other client sends the 29 byte base64 string.
   0x04     string  title
   0x05     int     duration (seconds)
   0x06     string  artist
