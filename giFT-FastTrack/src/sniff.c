@@ -1,5 +1,5 @@
 /*
- * $Id: sniff.c,v 1.2 2003/08/02 22:32:03 hex Exp $
+ * $Id: sniff.c,v 1.3 2003/09/16 03:51:21 hex Exp $
  *
  * Based on printall.c from libnids/samples, which is
  * copyright (c) 1999 Rafal Wojtczuk <nergal@avet.com.pl>. All rights reserved.
@@ -283,8 +283,11 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 				c->out_cipher->seed^=seed;
 				c->in_cipher=fst_cipher_create();
 				enc_type=fst_cipher_decode_enc_type(seed, enc_type);
+				/* FIXME: if incoming != outgoing,  then what? OR the two?
+				   currently we just use incoming, which seems to
+                                   work when out=29,in=a9 */
 
-				if (fst_cipher_init(c->out_cipher, c->out_cipher->seed, c->out_cipher->enc_type) &&
+				if (fst_cipher_init(c->out_cipher, c->out_cipher->seed, enc_type) &&
 				    fst_cipher_init(c->in_cipher, seed, enc_type)) {
 					fprintf(stderr, "[%d] in: %x, out %x [rand %04lx]\n", c->id, c->in_cipher->enc_type,c->out_cipher->enc_type, c->rand);
 					c->state++;
