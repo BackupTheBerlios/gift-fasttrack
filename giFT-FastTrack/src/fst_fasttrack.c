@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.3 2003/06/20 21:16:22 beren12 Exp $
+ * $Id: fst_fasttrack.c,v 1.4 2003/06/20 22:01:34 beren12 Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -184,25 +184,56 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 /*****************************************************************************/
 
 // alloc and init plugin
+
+char *FST_USER_NAME;           /* Global username from conffile */
+
 static int gift_cb_start (Protocol *p)
 {
 	FSTPlugin *plugin = malloc (sizeof(FSTPlugin));
 	int i;
 	char *nodesfile;
 	char *local_nodes;
+	char *src_path;
+	char *dst_path;
+	BOOL src_exists;
+	BOOL dst_exists;
+	struct stat src_st;
+	struct stat dst_st;
 
 
 	FST_DBG ("fst_cb_start: starting up");
 
 	// init config
-/*
-	if ((plugin->conf = gift_config_new ("FastTrack")) == NULL)
+
+	// copy local config if missing
+	src_path = STRDUP (stringf ("%s/%s", platform_data_dir(), "FastTrack/FastTrack.conf"));
+	dst_path = gift_conf_path("FastTrack/FastTrack.conf");
+
+	src_exists = file_stat (src_path, &src_st);
+	dst_exists = file_stat (dst_path, &dst_st);
+
+	if (!dst_exists && !src_exists)
 	{
 		free (plugin);
-		FST_DBG ("unable to load fasttrack configuration");
+		FST_DBG ("Unable to locate fasttrack configuration, exiting plugin.");
 		return FALSE;
 	}
-*/
+
+	if (!dst_exists && src_exists)
+	{
+		FST_DBG ("Local config does not exist, copying default config.");
+		file_cp (src_path, dst_path);
+	}
+
+//	free(src_path);			// All done with it
+
+	if ( !(plugin->conf = gift_config_new ("FastTrack")))
+	{
+		free (plugin);
+		FST_DBG ("Unable to locate fasttrack configuration, exiting plugin.");
+		return FALSE;
+	}
+
 
 	// set protocol pointer
 	p->udata = (void*)plugin;
@@ -212,6 +243,9 @@ static int gift_cb_start (Protocol *p)
 
 	// init node cache
 	plugin->nodecache = fst_nodecache_create ();
+
+	/* Attempt to open the locally installed nodes file; if this fails we
+	* should try the global cache. */
 
 	if (!(local_nodes = gift_conf_path ("FastTrack/nodes")))
 	{
@@ -242,6 +276,10 @@ static int gift_cb_start (Protocol *p)
 
 	// init stats
 	plugin->stats = fst_stats_create ();
+
+	FST_PLUGIN->conf = gift_config_new ("FastTrack");	// Use local config
+
+	FST_USER_NAME = config_get_str(FST_PLUGIN->conf, "main/alias=giFTed");
 
 	// start first connection
 	fst_plugin_connect_next ();
@@ -279,7 +317,7 @@ static void gift_cb_destroy (Protocol *p)
 	fst_nodecache_free (FST_PLUGIN->nodecache);
 
 	// free config
-//	config_free (FST_PLUGIN->conf);
+	config_free (FST_PLUGIN->conf);
 
 	free (FST_PLUGIN);
 }
@@ -354,4 +392,3 @@ int FastTrack_init (Protocol *p)
 }
 
 /*****************************************************************************/
-

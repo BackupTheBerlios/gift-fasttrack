@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.4 2003/06/20 21:16:22 beren12 Exp $
+ * $Id: fst_fasttrack.h,v 1.5 2003/06/20 22:01:34 beren12 Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -109,7 +109,6 @@ typedef uint32_t fst_uint32;
 #define FST_PROTO (fst_proto)
 
 #define FST_NETWORK_NAME "KaZaA"		// network name we send and which we require from other supernodes
-#define FST_USER_NAME "giFTed"		// our user name on the network
 
 #define FST_MAX_NODESFILE_SIZE 1000	// max number of nodes we save in nodes file
 
@@ -127,7 +126,7 @@ typedef uint32_t fst_uint32;
 
 typedef struct
 {
-//	Config *conf;				// ~/.giFT/FastTrack/FastTrack.conf
+	Config *conf;					// ~/.giFT/FastTrack/FastTrack.conf
 
 	FSTNodeCache *nodecache;		// cache that holds known supernode addresses
 
@@ -141,8 +140,9 @@ typedef struct
 
 /*****************************************************************************/
 
-// global pointer to plugin struct
-extern Protocol *fst_proto;
+extern Protocol *fst_proto;			// global pointer to plugin struct
+
+extern char *FST_USER_NAME;			// FastTrack Username from conf file
 
 // called by gift to init plugin
 #ifdef WIN32
