@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.19 2004/03/08 18:21:37 mkern Exp $
+ * $Id: fst_session.c,v 1.20 2004/03/08 21:09:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -565,8 +565,12 @@ static int session_greet_supernode (FSTSession *session)
 	if (! (packet = fst_packet_create ()))
 		return FALSE;
 
-	/* send our ip address and port */
+	/* Send our ip address and port.
+	 * Should we send our outside ip if NATed? We don't have it at this
+	 * point from the supernode.
+	 */
 	fst_packet_put_uint32 (packet, FST_PLUGIN->local_ip);
+
 	if (FST_PLUGIN->server)
 		fst_packet_put_uint16 (packet, htons (FST_PLUGIN->server->port));
 	else

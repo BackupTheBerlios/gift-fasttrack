@@ -1,4 +1,4 @@
-$Id: TODO,v 1.27 2004/03/07 23:16:30 mkern Exp $
+$Id: TODO,v 1.28 2004/03/08 21:09:56 mkern Exp $
 
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
@@ -11,7 +11,5 @@ $Id: TODO,v 1.27 2004/03/07 23:16:30 mkern Exp $
 - normalize meta data
 - add searching by meta data
 - make the max uploaded shares work not only for bulk uploads but also for single shares_add
-- remove firewalled sources from incomplete downloads on shutdown
-- answer 0x26 (version?) message
-- check if udp pongs contain supernode load
 - do clients signal to the supernode when their b/w is maxed out?
+- remove firewalled sources from incomplete downloads on shutdown

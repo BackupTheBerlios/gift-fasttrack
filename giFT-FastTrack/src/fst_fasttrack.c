@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.59 2004/03/08 18:21:37 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.60 2004/03/08 21:09:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -271,10 +271,12 @@ static int fst_plugin_session_callback (FSTSession *session,
 			unsigned short port		= ntohs (fst_packet_get_uint16 (msg_data));	
 			unsigned int last_seen	= fst_packet_get_uint8 (msg_data);			
 			unsigned int load		= fst_packet_get_uint8 (msg_data);		
-/*
+
+#if 0
 			FST_DBG_4 ("node: %s:%d   load: %d%% last_seen: %d mins ago",
 					   net_ip_str(ip), port, load, last_seen);
-*/
+#endif
+
 			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
 							   net_ip_str (ip), port, load, now - last_seen * 60);
 		}
@@ -382,6 +384,26 @@ static int fst_plugin_session_callback (FSTSession *session,
 
 		/* resend queries for all running searches */
 		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
+
+		break;
+	}
+
+	case SessMsgProtocolVersion:
+	{
+		/* Note: We are not really sure if this the protocol version. */
+		FSTPacket *packet;
+		fst_uint32 version;
+
+		if ((packet = fst_packet_create ()))
+		{
+			version = ntohl (fst_packet_get_uint32 (msg_data));
+
+			FST_HEAVY_DBG_1 ("received protocol version: 0x%02X", version);
+
+			fst_packet_put_uint32 (packet, htonl (version));
+			fst_session_send_message (session, SessMsgProtocolVersion, packet);		
+			fst_packet_free (packet);
+		}
 
 		break;
 	}

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.18 2004/03/08 18:21:37 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.19 2004/03/08 21:09:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -319,7 +319,7 @@ static void udp_discover_receive (int fd, input_id input,
 		fst_packet_get_uint8 (packet); /* unknown (30 minute increment) */
 		fst_packet_get_uint16 (packet); /* unknown (some class?) */
 
-		 /* load (really?) */
+		/* load (really?) */
 		udp_node->node->load = fst_packet_get_uint8 (packet);
 
 		fst_packet_get_uint8 (packet); /* unknown (number of children?) */
