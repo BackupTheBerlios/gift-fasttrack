@@ -1,5 +1,5 @@
 /*
- * $Id
+ * $Id: fst_download.h,v 1.3 2003/06/28 19:31:49 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
