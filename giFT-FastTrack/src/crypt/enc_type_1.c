@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_1.c,v 1.9 2003/11/23 17:33:12 weinholt Exp $
+ * $Id: enc_type_1.c,v 1.10 2004/04/14 21:06:23 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -18,9 +18,6 @@
 /*
  * This is a probably the oldest pad mingling code used in FastTrack.
  * Used for encryption version 0x01.
- *
- * Thanks to weinholt for reverse engineering most parts of this file.
- * Many thanks to Thingol for cleaning up this file considerably.
  */
 
 #include <string.h>				/* memcpy(), memset() */

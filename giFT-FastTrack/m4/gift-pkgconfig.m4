@@ -1,11 +1,11 @@
 ###############################################################################
-## $Id: gift-pkgconfig.m4,v 1.1 2003/08/01 14:54:59 weinholt Exp $
+## $Id: gift-pkgconfig.m4,v 1.2 2004/04/14 21:06:23 mkern Exp $
 ###############################################################################
 
 AC_DEFUN([GIFT_PLUGIN_PKGCONFIG],
   [AC_PATH_PROG(PKG_CONFIG, pkg-config)
 
-   if test x$prefix != xNONE; then
+   if test x$prefix != xNONE;  then
      PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$prefix/lib/pkgconfig"
    fi
 

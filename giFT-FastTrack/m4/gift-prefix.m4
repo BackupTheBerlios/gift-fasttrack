@@ -1,5 +1,5 @@
 ###############################################################################
-## $Id: gift-prefix.m4,v 1.1 2003/08/01 14:54:59 weinholt Exp $
+## $Id: gift-prefix.m4,v 1.2 2004/04/14 21:06:23 mkern Exp $
 ###############################################################################
 
 dnl Fixed version of AC_PREFIX_PROGRAM from autoconf 2.57
@@ -8,7 +8,7 @@ AC_DEFUN([FIXED_AC_PREFIX_PROGRAM],
 dnl We reimplement AC_MSG_CHECKING (mostly) to avoid the ... in the middle.
   _AS_ECHO_N([checking for prefix by ])
   AC_PATH_PROG(ac_prefix_program, [$1])
-  if test -n "$ac_prefix_program"; then
+  if test -n "$ac_prefix_program";  then
     prefix=`AS_DIRNAME(["$ac_prefix_program"])`
     prefix=`AS_DIRNAME(["$prefix"])`
   fi

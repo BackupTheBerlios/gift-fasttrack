@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.24 2004/04/08 01:12:30 mkern Exp $
+ * $Id: fst_session.c,v 1.25 2004/04/14 21:06:23 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -584,7 +584,6 @@ static int session_do_handshake (FSTSession *session)
 
 	/* the correct behaviour here is to use the enc_type the supernode sent
 	 * us for out_cipher too.
-	 * thanks to HEx and weinholt for figuring this out.
 	 */
 	session->out_cipher->enc_type = enc_type;
 

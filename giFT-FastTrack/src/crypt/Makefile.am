@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.13 2003/09/18 18:20:18 weinholt Exp $
+# $Id: Makefile.am,v 1.14 2004/04/14 21:06:23 mkern Exp $
 AM_CFLAGS = -Wall
 
 noinst_LTLIBRARIES = libfst_crypt.la
@@ -9,7 +9,7 @@ libfst_crypt_la_SOURCES = \
 	enc_type_20.c \
 	enc_type_80.c \
 	fst_crypt.c fst_crypt.h
-
+ 
 INCLUDES = \
 	-I$(top_srcdir)/src
 

@@ -1,4 +1,4 @@
- $Id: README,v 1.21 2003/11/28 14:50:14 mkern Exp $
+ $Id: README,v 1.22 2004/04/14 21:06:23 mkern Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
@@ -115,9 +115,3 @@ Credits
 
 Most of the plugin code was taken from OpenFT and old giFT code and
 as such is copyrighted by the gift project.
-
-Thanks to weinholt for reverse engineering most parts of enc_type_1.c
-
-enc_type_2.c is the work of Raimar Falke, I merely cleaned it up a bit.
-
-buildsystem based on giFT, rewritten by beren12@users.berlios.de

@@ -1,15 +1,7 @@
- $Id: AUTHORS,v 1.10 2004/02/10 12:24:40 mkern Exp $
+ $Id: AUTHORS,v 1.11 2004/04/14 21:06:23 mkern Exp $
 
 Project Members:
 
 (pretender) mkern@users.berlios.de    [Developer / Project Admin]
-(HEx)       HEx@users.berlios.de      [Developer / Reverse Engineer]
-(weinholt)  weinholt@users.berlios.de [Developer]
+(HEx)       HEx@users.berlios.de      [Developer]
 (cirdan)    beren12@users.berlios.de  [Developer]
-(rasa)      rasa@users.berlios.de     [Developer / windows port]
-
-
-Additional Contributions:
-
-* Chris (Lance) Gilbert <Lance@thefrontnetworks.net>
-    - wrote kzf2nodes.c

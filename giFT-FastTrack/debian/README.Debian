@@ -11,4 +11,3 @@ modifying the configuration file, run "giftd -p FastTrack".
 If you have installed giFT in /usr/local, you might need to run this instead:
 $ giftd -p /usr/lib/giFT/libFastTrack.la
 
- -- Göran Weinholt <weinholt@dtek.chalmers.se>, Fri,  9 Jan 2004 14:51:33 +0100

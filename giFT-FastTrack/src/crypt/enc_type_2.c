@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_2.c,v 1.12 2003/07/23 17:54:13 weinholt Exp $
+ * $Id: enc_type_2.c,v 1.13 2004/04/14 21:06:23 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -16,11 +16,7 @@
  */
 
 /*
- * This file was relayed to me and is originally from Raimar Falke.
- * I cleaned it up a bit to save bandwidth.
  * Used for encryption version 0x02
- * Then it was cleaned up a whole lot more...
- * And then Thingol cleaned it up even more, many thanks!
  */
 
 typedef unsigned char u8;

@@ -1,5 +1,5 @@
 /*
- * $Id: md5.c,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: md5.c,v 1.3 2004/04/14 21:06:23 mkern Exp $
  * This code implements the MD5 message-digest algorithm.
  * The algorithm is due to Ron Rivest.  This code was
  * written by Colin Plumb in 1993, no copyright is claimed.
@@ -29,7 +29,7 @@ static void MD5Transform(unsigned int buf[4], unsigned int const in[MD5_HASH_LEN
 #define HIGHFIRST
 
 #ifndef HIGHFIRST
-# define byteReverse(buf, len)
+# define byteReverse(buf,len)
 #else /* HIGHFIRST */
 
 /*
