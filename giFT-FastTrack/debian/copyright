@@ -1,5 +1,5 @@
-This package was debianized by Dan Weber <knoppix@mirrorlynx.com> on
-Sat,  7 Jun 2003 13:50:27 -0400.
+This is an unofficial Debian package of giFT-FastTrack, a giFT plugin for
+the FastTrack network.
 
 It was downloaded from http://developer.berlios.de/projects/gift-fasttrack/
 
@@ -8,7 +8,7 @@ Upstream Authors:
  cirdan <beren12@users.berlios.de>
  weinholt <weinholt@users.berlios.de>
  rasa <rasa@users.berlios.de>
-
+ HEx <HEx@users.berlios.de>
 
 Copyright:
 

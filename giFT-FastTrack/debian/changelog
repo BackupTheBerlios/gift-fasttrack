@@ -1,3 +1,10 @@
+gift-fasttrack (0.8.2-3) unstable; urgency=low
+
+  * Took one look at the gift-gnutella package and decided to switch to
+    cdbs.
+
+ -- Göran Weinholt <weinholt@dtek.chalmers.se>  Wed, 13 Aug 2003 09:43:10 +0200
+
 gift-fasttrack (0.8.2-2) unstable; urgency=low
 
   * Added proper dependencies on the giFT packages.
