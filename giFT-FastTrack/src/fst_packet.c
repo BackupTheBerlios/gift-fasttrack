@@ -1,5 +1,5 @@
 /*
- * $Id: fst_packet.c,v 1.4 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_packet.c,v 1.5 2003/11/28 21:10:28 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -135,32 +135,19 @@ void  fst_packet_put_dynint (FSTPacket *packet, fst_uint32 data)
 {
 	unsigned char buf[6];
 	int len, i;
+	fst_uint32 value = data;
 
-	// need to fill backwards, so we need to know size in advance
-	if(data > 128*128*128*128)
-		len = 5;
-	else if (data > 128*128*128)
-		len = 4;
-	else if (data > 128*128)
-		len = 3;
-	else if (data > 128)
-		len = 2;
-	else
-		len = 1;
+	for (len = 1; value > 127; value >>= 7)
+		len++;
 
-	i = len - 1;
-
-	// last byte doesn't have high bit set
-	buf[i] = data & 0x7f;
-	data >>= 7;
-	i--;
-
-	// all others have
-	for(; i>=0; i--)
+	for (i = len-1; i >= 0; i--)
 	{
 		buf[i] = 0x80 | (fst_uint8)(data & 0x7f);
 		data >>= 7;
 	}
+
+	/* remove high bit from last byte */
+	buf[len-1] &= 0x7f; 
 
 	packet_write(packet, buf, len);
 }
