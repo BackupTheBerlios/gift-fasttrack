@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.25 2004/04/14 21:06:23 mkern Exp $
+ * $Id: fst_session.c,v 1.26 2004/07/08 17:58:44 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -58,6 +58,7 @@ FSTSession *fst_session_create (FSTSessionCallback callback)
 	}
 
 	session->state = SessNew;
+	session->was_established = FALSE;
 	session->in_xinu = 0x51;
 	session->out_xinu = 0x51;
 
@@ -446,6 +447,8 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 		session->ping_timer = timer_add (FST_SESSION_PING_INTERVAL,
 		                                 (TimerCallback) session_ping,
 		                                 session);
+
+		session->was_established = TRUE;
 
 		/* notify plugin of established session */
 		if (!session->callback (session, SessMsgEstablished, NULL))

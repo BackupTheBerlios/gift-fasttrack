@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.49 2004/03/27 19:49:09 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.50 2004/07/08 17:58:44 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -221,6 +221,9 @@ typedef uint32_t fst_uint32;
 /* max number of simultaneous udp pings */
 #define FST_UDP_DISCOVER_MAX_PINGS      (10)
 
+/* number of supernode sessions we keep besides the main one */
+#define FST_ADDITIONAL_SESSIONS (5)
+
 /*****************************************************************************/
 
 typedef struct
@@ -240,9 +243,12 @@ typedef struct
 									 * push replies and incoming sessions
 									 */
 
-	FSTSession *session;			/* established session to supernode we are
-									 * currently using
+	FSTSession *session;			/* main session to supernode we use for
+									 * sharing, searching, etc. 
 									 */
+
+	List *sessions;					/* additional supernode sessions we use to
+									 * get more search results */
 
 	FSTUdpDiscover *discover;		/* pointer to udp node discovery object */
 

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_stats.h,v 1.4 2003/09/10 11:10:26 mkern Exp $
+ * $Id: fst_stats.h,v 1.5 2004/07/08 17:58:44 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -24,7 +24,9 @@ typedef struct
 {
 	unsigned int users;               
 	unsigned int files;
-	unsigned int size;                /* GB */
+	unsigned int size;      /* GB */
+
+	unsigned int sessions;	/* number of currently established sessions */
 } FSTStats;
 
 /*****************************************************************************/

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.29 2004/03/27 19:49:09 mkern Exp $
+ * $Id: fst_search.c,v 1.30 2004/07/08 17:58:44 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -32,28 +32,30 @@
 int fst_giftcb_search (Protocol *p, IFEvent *event, char *query, char *exclude,
 					   char *realm, Dataset *meta)
 {
+	int count;
+
 	FSTSearch *search = fst_search_create (event, SearchTypeSearch, query,
 										   exclude, realm);
 	fst_searchlist_add (FST_PLUGIN->searches, search);
 
-	if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
+	if (FST_PLUGIN->stats->sessions == 0)
 	{
 		FST_DBG_2 ("not connected, queueing query for \"%s\", fst_id = %d",
 				   search->query, search->fst_id);
 		return TRUE;
 	}
 
-	if (!fst_search_send_query (search, FST_PLUGIN->session))
+	if ((count = fst_search_send_query_to_all (search)) <= 0)
 	{
-		FST_DBG_2 ("fst_search_send_query failed for \"%s\", fst_id = %d",
+		FST_DBG_2 ("fst_search_send_query_to_all failed for \"%s\", fst_id = %d",
 				   search->query, search->fst_id);
 		fst_searchlist_remove (FST_PLUGIN->searches, search);
 		fst_search_free (search);
 		return FALSE;
 	}
 
-	FST_DBG_2 ("sent search query for \"%s\", fst_id = %d",
-			   search->query, search->fst_id);
+	FST_DBG_3 ("sent search query for \"%s\" to %d supernodes, fst_id = %d",
+			   search->query, count, search->fst_id);
 
 	return TRUE;
 }
@@ -69,6 +71,7 @@ int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hstr)
 {
 	FSTSearch *search;
 	FSTHash *hash;
+	int count;
 
 	if (!htype || !hstr)
 		return FALSE;
@@ -116,24 +119,24 @@ int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hstr)
 
 	fst_searchlist_add (FST_PLUGIN->searches, search);
 
-	if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
+	if (FST_PLUGIN->stats->sessions == 0)
 	{
 		FST_DBG_2 ("not connected, queueing query for \"%s\", fst_id = %d",
 				   search->query, search->fst_id);
 		return TRUE;
 	}
 	
-	if (!fst_search_send_query (search, FST_PLUGIN->session))
+	if ((count = fst_search_send_query_to_all (search)) <= 0)
 	{
-		FST_DBG_2 ("fst_search_send_query failed for \"%s\", fst_id = %d",
+		FST_DBG_2 ("fst_search_send_query_to_all failed for \"%s\", fst_id = %d",
 				   search->query, search->fst_id);
 		fst_searchlist_remove (FST_PLUGIN->searches, search);
 		fst_search_free (search);
 		return FALSE;
 	}
 
-	FST_DBG_2 ("sent locate query for \"%s\", fst_id = %d",
-				search->query, search->fst_id);
+	FST_DBG_3 ("sent locate query for \"%s\" to %d supernodes, fst_id = %d",
+				search->query, count, search->fst_id);
 
 	return TRUE;
 }
@@ -271,6 +274,33 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 	fst_packet_free (packet);
 
 	return TRUE;
+}
+
+int fst_search_send_query_to_all (FSTSearch *search)
+{
+	FSTSession *sess;
+	List *item = FST_PLUGIN->sessions;
+	int i;
+
+	/* send to primary supernode */
+	if (FST_PLUGIN->session->state == SessEstablished)
+		if (!fst_search_send_query (search, FST_PLUGIN->session))
+			return 0;
+
+	/* send to additional supernodes */
+	for (i = 1; item; item = item->next)
+	{
+		sess = (FSTSession*)item->data;
+
+		if (sess->state == SessEstablished)
+		{
+			if (!fst_search_send_query (search, sess))
+				return i;
+			i++;
+		}
+	}
+
+	return i;
 }
 
 /*****************************************************************************/

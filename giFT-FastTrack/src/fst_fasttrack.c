@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.68 2004/06/16 01:06:15 hex Exp $
+ * $Id: fst_fasttrack.c,v 1.69 2004/07/08 17:58:44 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -50,23 +50,11 @@ static BOOL fst_plugin_netfail_timer (void *udata)
 static void fst_plugin_connect_next ()
 {
 	FSTNode *node;
-
-	/* close old session if any */
-	if (FST_PLUGIN->session)
-	{
-		/* remove old node from node cache */
-		if (FST_PLUGIN->session->node)
-		{
-			fst_nodecache_remove (FST_PLUGIN->nodecache,
-								  FST_PLUGIN->session->node->host);
-		}
-		/* free old session */
-		fst_session_free (FST_PLUGIN->session);
-		FST_PLUGIN->session = NULL;
-	}
+	FSTSession *sess;
 
 	/* connect to head node in node cache */
-	while (1)
+	while (!FST_PLUGIN->session || 
+	       list_length (FST_PLUGIN->sessions) < FST_ADDITIONAL_SESSIONS)
 	{
 		if (!(node = fst_nodecache_get_front (FST_PLUGIN->nodecache)))
 		{
@@ -95,17 +83,13 @@ static void fst_plugin_connect_next ()
 		}
 
 		/* create session and connect */
-		FST_PLUGIN->session = fst_session_create (fst_plugin_session_callback);
+		sess = fst_session_create (fst_plugin_session_callback);
 	
-		if (fst_session_connect (FST_PLUGIN->session, node))
-		{
-			break;
-		}
-		else
+		if (!fst_session_connect (sess, node))
 		{
 			/* free session */
-			fst_session_free (FST_PLUGIN->session);
-			FST_PLUGIN->session = NULL;
+			fst_session_free (sess);
+			sess = NULL;
 
 			/* TODO: check if name resolution in fst_session_connect() failed */
 			if (1)
@@ -125,6 +109,20 @@ static void fst_plugin_connect_next ()
 			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
 			fst_node_free (node);
 			continue;
+		}
+
+		/* move node to back of cache so next loop uses a different one */
+		fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertBack);
+
+		/* We now have a new session object. Use it as primary session if we
+		 * don't already have one. Otherwise use it as an additional one. */
+		if (!FST_PLUGIN->session)
+		{
+			FST_PLUGIN->session	= sess;
+		} 
+		else
+		{
+			FST_PLUGIN->sessions = list_prepend (FST_PLUGIN->sessions, sess);
 		}
 	}
 
@@ -247,20 +245,65 @@ static int fst_plugin_session_callback (FSTSession *session,
 
 	case SessMsgEstablished:
 	{
-		FST_DBG_2 ("ESTABLISHED session to %s:%d",
-				   session->node->host, session->node->port);
+		FST_PLUGIN->stats->sessions++;
+
+		FST_DBG_3 ("ESTABLISHED session to %s:%d (total sessions: %d)",
+				   session->node->host, session->node->port, 
+		           FST_PLUGIN->stats->sessions);
 		break;
 	}
 
 	case SessMsgDisconnected:
 	{
-		/* zero stats */
-		FST_PLUGIN->stats->users = 0;
-		FST_PLUGIN->stats->files = 0;
-		FST_PLUGIN->stats->size = 0;
+		List *item;
 
-		/* reset external ip because we wait with sharing until we get it again */
-		FST_PLUGIN->external_ip = 0;
+		/* zero stats */
+		if (session->was_established)
+		{
+			assert(FST_PLUGIN->stats->sessions > 0);
+
+			FST_PLUGIN->stats->sessions--;
+
+			FST_DBG_3 ("DISCONNECTED session to %s:%d (total sessions: %d)",
+					   session->node->host, session->node->port, 
+			           FST_PLUGIN->stats->sessions);
+
+			if (FST_PLUGIN->stats->sessions == 0)
+			{
+				FST_PLUGIN->stats->users = 0;
+				FST_PLUGIN->stats->files = 0;
+				FST_PLUGIN->stats->size = 0;
+			}
+
+			/* TODO: terminate searches for this session? */
+		}
+
+		/* close old session */
+		if (FST_PLUGIN->session == session)
+		{
+			FST_PLUGIN->session = NULL;
+			/* reset external ip because we wait with sharing until we get it again */
+			FST_PLUGIN->external_ip = 0;
+		}
+		else if ((item = list_find (FST_PLUGIN->sessions, session)))
+		{
+			FST_PLUGIN->sessions = list_remove_link (FST_PLUGIN->sessions, item);
+		}
+		else
+		{
+			/* We have no record of this session yet it was disconnected. This
+			 * is not good! */
+			assert (0);
+		}
+
+		/* remove old node from node cache */
+		if (session->node)
+		{
+			fst_nodecache_remove (FST_PLUGIN->nodecache, session->node->host);
+		}
+
+		/* free session */
+		fst_session_free (session);
 
 		fst_plugin_connect_next ();
 		return FALSE;
@@ -308,6 +351,10 @@ static int fst_plugin_session_callback (FSTSession *session,
 	{
 		unsigned int mantissa, exponent;
 		unsigned int prev_users = FST_PLUGIN->stats->users;
+
+		/* get stats only from primary supernode */
+		if (session != FST_PLUGIN->session)
+			break;
 
 		if (fst_packet_remaining (msg_data) < 12)
 			break;
@@ -388,13 +435,19 @@ static int fst_plugin_session_callback (FSTSession *session,
 
 		/* upload our shares to supernode.
 		 * we do this here because we have to make sure we are accessible
-		 * form the outside since we don't push yet.
+		 * from the outside since we don't push yet.
+		 *
+		 * Note: The entire shares code assumes FST_PLUGIN->session is the
+		 * supernode we share on so only share there.
 		 */
-		if (fst_share_do_share ())
+		if (session == FST_PLUGIN->session)
 		{
-			FST_DBG ("registering shares with new supernode");
-			if (!fst_share_register_all ())
-				FST_DBG ("registering shares with new supernode failed");
+			if (fst_share_do_share ())
+			{
+				FST_DBG ("registering shares with new supernode");
+				if (!fst_share_register_all ())
+					FST_DBG ("registering shares with new supernode failed");
+			}
 		}
 
 		/* resend queries for all running searches */
@@ -424,9 +477,18 @@ static int fst_plugin_session_callback (FSTSession *session,
 	}
 
 	case SessMsgQueryReply:
+	{
+		/* forward results from all sessions */ 
+		fst_searchlist_process_reply (FST_PLUGIN->searches, msg_type, msg_data);
+		break;
+	}
+
 	case SessMsgQueryEnd:
 	{
+		/* TODO: handle multi-searchnode case */
+#if 0
 		fst_searchlist_process_reply (FST_PLUGIN->searches, msg_type, msg_data);
+#endif
 		break;
 	}
 
@@ -625,6 +687,7 @@ static int fst_giftcb_start (Protocol *proto)
 
 	/* set session to NULL */
 	FST_PLUGIN->session = NULL;
+	FST_PLUGIN->sessions = NULL;
 
 	/* create discover */
 	FST_PLUGIN->discover = fst_udp_discover_create (fst_plugin_discover_callback);
@@ -675,6 +738,13 @@ static int fst_giftcb_start (Protocol *proto)
 }
 
 /* destroy plugin */
+
+static int free_additional_session (FSTSession *session, void *udata)
+{
+	fst_session_free (session);
+	return TRUE;
+}
+
 static void fst_giftcb_destroy (Protocol *proto)
 {
 	char *nodesfile;
@@ -709,6 +779,9 @@ static void fst_giftcb_destroy (Protocol *proto)
 
 	/* free session */
 	fst_session_free (FST_PLUGIN->session);
+	FST_PLUGIN->sessions = list_foreach_remove (FST_PLUGIN->sessions,
+	                                            (ListForeachFunc)free_additional_session,
+	                                            NULL);
 
 	/* free stats */
 	fst_stats_free (FST_PLUGIN->stats);

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.h,v 1.8 2004/04/08 01:05:29 mkern Exp $
+ * $Id: fst_session.h,v 1.9 2004/07/08 17:58:44 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -77,6 +77,8 @@ struct _FSTSession
 	FSTPacket *in_packet;		/* buffer for incoming data */
 
 	FSTSessionState state;
+	int was_established;		/* TRUE if session was ever fully established */
+
 	TCPC *tcpcon;				/* tcp connection */
 	FSTNode *node;				/* copy of node this session is connected to */
 

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.18 2004/03/20 14:26:34 mkern Exp $
+ * $Id: fst_search.h,v 1.19 2004/07/08 17:58:44 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -127,6 +127,9 @@ void fst_search_free (FSTSearch *search);
 
 /* send search request to supernode and increment search->count */
 int fst_search_send_query (FSTSearch *search, FSTSession *session);
+
+/* send search request to all sessions and increment search->count */
+int fst_search_send_query_to_all (FSTSearch *search);
 
 /*****************************************************************************/
 
