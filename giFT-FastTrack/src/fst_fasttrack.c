@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.8 2003/06/21 17:17:08 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.9 2003/06/21 17:26:00 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project http://developer.berlios.de/projects/gift-fasttrack
  *
@@ -193,7 +193,7 @@ static int gift_cb_start (Protocol *p)
 	FSTPlugin *plugin = malloc (sizeof(FSTPlugin));
 	int i;
 	char *nodesfile;
-	char *conf_path, default_conf_path;
+	char *conf_path, *default_conf_path;
 
 	FST_DBG ("fst_cb_start: starting up");
 
