@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.37 2004/03/02 20:03:32 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.38 2004/03/02 23:14:38 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -171,6 +171,12 @@ typedef uint32_t fst_uint32;
  * x is the bandwidth in kbps.
  */
 #define FST_ADVERTISED_BW 0x60
+
+/* The maximum number of file we share. It seems supernodes reject us if we try
+ * to share too much. This is a workaround until we figure out the true reason
+ * behind this.
+ */
+#define FST_MAX_SHARED_FILES 197
 
 /* the amount of time we wait before retrying with another node 
  * after resolve/tcp_open failed

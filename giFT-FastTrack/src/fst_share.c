@@ -1,5 +1,5 @@
 /*
- * $Id: fst_share.c,v 1.4 2003/11/29 13:33:30 mkern Exp $
+ * $Id: fst_share.c,v 1.5 2004/03/02 23:14:38 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -150,20 +150,32 @@ int fst_share_do_share ()
 }
 
 
-static void share_register_all_iter (ds_data_t *key, ds_data_t *value,
-                                     int *all_ok)
+static int share_register_all_iter (ds_data_t *key, ds_data_t *value,
+                                    int *registered_shares)
 {
 	Share *share = value->data;
 
 	if (!share_register_file (share))
-		*all_ok = FALSE;
+	{
+		*registered_shares = -1;
+		return DS_BREAK;
+	}
+
+	if (++(*registered_shares) >= FST_MAX_SHARED_FILES)
+	{
+		FST_DBG_1 ("clipping shares at FST_MAX_SHARED_FILES (%d)",
+		           FST_MAX_SHARED_FILES);
+		return DS_BREAK;
+	}
+
+	return DS_CONTINUE;
 }
 
 /* send all shares to supernode */
 int fst_share_register_all ()
 {
 	Dataset *shares;
-	int all_ok = TRUE;
+	int registered_shares = 0;
 
 	if (!fst_share_do_share ())
 		return FALSE;
@@ -178,10 +190,11 @@ int fst_share_register_all ()
 	if (!(shares = share_index (NULL, NULL)))
 		return FALSE;
 
-	/* loop through all shares and send the to the supernode */
-	dataset_foreach (shares, DS_FOREACH(share_register_all_iter), (void*)&all_ok);
+	/* loop max FST_MAX_SHARED_FILES shares and send them to the supernode */
+	dataset_foreach_ex (shares, DS_FOREACH_EX(share_register_all_iter),
+	                    (void*)&registered_shares);
 
-	if (!all_ok)
+	if (registered_shares < 0)
 	{
 		FST_DBG ("not all shares could be registered with supernode");
 		return FALSE;
@@ -190,20 +203,32 @@ int fst_share_register_all ()
 	return TRUE;
 }
 
-static void share_unregister_all_iter (ds_data_t *key, ds_data_t *value,
-                                       int *all_ok)
+static int share_unregister_all_iter (ds_data_t *key, ds_data_t *value,
+                                      int *unregistered_shares)
 {
 	Share *share = value->data;
 
 	if (!share_unregister_file (share))
-		*all_ok = FALSE;
+	{
+		*unregistered_shares = -1;
+		return DS_BREAK;
+	}
+
+	if (++(*unregistered_shares) >= FST_MAX_SHARED_FILES)
+	{
+		FST_DBG_1 ("clipping shares at FST_MAX_SHARED_FILES (%d)",
+		           FST_MAX_SHARED_FILES);
+		return DS_BREAK;
+	}
+
+	return DS_CONTINUE;
 }
 
 /* remove all shares from supernode */
 int fst_share_unregister_all ()
 {
 	Dataset *shares;
-	int all_ok = TRUE;
+	int unregistered_shares = 0;
 
 	if (!fst_share_do_share ())
 		return FALSE;
@@ -218,10 +243,14 @@ int fst_share_unregister_all ()
 	if (!(shares = share_index (NULL, NULL)))
 		return FALSE;
 
-	/* loop through all shares and remove them from supernode */
-	dataset_foreach (shares, DS_FOREACH(share_unregister_all_iter), (void*)&all_ok);
+	/* Loop max FST_MAX_SHARED_FILES shares and remove them from supernode.
+	 * Note: If giFT has rearranged the shares index since we transmitted the files
+	 * we may not remove all files.
+	 */
+	dataset_foreach_ex (shares, DS_FOREACH_EX(share_unregister_all_iter),
+	                    (void*)&unregistered_shares);
 
-	if (!all_ok)
+	if (unregistered_shares < 0)
 	{
 		FST_DBG ("not all shares could be unregistered from supernode");
 		return FALSE;

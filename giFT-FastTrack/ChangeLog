@@ -1,4 +1,9 @@
- $Id: ChangeLog,v 1.14 2004/02/29 22:15:26 mkern Exp $
+ $Id: ChangeLog,v 1.15 2004/03/02 23:14:38 mkern Exp $
+
+2004-03-02  Markus Kern <mkern@users.berlios.de>
+
+	* Don't sort out index nodes when saving node list
+	* Limit number of shared files so supernodes don't reject us.
 
 2004-02-29  Markus Kern <mkern@users.berlios.de>
 
