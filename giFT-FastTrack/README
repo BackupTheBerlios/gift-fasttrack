@@ -1,4 +1,4 @@
- $Id: README,v 1.8 2003/06/20 19:33:33 beren12 Exp $
+ $Id: README,v 1.9 2003/06/22 18:49:12 mkern Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
@@ -91,6 +91,7 @@ Project Page:   http://developer.berlios.de/projects/gift-fasttrack/
 Email:          (pretender) mkern@users.berlios.de    [Developer / Project Admin]
                 (cirdan)    beren12@users.berlios.de  [Developer]
                 (weinholt)  weinholt@users.berlios.de [Developer]
+		(rasa)      rasa@users.berlios.de     [Developer / windows port]
 
 Mailing Lists:  gift-fasttrack-devel@lists.berlios.de    [Developer discussion]
                 gift-fasttrack-checkins@lists.berlios.de [Notifies about cvs checkins]
