@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.15 2004/03/20 13:15:56 mkern Exp $
+ * $Id: fst_node.c,v 1.16 2004/03/20 13:44:42 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -141,11 +141,15 @@ void fst_nodecache_insert (FSTNodeCache *cache, FSTNode *node,
 {
 	FSTNode *node_cpy;
 
-	/* make copy of node */
-	node_cpy = fst_node_create_copy (node);
-
 	/* remove old node if present */
 	fst_nodecache_remove (cache, node->host);
+
+	/* drop nodes with too high/low a load */
+	if (node->load < FST_NODE_MIN_LOAD || node->load > FST_NODE_MAX_LOAD)
+		return;
+
+	/* make copy of node */
+	node_cpy = fst_node_create_copy (node);
 
 	/* insert into linked list */
 	switch (pos)

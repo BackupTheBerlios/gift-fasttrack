@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.47 2004/03/20 13:08:55 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.48 2004/03/20 13:44:42 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -154,6 +154,13 @@ typedef uint32_t fst_uint32;
 /* max number of nodes we save in nodes file */
 #define FST_MAX_NODESFILE_SIZE 400
 
+/* Nodes with a load below FST_NODE_MIN_LOAD or above FST_NODE_MAX_LOAD are
+ * thrown out. This is done because I'm not sure if we should connect to high
+ * or low load nodes. Clipping the extremes is the safest approach.
+ */
+#define FST_NODE_MIN_LOAD 10
+#define FST_NODE_MAX_LOAD 90
+
 /* max number of results we want to be returned per search */
 #define FST_MAX_SEARCH_RESULTS 128
 
@@ -209,7 +216,7 @@ typedef uint32_t fst_uint32;
 #define FST_UDP_DISCOVER_TIMEOUT        (20*SECONDS)
 
 /* max number of simultaneous udp pings */
-#define FST_UDP_DISCOVER_MAX_PINGS      (20)
+#define FST_UDP_DISCOVER_MAX_PINGS      (10)
 
 /*****************************************************************************/
 
