@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1 2003/06/22 14:38:34 beren12 Exp $
+# $Id: Makefile.am,v 1.2 2003/06/28 14:29:35 beren12 Exp $
 
 AM_CFLAGS = $(FT_CFLAGS)
 
@@ -12,4 +12,4 @@ libfst_crypt_la_SOURCES = \
 	enc_type_1.c \
 	enc_type_2.c \
 	enc_type_20.c \
-	fst_crypt.c	fst_crypt.h
+	fst_crypt.c
