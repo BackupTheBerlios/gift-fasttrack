@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.16 2003/09/11 17:23:47 mkern Exp $
+ * $Id: fst_download.c,v 1.17 2003/09/12 22:48:55 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -168,7 +168,10 @@ static int download_client_callback (FSTHttpClient *client,
 		break;
 
 	case HTCL_CB_REQUEST_FAILED:
+/*
 		download_error_gift (source, TRUE, SOURCE_TIMEOUT, "Request failed");
+*/
+		download_error_gift (source, FALSE, SOURCE_TIMEOUT, "Request failed");
 		break;
 	
 	case HTCL_CB_REPLIED:
