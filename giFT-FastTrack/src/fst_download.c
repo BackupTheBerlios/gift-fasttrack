@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.11 2003/07/05 16:44:00 mkern Exp $
+ * $Id: fst_download.c,v 1.12 2003/07/06 10:53:28 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -175,7 +175,7 @@ static void download_connected (int fd, input_id input, FSTDownload *download)
 	if (net_sock_error (download->tcpcon->fd))
 	{
 		FST_HEAVY_DBG_2 ("connection to %s:%d failed -> removing source", net_ip_str(download->ip), download->port);
-		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Connect failed");
+		download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Connect failed");
 		return;
 	}
 
