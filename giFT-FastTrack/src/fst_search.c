@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.8 2003/09/12 21:12:53 mkern Exp $
+ * $Id: fst_search.c,v 1.9 2003/09/12 22:30:21 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -92,6 +92,10 @@ FSTSearch *fst_search_create (IFEvent *event, FSTSearchType type, char *query,
 	search->fst_id = 0x0000;
 	search->type = type;
 	search->sent = 0;
+
+	search->banlist_filter = config_get_int (FST_PLUGIN->conf,
+											 "main/banlist_filter=0");
+
 	search->replies = 0;
 	search->fw_replies = 0;
 	search->banlist_replies = 0;
@@ -542,7 +546,8 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 		{
 			search->fw_replies++;
 		}
-		else if (fst_ipset_contains (FST_PLUGIN->banlist, ip))
+		else if (search->banlist_filter &&
+				 fst_ipset_contains (FST_PLUGIN->banlist, ip))
 		{
 			search->banlist_replies++;
 		}

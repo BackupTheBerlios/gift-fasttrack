@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.23 2003/09/12 21:12:53 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.24 2003/09/12 22:30:21 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -204,34 +204,51 @@ static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_t
 
 /*****************************************************************************/
 
-/* allocate and init plugin */
-static int fst_giftcb_start (Protocol *p)
+int copy_default_file (const char *filename)
 {
-	FSTPlugin *plugin = malloc (sizeof (FSTPlugin));
-	int i;
-	char *filepath;
-	char *conf_path, *default_conf_path;
+	char *local_path, *default_path;
 
-	FST_DBG ("starting up");
+	local_path = stringf_dup ("%s/FastTrack/%s", platform_local_dir(), filename);
+	default_path = stringf_dup ("%s/FastTrack/%s", platform_data_dir(), filename);
 
-	/* init config and copy to local config if missing */
-	conf_path = gift_conf_path ("FastTrack/FastTrack.conf");
-
-	if (!file_exists (conf_path))
+	if (!file_exists (local_path))
 	{
-		FST_WARN ("Local config does not exist, copying default config.");
+		FST_WARN_2 ("Local file \"%s\" does not exist, copying default from \"%s\"",
+					local_path, default_path);
 
-		default_conf_path = stringf ("%s/%s", platform_data_dir(), "FastTrack/FastTrack.conf");
-
-		if (!file_cp (default_conf_path, conf_path))
+		if (!file_cp (default_path, local_path))
 		{		
-			free (plugin);
-			FST_ERR ("Unable to copy default fasttrack configuration, exiting plugin.");
+			FST_ERR_1 ("Unable to copy default file \"%s\"", default_path);
+
+			free (local_path);
+			free (default_path);
 			return FALSE;
 		}
 	}
 
-	if (!(plugin->conf = gift_config_new ("FastTrack")))	/* this only fails on low mem */
+	free (local_path);
+	free (default_path);
+	return TRUE;
+}
+
+/*****************************************************************************/
+
+/* allocate and init plugin */
+static int fst_giftcb_start (Protocol *p)
+{
+	FSTPlugin *plugin;
+	int i;
+	char *filepath;
+
+	FST_DBG ("starting up");
+
+	if (! (plugin = malloc (sizeof (FSTPlugin))))
+		return FALSE;
+
+	/* init config and copy to local config if missing */
+	copy_default_file ("FastTrack.conf");
+	
+	if (! (plugin->conf = gift_config_new ("FastTrack")))
 	{
 		free (plugin);
 		FST_ERR ("Unable to open fasttrack configuration, exiting plugin.");
@@ -250,40 +267,31 @@ static int fst_giftcb_start (Protocol *p)
 	/* init node cache */
 	FST_PLUGIN->nodecache = fst_nodecache_create ();
 
-	/* Attempt to open the locally installed nodes file; if this fails we
-	 * should try the global cache. */
+	/* load nodes file, copy default if necessary */
+	copy_default_file ("nodes");
 
 	filepath = gift_conf_path ("FastTrack/nodes");
 	i = fst_nodecache_load (plugin->nodecache, filepath);
 
 	if (i < 0)
-	{
-		FST_WARN_1 ("Couldn't find any nodes in local \"%s\". Trying global list", filepath);
-
-		filepath = stringf ("%s/FastTrack/nodes", platform_data_dir());
-		i = fst_nodecache_load (plugin->nodecache, filepath);
-
-		if (i < 0)
-			FST_WARN_1 ("Couldn't find any nodes in global \"%s\".", filepath);
-		else
-			FST_DBG_2 ("Loaded %d supernode addresses from global nodes file \"%s\"", i, filepath);
-	}
+		FST_WARN_1 ("Couldn't find nodes file \"%s\". Fix that!", filepath);
 	else
-	{
-		FST_DBG_2 ("Loaded %d supernode addresses from local nodes file \"%s\"", i, filepath);
-	}
+		FST_DBG_2 ("Loaded %d supernode addresses from nodes file \"%s\"", i, filepath);
 
-	/* try to load list of banned ips */
+	/* create list of banned ips */
 	FST_PLUGIN->banlist = fst_ipset_create ();
+
+	/* load ban list, copy default if necessary */
+	copy_default_file ("banlist");
 
 	filepath = gift_conf_path ("FastTrack/banlist");
 	i = fst_ipset_load (FST_PLUGIN->banlist, filepath);
 
-	if(i > 0)
-	{
+	if(i < 0)
+		FST_WARN_1 ("Couldn't find banlist \"%s\"", filepath);
+	else
 		FST_DBG_2 ("Loaded %d banned ip ranges from \"%s\"", i, filepath);
-	}
-
+	
 	/* init searches */
 	FST_PLUGIN->searches = fst_searchlist_create();
 
