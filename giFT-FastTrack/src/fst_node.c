@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.22 2004/11/11 14:31:56 mkern Exp $
+ * $Id: fst_node.c,v 1.23 2004/11/25 14:33:11 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -106,6 +106,7 @@ int fst_node_release (FSTNode *node)
 	if (--node->ref == 0)
 	{
 		assert (node->link == NULL);
+		assert (node->session == NULL);
 
 #ifdef NODECACHE_DEBUG
 	FST_DBG_3("freed %p, ref=%d, link=%p", node, node->ref, node->link);

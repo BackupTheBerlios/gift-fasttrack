@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.80 2004/11/11 19:13:15 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.81 2004/11/25 14:33:11 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -246,7 +246,9 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 		{
 			FST_HEAVY_DBG_2 ("UdpNodeStateDown: %s:%d, UDP works",
 			                 node->host, node->port);
-			fst_nodecache_remove (FST_PLUGIN->nodecache, node);
+			/* remove node if it is not connected. */
+			if (!node->session)
+				fst_nodecache_remove (FST_PLUGIN->nodecache, node);
 		}
 		else
 		{

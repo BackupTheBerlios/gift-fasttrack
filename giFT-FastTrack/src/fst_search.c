@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.36 2004/11/23 17:46:01 mkern Exp $
+ * $Id: fst_search.c,v 1.37 2004/11/25 14:33:11 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -465,6 +465,7 @@ static int end_of_results (FSTSearchList *searchlist,
 	/* Remove the supernode which returned this from the sent_nodes
 	 * dataset
 	 */
+	fst_node_release (session->node);
 	dataset_remove (search->sent_nodes, &session->node,
 	                sizeof(session->node));
 
