@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.c,v 1.5 2003/07/04 03:54:45 beren12 Exp $
+ * $Id: fst_hash.c,v 1.6 2003/09/10 11:10:25 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -21,7 +21,7 @@
 
 /*****************************************************************************/
 
-unsigned char *gift_cb_FTH (const char *path, size_t *len)
+unsigned char *fst_giftcb_FTH (const char *path, size_t *len)
 {
 	unsigned char *hash = malloc (FST_HASH_LEN);
 
@@ -31,7 +31,7 @@ unsigned char *gift_cb_FTH (const char *path, size_t *len)
 	return hash;
 }
 
-char *gift_cb_FTH_human (unsigned char *FTH)
+char *fst_giftcb_FTH_human (unsigned char *FTH)
 {
 	return strdup (fst_hash_get_string (FTH));
 }

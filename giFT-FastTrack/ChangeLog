@@ -1,4 +1,8 @@
- $Id: ChangeLog,v 1.5 2003/07/14 19:52:50 mkern Exp $
+ $Id: ChangeLog,v 1.6 2003/09/10 11:10:25 mkern Exp $
+
+2003-09-10  Markus Kern <mkern@users.berlios.de>
+	* Rewrote entire download system
+	* Cleaned up stuff all over the place
 
 2003-07-14  Markus Kern <mkern@users.berlios.de>
 

@@ -63,8 +63,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x407 /d "_DEBUG"
 # ADD RSC /l 0x407 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -97,6 +97,10 @@ SOURCE=..\src\crypt\enc_type_20.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\crypt\enc_type_80.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\crypt\fst_crypt.c
 # End Source File
 # Begin Source File
@@ -113,7 +117,11 @@ SOURCE=..\src\fst_hash.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\fst_http.c
+SOURCE=..\src\fst_http_client.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\fst_http_header.c
 # End Source File
 # Begin Source File
 
@@ -169,7 +177,11 @@ SOURCE=..\src\fst_hash.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\fst_http.h
+SOURCE=..\src\fst_http_client.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\fst_http_header.h
 # End Source File
 # Begin Source File
 

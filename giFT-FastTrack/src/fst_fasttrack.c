@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.21 2003/08/13 10:30:22 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.22 2003/09/10 11:10:25 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -205,7 +205,7 @@ static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_t
 /*****************************************************************************/
 
 /* allocate and init plugin */
-static int gift_cb_start (Protocol *p)
+static int fst_giftcb_start (Protocol *p)
 {
 	FSTPlugin *plugin = malloc (sizeof (FSTPlugin));
 	int i;
@@ -290,7 +290,7 @@ static int gift_cb_start (Protocol *p)
 }
 
 /* destroy plugin */
-static void gift_cb_destroy (Protocol *p)
+static void fst_giftcb_destroy (Protocol *p)
 {
 	char *nodesfile;
 	int i;
@@ -329,9 +329,14 @@ static void gift_cb_destroy (Protocol *p)
 
 /*****************************************************************************/
 
-int gift_cb_source_cmp (Protocol *p, Source *a, Source *b)
+static int fst_giftcb_source_cmp (Protocol *p, Source *a, Source *b)
 {
 	return strcmp (a->url, b->url);
+}
+
+static int fst_giftcb_user_cmp (Protocol *p, const char *a, const char *b)
+{
+	return strcmp (a, b);
 }
 
 /*****************************************************************************/
@@ -352,45 +357,29 @@ static void fst_plugin_setup_functbl (Protocol *p)
 	 */
 
 	/* fst_hash.c */
-	p->hash_handler (p, (const char*)FST_HASH_NAME, HASH_PRIMARY, (HashFn)gift_cb_FTH, (HashDspFn)gift_cb_FTH_human);
+	p->hash_handler (p, (const char*)FST_HASH_NAME, HASH_PRIMARY,
+					 (HashFn)fst_giftcb_FTH, (HashDspFn)fst_giftcb_FTH_human);
 
-	/* fst_openft.c: */
-	p->start          = gift_cb_start;
-	p->destroy        = gift_cb_destroy;
+	/* fst_fasttrack.c */
+	p->start          = fst_giftcb_start;
+	p->destroy        = fst_giftcb_destroy;
+	p->source_cmp     = fst_giftcb_source_cmp;
+	p->user_cmp       = fst_giftcb_user_cmp;
 
-	/* fst_search.c: */
-	p->search         = gift_cb_search;
-	p->browse         = gift_cb_browse;
-	p->locate         = gift_cb_locate;
-	p->search_cancel  = gift_cb_search_cancel;
+	/* fst_search.c */
+	p->search         = fst_giftcb_search;
+	p->browse         = fst_giftcb_browse;
+	p->locate         = fst_giftcb_locate;
+	p->search_cancel  = fst_giftcb_search_cancel;
 
-	/* fst_xfer.c: */
-	p->download_start = gift_cb_download_start;
-	p->download_stop  = gift_cb_download_stop;
-	p->source_remove  = gift_cb_source_remove;
-/*
-*	p->upload_stop    = openft_upload_stop;
-*	p->upload_avail   = openft_upload_avail;
-*	p->chunk_suspend  = openft_chunk_suspend;
-*	p->chunk_resume   = openft_chunk_resume;
-*/
-	p->source_cmp     = gift_cb_source_cmp;
-/*	
-	p->user_cmp       = openft_user_cmp;
-*/	
+	/* fst_download.c */
+	p->download_start = fst_giftcb_download_start;
+	p->download_stop  = fst_giftcb_download_stop;
+	p->source_add     = fst_giftcb_source_add;
+	p->source_remove  = fst_giftcb_source_remove;
 
-	/* fst_share.c: */
-/*
-*	p->share_new      = openft_share_new;
-*	p->share_free     = openft_share_free;
-*	p->share_add      = openft_share_add;
-*	p->share_remove   = openft_share_remove;
-*	p->share_sync     = openft_share_sync;
-*	p->share_hide     = openft_share_hide;
-*	p->share_show     = openft_share_show;
-*/
-	/* fst_stats.c: */
-	p->stats          = gift_cb_stats;
+	/* fst_stats.c */
+	p->stats          = fst_giftcb_stats;
 }
 
 int FastTrack_init (Protocol *p)

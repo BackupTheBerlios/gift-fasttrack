@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.h,v 1.5 2003/08/25 18:58:52 mkern Exp $
+ * $Id: fst_download.h,v 1.6 2003/09/10 11:10:25 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -19,53 +19,24 @@
 #define __FST_DOWNLOAD_H
 
 #include "fst_fasttrack.h"
-#include "fst_packet.h"
-#include "fst_http.h"
-
-/*****************************************************************************/
-
-typedef enum { DownloadNew, DownloadConnecting, DownloadRequesting, DownloadRunning, DownloadComplete } FSTDownloadState;
-
-typedef struct
-{
-	FSTDownloadState state;
-
-	TCPC *tcpcon;
-	FSTPacket *in_packet;		/* input buffer */
-
-	Chunk *chunk;
-
-	/* parsed url */
-	unsigned int ip;
-	unsigned short port;
-	char *uri;
-
-} FSTDownload;
+#include "fst_http_client.h"
 
 /*****************************************************************************/
 
 /* called by gift to start downloading of a chunk */
-int gift_cb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk, Source *source);
+int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
+							   Source *source);
 
 /* called by gift to stop download */
-void gift_cb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk, Source *source, int complete);
+void fst_giftcb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk,
+							   Source *source, int complete);
+
+/* called by gift to add a source */
+BOOL fst_giftcb_source_add (Protocol *p,Transfer *transfer, Source *source);
 
 /* called by gift to remove source */
-void gift_cb_source_remove (Protocol *p, Transfer *transfer, Source *source);
-
-/*****************************************************************************/
-
-/* alloc and init download */
-FSTDownload *fst_download_create (Chunk *chunk);
-
-/* free download, stop it if necessary */
-void fst_download_free (FSTDownload *download);
-
-/* start download */
-int fst_download_start (FSTDownload *download);
-
-/* stop download */
-int fst_download_stop (FSTDownload *download);
+void fst_giftcb_source_remove (Protocol *p, Transfer *transfer,
+							   Source *source);
 
 /*****************************************************************************/
 

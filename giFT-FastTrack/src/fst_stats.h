@@ -1,5 +1,5 @@
 /*
- * $Id: fst_stats.h,v 1.3 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_stats.h,v 1.4 2003/09/10 11:10:26 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -30,7 +30,8 @@ typedef struct
 /*****************************************************************************/
 
 // giFT callback to retrieve stats
-int gift_cb_stats (Protocol *p, unsigned long *users, unsigned long *files, double *size, Dataset **extra);
+int fst_giftcb_stats (Protocol *p, unsigned long *users, unsigned long *files,
+					  double *size, Dataset **extra);
 
 /*****************************************************************************/
 
@@ -41,10 +42,12 @@ FSTStats *fst_stats_create ();
 void fst_stats_free (FSTStats *stats);
 
 // set stats
-void fst_stats_set (FSTStats *stats, unsigned int users, unsigned int files, unsigned int size);
+void fst_stats_set (FSTStats *stats, unsigned int users, unsigned int files,
+					unsigned int size);
 
 // get stats
-void fst_stats_get (FSTStats *stats, unsigned int *users, unsigned int *files, unsigned int *size);
+void fst_stats_get (FSTStats *stats, unsigned int *users, unsigned int *files,
+					unsigned int *size);
 
 /*****************************************************************************/
 

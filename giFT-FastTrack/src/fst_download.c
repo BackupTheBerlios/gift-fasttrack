@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.14 2003/08/25 18:58:52 mkern Exp $
+ * $Id: fst_download.c,v 1.15 2003/09/10 11:10:25 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -20,383 +20,265 @@
 
 /*****************************************************************************/
 
-#define DOWNLOAD_BUF_SIZE 4069
+static int download_client_callback (FSTHttpClient *client,
+									 FSTHttpClientCbCode code);
+static void download_write_gift (Source *source, unsigned char *data,
+								 unsigned int len);
+static void download_error_gift (Source *source, int remove_source,
+								 unsigned short klass, char *error);
+static char *download_parse_url (char *url, in_addr_t *ip, in_port_t *port);
+static char *download_calc_xferuid (char *uri);
 
 /*****************************************************************************/
 
 /* called by gift to start downloading of a chunk */
-int gift_cb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk, Source *source)
+int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
+							   Source *source)
 {
-	FSTDownload *download = fst_download_create (chunk);
-	fst_download_start (download);
+	FSTHttpClient *client = (FSTHttpClient*) source->udata;
+	FSTHttpHeader *request;
+	in_addr_t ip;
+	in_port_t port;
+	char *uri, *range_str;
+
+	/* parse url */
+	if (! (uri = download_parse_url (source->url, &ip, &port)))
+	{
+		FST_WARN_1 ("malformed url %s", source->url);
+		return FALSE;
+	}
+
+	/* create http request */
+	if (! (request = fst_http_header_request (HTHD_VER_11, HTHD_GET, uri)))
+	{
+		FST_WARN_1 ("creation of request failed for url %s", source->url);
+		return FALSE;
+	}
+
+	/* if this source is used for the first time create http client */
+	if (!client)
+	{
+		FST_HEAVY_DBG_1 ("first time use of source %s", source->url);
+
+		client = fst_http_client_create (net_ip_str (ip), port,
+										 download_client_callback);
+		client->udata = (void*) source;
+		source->udata = (void*) client;
+	}
+
+	/* add some http headers */
+	fst_http_header_set_field (request, "UserAgent", "giFT-FastTrack");
+	fst_http_header_set_field (request, "X-Kazaa-Network", FST_NETWORK_NAME);
+	fst_http_header_set_field (request, "X-Kazaa-Username", FST_USER_NAME);
+
+	/* http range is inclusive!
+	 * use chunk->start + chunk->transmit for starting point, rather non-intuitive
+	 */
+	range_str = stringf ("bytes=%d-%d", (int)(chunk->start + chunk->transmit),
+						 (int)chunk->stop - 1);
+	fst_http_header_set_field (request, "Range", range_str);
+
+#ifdef FST_DOWNLOAD_BOOST_PL
+	fst_http_header_set_field (request, "X-Kazaa-XferUid",
+							   download_calc_xferuid (uri));
+#endif
+
+	free (uri);
+
+	/* make the request */
+	FST_PROTO->source_status (FST_PROTO, source, SOURCE_WAITING, "Connecting");
+
+	if (! fst_http_client_request (client, request, FALSE))
+	{
+		FST_WARN_1 ("request failed for url %s", source->url);
+		return FALSE;
+	}
 
 	return TRUE;
 }
 
 /* called by gift to stop download */
-void gift_cb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk, Source *source, int complete)
+void fst_giftcb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk,
+							   Source *source, int complete)
 {
-	FSTDownload *download;
+	FSTHttpClient *client = (FSTHttpClient*) source->udata;
 
-	if(!chunk || !chunk->udata)
+	/* close connection if there is outstanding data */
+	if (client && client->state != HTCL_CONNECTED)
 	{
-		FST_HEAVY_DBG ("gift_cb_download_stop: chunk->udata == NULL, no action taken");
-		return;
+		FST_HEAVY_DBG_1 ("request cancelled for url %s", source->url);
+		fst_http_client_cancel (client);
 	}
+}
 
-	download = (FSTDownload*)chunk->udata;
+/* called by gift to add a source */
+BOOL fst_giftcb_source_add (Protocol *p,Transfer *transfer, Source *source)
+{
+	source->udata = NULL;
 
-	if (complete)
-	{
-		FST_HEAVY_DBG_2 ("removing completed download from %s:%d", net_ip_str(download->ip), download->port);
-		FST_PROTO->source_status (FST_PROTO, chunk->source, SOURCE_COMPLETE, "Complete");
-		fst_download_stop (download);
-	}
-	else
-	{
-		FST_HEAVY_DBG_2 ("removing cancelled download from %s:%d", net_ip_str(download->ip), download->port);
-		FST_PROTO->source_status (FST_PROTO, chunk->source, SOURCE_CANCELLED, "Cancelled");
-		fst_download_stop (download);
-	}
+	return TRUE;
 }
 
 /* called by gift to remove source */
-void gift_cb_source_remove (Protocol *p, Transfer *transfer, Source *source)
+void fst_giftcb_source_remove (Protocol *p, Transfer *transfer,
+							   Source *source)
 {
-	FSTDownload *download;
+	FSTHttpClient *client = (FSTHttpClient*) source->udata;
 
-	if (!source || !source->chunk || !source->chunk->udata)
+	if (client)
 	{
-		FST_DBG ("gift_cb_source_remove: invalid source, no action taken");
-		return;
+		FST_HEAVY_DBG_1 ("removing source %s", source->url);
+		fst_http_client_free (client);
+		source->udata = NULL;
+	}
+}
+
+/*****************************************************************************/
+
+/* http client callback */
+static int download_client_callback (FSTHttpClient *client,
+									 FSTHttpClientCbCode code)
+{
+	Source *source = (Source*) client->udata;
+	assert (source);
+
+	switch (code)
+	{
+	case HTCL_CB_CONNECT_FAILED:
+		download_error_gift (source, TRUE, SOURCE_TIMEOUT, "Connect failed");
+		break;
+
+	case HTCL_CB_REQUESTING:
+		FST_PROTO->source_status (FST_PROTO, source, SOURCE_WAITING,
+								  "Requesting");
+		break;
+
+	case HTCL_CB_REQUEST_FAILED:
+		download_error_gift (source, TRUE, SOURCE_TIMEOUT, "Request failed");
+		break;
+	
+	case HTCL_CB_REPLIED:
+	{
+		FSTHttpHeader *reply = client->reply;
+		char *p;
+
+		/* check reply code */
+		if (reply->code != 200 && reply->code != 206)
+		{
+			FST_HEAVY_DBG_3 ("got reply code %d (\"%s\") for url %s -> aborting d/l",
+							 reply->code, reply->code_str, source->url);
+
+			switch (reply->code)
+			{
+			case 503:
+				download_error_gift (source, FALSE, SOURCE_QUEUED_REMOTE,
+									 "Remotely queued");
+				break;
+			case 404:
+				download_error_gift (source, TRUE, SOURCE_CANCELLED,
+									 "File not found");
+				break;
+			default:
+				download_error_gift (source, TRUE, SOURCE_CANCELLED,
+									 "Weird http code");
+			}
+
+			return FALSE;
+		}
+
+		FST_HEAVY_DBG_3 ("got reply code %d (\"%s\") for url %s -> starting d/l",
+						 reply->code, reply->code_str, source->url);
+
+		/* make sure the start offset is correct */
+		if ( (p = fst_http_header_get_field (reply, "Content-Range")))
+		{
+			int start, stop;
+			sscanf (p, "bytes %d-%d", &start, &stop);
+
+			/* check start offset, shorter/longer ranges are handled by giFT */
+			if (start != source->chunk->start + source->chunk->transmit)
+			{
+				FST_WARN ("Removing source due to range mismatch");
+				FST_WARN_2 ("\trequested range: %d-%d",
+							source->chunk->start + source->chunk->transmit,
+							source->chunk->stop - 1);
+				FST_WARN_2 ("\treceived range: %d-%d", start, stop);
+				FST_WARN_1 ("\tContent-Length: %s",
+							fst_http_header_get_field (reply, "Content-Length"));
+
+				download_error_gift (source, TRUE, SOURCE_CANCELLED,
+									 "Range mismatch");
+				return FALSE;
+			}
+		}
+
+		FST_PROTO->source_status (FST_PROTO, source, SOURCE_ACTIVE, "Active");
+		break;
 	}
 
-	download = (FSTDownload*)source->chunk->udata;
+	case HTCL_CB_DATA:
+		/* write data to file through giFT.
+		 * this calls fst_giftcb_download_stop() when download is complete
+		 */
+		download_write_gift (source, client->data, client->data_len);
+		break;
 
-	FST_DBG_2 ("removing source %s:%d", net_ip_str(download->ip), download->port);
-	FST_PROTO->source_status (FST_PROTO, source->chunk->source, SOURCE_CANCELLED, "Cancelled");
-	fst_download_stop (download);
+	case HTCL_CB_DATA_LAST:
+		FST_HEAVY_DBG_3 ("HTCL_CB_DATA_LAST (%d/%d) for %s",
+						 client->content_received, client->content_length,
+						 source->url);
 
-	return;
-}
+		if (client->data_len)
+		{
+			assert (client->content_length == client->content_received);
+			/* last write
+			 * this calls fst_giftcb_download_stop() when download is complete
+			 */
+			download_write_gift (source, client->data, client->data_len);
+			break;
+		}
 
-/*****************************************************************************/
-
-static void download_connected (int fd, input_id input, FSTDownload *download);
-static void download_read_header (int fd, input_id input, FSTDownload *download);
-static void download_read_body (int fd, input_id input, FSTDownload *download);
-static void download_write_gift (FSTDownload *download, unsigned char *data, unsigned int len);
-static void download_error_gift (FSTDownload *download, int remove_source, unsigned short klass, char *error);
-static char *download_parse_url (char *url, unsigned int *ip, unsigned short *port);
-static char *download_calc_xferuid (char *uri);
-
-/*****************************************************************************/
-
-// alloc and init download
-FSTDownload *fst_download_create (Chunk *chunk)
-{
-	FSTDownload *dl = malloc (sizeof (FSTDownload));
-
-	dl->state = DownloadNew;
-	dl->tcpcon = NULL;
-	dl->in_packet = fst_packet_create();
-
-	dl->chunk = chunk;
-	dl->uri = download_parse_url (chunk->source->url, &dl->ip, &dl->port);
-
-	/* make chunk refer back to us */
-	chunk->udata = (void*)dl;
-	
-	return dl;
-}
-
-/* free download, stop it if necessary */
-void fst_download_free (FSTDownload *download)
-{
-	if (!download)
-		return;
-
-	tcp_close (download->tcpcon);
-	fst_packet_free (download->in_packet);
-	free (download->uri);
-
-	/* unref chunk */
-	if (download->chunk)
-		download->chunk->udata = NULL;
-
-	free (download);
-}
-
-// start download
-int fst_download_start (FSTDownload *download)
-{
-	if (!download || download->state != DownloadNew || !download->chunk)
+		/* premature end of data */
+		/* this makes giFT call fst_giftcb_download_stop() */
+		download_error_gift (source, FALSE, SOURCE_CANCELLED,
+							 "Cancelled remotely");
 		return FALSE;
-
-	FST_HEAVY_DBG_2 ("connecting to %s:%d", net_ip_str(download->ip), download->port);
-
-	download->state = DownloadConnecting;
-	FST_PROTO->source_status (FST_PROTO, download->chunk->source, SOURCE_WAITING, "Connecting");
-
-	download->tcpcon = tcp_open (download->ip, download->port, FALSE);
-	if (download->tcpcon == NULL)
-	{
-		FST_DBG_2 ("ERROR: tcp_open() failed for %s:%d", net_ip_str(download->ip), download->port);
-		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Connect failed");
-		return FALSE;
 	}
 
-	download->tcpcon->udata = (void*)download;
-
-	/* wait for connected */
-	input_add (download->tcpcon->fd, (void*)download, INPUT_WRITE, (InputCallback)download_connected, FST_DOWNLOAD_CONNECT_TIMEOUT);
-
-	return TRUE;
-}
-
-/* stop download */
-int fst_download_stop (FSTDownload *download)
-{
-	fst_download_free (download);
-
-	return TRUE;
+	return TRUE; /* continue with request */
 }
 
 /*****************************************************************************/
 
-static void download_connected (int fd, input_id input, FSTDownload *download)
+static void download_write_gift (Source *source, unsigned char *data,
+								 unsigned int len)
 {
-	FSTHttpRequest *request;
-	FSTPacket *packet;
-	char buf[64];
-
-	input_remove (input);
-
-	if (net_sock_error (download->tcpcon->fd))
-	{
-		FST_HEAVY_DBG_2 ("connection to %s:%d failed -> removing source", net_ip_str(download->ip), download->port);
-		download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Connect failed");
-		return;
-	}
-
-	download->state = DownloadRequesting;
-	FST_PROTO->source_status (FST_PROTO, download->chunk->source, SOURCE_WAITING, "Requesting");
-
-	/* create http request */
-	request = fst_http_request_create ("GET", download->uri);
-
-	/* add http headers */
-	fst_http_request_set_header (request, "UserAgent", "giFT-FastTrack");
-	fst_http_request_set_header (request, "Connection", "close");
-	fst_http_request_set_header (request, "X-Kazaa-Network", FST_NETWORK_NAME);
-	fst_http_request_set_header (request, "X-Kazaa-Username", FST_USER_NAME);
-
-#ifdef FST_DOWNLOAD_BOOST_PL
-	fst_http_request_set_header (request, "X-Kazaa-XferUid", download_calc_xferuid(download->uri));
-#endif
-
-	/* host */
-	sprintf (buf, "%s:%d", net_ip_str (download->ip), download->port);
-	fst_http_request_set_header (request, "Host", buf);
-
-	/* range, http range is inclusive! */
-	/* IMPORTANT: use chunk->start + chunk->transmit for starting point, rather non-intuitive */
-	sprintf (buf, "bytes=%d-%d", (int)(download->chunk->start + download->chunk->transmit), (int)download->chunk->stop - 1);
-	fst_http_request_set_header (request, "Range", buf);
-
-	/* compile and send request */
-	packet = fst_packet_create();
-	fst_http_request_compile (request, packet);
-	fst_http_request_free (request);
-
-	if (fst_packet_send (packet, download->tcpcon) == FALSE)
-	{
-		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Request failed");
-		fst_packet_free (packet);
-		return;
-	}
-
-	fst_packet_free (packet);
-
-	/* wait for header */
-	input_add (download->tcpcon->fd, (void*)download, INPUT_READ, (InputCallback)download_read_header, FST_DOWNLOAD_HANDSHAKE_TIMEOUT);
+	FST_PROTO->chunk_write (FST_PROTO, source->chunk->transfer, source->chunk,
+							source, data, len);
 }
 
-static void download_read_header (int fd, input_id input, FSTDownload *download)
-{
-	FSTHttpReply *reply;
-	char *p;
-
-	input_remove (input);
-
-	if (net_sock_error (download->tcpcon->fd))
-	{
-		FST_HEAVY_DBG_2 ("read error while downloading from %s:%d -> removing source", net_ip_str(download->ip), download->port);
-		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Request Failed");
-		return;
-	}
-
-	/* read data */
-	if (fst_packet_recv (download->in_packet, download->tcpcon) == FALSE)
-	{
-		FST_DBG_2 ("read error while getting header from %s:%d -> aborting", net_ip_str(download->ip), download->port);
-		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Request Failed");
-		return;
-	}
-
-	reply = fst_http_reply_create ();
-
-	if (fst_http_reply_parse (reply, download->in_packet) == FALSE)
-	{	
-		fst_http_reply_free (reply);
-
-		if (fst_packet_size (download->in_packet) > 4096)
-		{
-			FST_WARN ("Didn't get whole http header and received more than 4K, closing connection");
-			download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Invalid response");
-			return;
-		}
-
-		FST_DBG_2 ("didn't get whole header from %s:%d -> waiting for more", net_ip_str(download->ip), download->port);
-		/* wait for rest of header */
-		input_add (download->tcpcon->fd, (void*)download, INPUT_READ, (InputCallback)download_read_header, FST_DOWNLOAD_HANDSHAKE_TIMEOUT);
-		return;
-	}
-
-/*
- *	printf ("\nhttp reply from %s: \n", net_ip_str(download->ip));
- *	print_bin_data (download->in_packet->data, fst_packet_size(download->in_packet) - fst_packet_remaining(download->in_packet));
- */
-
-	if (reply->code != 200 && reply->code != 206) /* 206 == partial content */
-	{
-		FST_HEAVY_DBG_4 ("%s:%d replied with %d (\"%s\") -> aborting", net_ip_str (download->ip), download->port, reply->code, reply->code_str);
-
-		if (reply->code == 503)
-			download_error_gift (download, FALSE, SOURCE_QUEUED_REMOTE, "Remotely queued");
-		else if (reply->code == 404)
-			download_error_gift (download, TRUE, SOURCE_CANCELLED, "File not found");
-		else
-		{
-			download_error_gift (download, TRUE, SOURCE_CANCELLED, "Weird http code");
-			FST_DBG_4 ("weird http code from %s:%d: %d (\"%s\") -> aborting", net_ip_str(download->ip), download->port, reply->code, reply->code_str);
-		}
-
-		fst_http_reply_free (reply);
-		return;
-	}
-
-	FST_HEAVY_DBG_4 ("%s:%d replied with %d (\"%s\") -> downloading", net_ip_str(download->ip), download->port, reply->code, reply->code_str);
-
-	/* check that recevied ranges are correct */
-	if ( (p = fst_http_reply_get_header (reply, "content-range")))
-	{
-		int start, stop;
-		sscanf (p, "bytes %d-%d", &start, &stop);
-
-		/* longer ranges than requested should be ok since giFT handles this */
-		if (start != download->chunk->start + download->chunk->transmit || stop < download->chunk->stop - 1)
-		{
-			FST_WARN ("Removing source due to range mismatch");
-			FST_WARN_2 ("\trequested range: %d-%d", download->chunk->start + download->chunk->transmit, download->chunk->stop - 1);
-			FST_WARN_2 ("\treceived range: %d-%d", start, stop);
-			if ( (p = fst_http_reply_get_header (reply, "content-length")))
-				FST_WARN_1 ("\tcontent-length: %s", p);
-
-			fst_http_reply_free (reply);
-			download_error_gift (download, TRUE, SOURCE_CANCELLED, "Range mismatch");
-			return;
-		}
-	}
-	else
-	{
-		FST_WARN ("Server didn't sent content-range header, file may end up corrupted");
-/*		
- *		fst_http_reply_free (reply);
- *		download_error_gift (download, TRUE, SOURCE_CANCELLED, "Missing Content-Range");
- *		return;
- */		
-	}
-
-	/* update status */
-	download->state = DownloadRunning;
-	FST_PROTO->source_status (FST_PROTO, download->chunk->source, SOURCE_ACTIVE, "Active");
-
-	/* free reply */
-	fst_http_reply_free (reply);
-
-	/* remove header from packet */
-	fst_packet_truncate (download->in_packet);
-
-	/* wait for body */
-	input_add (download->tcpcon->fd, (void*)download, INPUT_READ, (InputCallback)download_read_body, FST_DOWNLOAD_DATA_TIMEOUT);
-
-	/* write rest of packet to file */
-	download_write_gift (download, download->in_packet->read_ptr, fst_packet_remaining (download->in_packet));
-}
-
-static void download_read_body (int fd, input_id input, FSTDownload *download)
-{
-	char *data;
-	int len;
-
-	if (net_sock_error (download->tcpcon->fd))
-	{
-		FST_HEAVY_DBG_2 ("read error while downloading from %s:%d -> aborting", net_ip_str(download->ip), download->port);
-		input_remove (input);
-
-		/* this makes giFT call gift_cb_download_stop(), which closes connection and frees download */
-		download_error_gift (download, FALSE, SOURCE_CANCELLED, "Download Failed");
-		return;
-	}
-	
-	data = malloc (DOWNLOAD_BUF_SIZE);
-
-	if ( (len = tcp_recv (download->tcpcon, data, DOWNLOAD_BUF_SIZE)) <= 0)
-	{
-		FST_HEAVY_DBG_2 ("download_read_body: tcp_recv() <= 0 for %s:%d", net_ip_str(download->ip), download->port);
-		input_remove (input);
-
-		/* this makes giFT call gift_cb_download_stop(), which closes connection and frees download */
-		download_error_gift (download, FALSE, SOURCE_CANCELLED, "Download Error");
-		return;
-	}
-	
-	/* write data to file through giFT, this calls gift_cb_download_stop() if download is complete */
-	download_write_gift (download, data, len);
-
-	free (data);
-}
-
-/*****************************************************************************/
-
-static void download_write_gift (FSTDownload *download, unsigned char *data, unsigned int len)
-{
-	FST_PROTO->chunk_write (FST_PROTO, download->chunk->transfer, download->chunk, download->chunk->source, data, len);
-}
-
-static void download_error_gift (FSTDownload *download, int remove_source, unsigned short klass, char *error)
+static void download_error_gift (Source *source, int remove_source,
+								 unsigned short klass, char *error)
 {
 	if (remove_source)
 	{
-		FST_DBG_1 ("download error (%s), removing source", error);
-		FST_PROTO->source_status (FST_PROTO, download->chunk->source, klass, error);
-		FST_PROTO->source_abort (FST_PROTO, download->chunk->transfer, download->chunk->source);
+		FST_DBG_2 ("download error (\"%s\"), removing source %s",
+				   error, source->url);
+		FST_PROTO->source_status (FST_PROTO, source, klass, error);
+		FST_PROTO->source_abort (FST_PROTO, source->chunk->transfer, source);
 	}
 	else
 	{
-		FST_PROTO->source_status (FST_PROTO, download->chunk->source, klass, error);
-		download->chunk->udata = NULL;
-
+		FST_PROTO->source_status (FST_PROTO, source, klass, error);
 		/* tell giFT an error occured with this download */
-		download_write_gift (download, NULL, 0);
-		fst_download_free (download);
+		download_write_gift (source, NULL, 0);
 	}
 }
 
+/*****************************************************************************/
 
 /* parses url, returns uri which caller frees or NULL on failure */
-static char *download_parse_url (char *url, unsigned int *ip, unsigned short *port)
+static char *download_parse_url (char *url, in_addr_t *ip, in_port_t *port)
 {
 	char *tmp, *uri, *ip_str, *port_str;
 
@@ -439,7 +321,9 @@ static char *download_parse_url (char *url, unsigned int *ip, unsigned short *po
 ((fst_uint8*)&(x))[2]) << 8) | \
 ((fst_uint8*)&(x))[3])
 
-// returns static base64 encoded string for X-Kazaa-XferUid http header
+/* returns static base64 encoded string for X-Kazaa-XferUid http header.
+ * need to verify if this really works
+ */
 static char *download_calc_xferuid (char *uri)
 {
 /*

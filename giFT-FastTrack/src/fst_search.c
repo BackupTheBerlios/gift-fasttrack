@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.5 2003/08/25 20:17:21 mkern Exp $
+ * $Id: fst_search.c,v 1.6 2003/09/10 11:10:25 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -24,7 +24,8 @@
 /*****************************************************************************/
 
 // called by giFT to initiate search
-int gift_cb_search (Protocol *p, IFEvent *event, char *query, char *exclude, char *realm, Dataset *meta)
+int fst_giftcb_search (Protocol *p, IFEvent *event, char *query, char *exclude,
+					   char *realm, Dataset *meta)
 {
 	FSTSearch *search = fst_search_create (event, SearchTypeSearch, query, exclude, realm);
 	fst_searchlist_add (FST_PLUGIN->searches, search);
@@ -38,13 +39,13 @@ int gift_cb_search (Protocol *p, IFEvent *event, char *query, char *exclude, cha
 }
 
 // called by giFT to initiate browse
-int gift_cb_browse (Protocol *p, IFEvent *event, char *user, char *node)
+int fst_giftcb_browse (Protocol *p, IFEvent *event, char *user, char *node)
 {
 	return FALSE;
 }
 
 // called by giFT to locate file
-int gift_cb_locate (Protocol *p, IFEvent *event, char *htype, char *hash)
+int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hash)
 {
 	FSTSearch *search;
 
@@ -63,7 +64,7 @@ int gift_cb_locate (Protocol *p, IFEvent *event, char *htype, char *hash)
 }
 
 // called by giFT to cancel search/locate/browse
-void gift_cb_search_cancel (Protocol *p, IFEvent *event)
+void fst_giftcb_search_cancel (Protocol *p, IFEvent *event)
 {
 	FSTSearch *search = fst_searchlist_lookup_event (FST_PLUGIN->searches, event);
 
@@ -416,11 +417,9 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 		}
 
 		// create actual user name sent to giFT
-		tmp = malloc(strlen(username) + 32);
-		sprintf (tmp, "%s@%s", username, net_ip_str(ip));
-		free (username);
-		username = tmp;
-
+		tmp = username;
+		username = stringf_dup ("%s@%s", username, net_ip_str(ip));
+		free (tmp);
 
 		FST_HEAVY_DBG_5 ("result (%d): %s:%d \t%s@%s", nresults, net_ip_str(ip), port, username, netname);
 
@@ -436,6 +435,8 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 		ntags = fst_packet_get_dynint (msg_data);
 
 		FST_HEAVY_DBG_2 ("\tfilesize = %d, ntags = %d", filesize, ntags);
+
+		filename = NULL;
 
 		// read tags
 		for(;ntags && fst_packet_remaining (msg_data) >= 2; ntags--)
@@ -499,7 +500,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 		}
 
 		// create href for giFT
-		href = strdup (stringf("FastTrack://%s:%d/.hash=%s", net_ip_str (ip), port, fst_hash_get_string(hash)));
+		href = stringf_dup ("FastTrack://%s:%d/.hash=%s", net_ip_str (ip), port, fst_hash_get_string(hash));
 
 		// send result to giFT if the ip is not private and port != 0
 		if(!fst_utils_ip_private (ip) && port != 0)

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.6 2003/08/27 15:26:09 mkern Exp $
+ * $Id: fst_session.c,v 1.7 2003/09/10 11:10:26 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -372,7 +372,7 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 		if(type == 0x4B)
 		{
 			int xtype = session->in_xinu % 3;
-			unsigned int msg_type, msg_len;
+			unsigned int msg_type = 0, msg_len = 0;
 			FSTPacket *packet;
 
 			if(fst_packet_remaining (session->in_packet) < 5)

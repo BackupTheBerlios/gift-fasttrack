@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.4 2003/06/27 17:29:52 mkern Exp $
+ * $Id: fst_search.h,v 1.5 2003/09/10 11:10:26 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -72,16 +72,17 @@ typedef struct
 /*****************************************************************************/
 
 // called by giFT to initiate search
-int gift_cb_search (Protocol *p, IFEvent *event, char *query, char *exclude, char *realm, Dataset *meta);
+int fst_giftcb_search (Protocol *p, IFEvent *event, char *query, char *exclude,
+					   char *realm, Dataset *meta);
 
 // called by giFT to initiate browse
-int gift_cb_browse (Protocol *p, IFEvent *event, char *user, char *node);
+int fst_giftcb_browse (Protocol *p, IFEvent *event, char *user, char *node);
 
 // called by giFT to locate file
-int gift_cb_locate (Protocol *p, IFEvent *event, char *htype, char *hash);
+int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hash);
 
 // called by giFT to cancel search/locate/browse
-void gift_cb_search_cancel (Protocol *p, IFEvent *event);
+void fst_giftcb_search_cancel (Protocol *p, IFEvent *event);
 
 /*****************************************************************************/
 

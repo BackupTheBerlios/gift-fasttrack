@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.17 2003/08/25 20:17:21 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.18 2003/09/10 11:10:25 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -66,12 +66,14 @@
 #define FST_WARN(fmt)			FST_PROTO->warn(FST_PROTO,fmt)
 #define FST_WARN_1(fmt,a)		FST_PROTO->warn(FST_PROTO,fmt,a)
 #define FST_WARN_2(fmt,a,b)		FST_PROTO->warn(FST_PROTO,fmt,a,b)
-#define FST_WARN_3(fmt,a,b,c)		FST_PROTO->warn(FST_PROTO,fmt,a,b,c)
+#define FST_WARN_3(fmt,a,b,c)	FST_PROTO->warn(FST_PROTO,fmt,a,b,c)
+#define FST_WARN_4(fmt,a,b,c,d)	FST_PROTO->warn(FST_PROTO,fmt,a,b,c,d)
 
 #define FST_ERR(fmt)			FST_PROTO->err(FST_PROTO,fmt)
 #define FST_ERR_1(fmt,a)		FST_PROTO->err(FST_PROTO,fmt,a)
 #define FST_ERR_2(fmt,a,b)		FST_PROTO->err(FST_PROTO,fmt,a,b)
 #define FST_ERR_3(fmt,a,b,c)	FST_PROTO->err(FST_PROTO,fmt,a,b,c)
+#define FST_ERR_4(fmt,a,b,c,d)	FST_PROTO->err(FST_PROTO,fmt,a,b,c,d)
 
 #define GIFT_PLUGIN
 #include <libgift/libgift.h>
@@ -158,10 +160,6 @@ typedef uint32_t fst_uint32;
 // various timeouts in ms
 #define FST_SESSION_CONNECT_TIMEOUT	(8*SECONDS)
 #define FST_SESSION_HANDSHAKE_TIMEOUT	(10*SECONDS)
-
-#define FST_DOWNLOAD_CONNECT_TIMEOUT	(15*SECONDS)
-#define FST_DOWNLOAD_HANDSHAKE_TIMEOUT	(10*SECONDS)
-#define FST_DOWNLOAD_DATA_TIMEOUT	(10*SECONDS)
 
 /*****************************************************************************/
 
