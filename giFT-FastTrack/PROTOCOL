@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.5 2003/11/25 17:39:18 hex Exp $
+$Id: PROTOCOL,v 1.6 2003/11/28 21:27:19 hex Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -77,7 +77,7 @@ Session establishment
   Bytes	Desc
   4     unknown ("rand")
   4     outgoing cipher seed
-  4     outgoing encryption type (encoded)
+  4     requested encryption type (encoded)
 
   "rand" is not entirely random. Kazaa clients seem to use random-like
   numbers here, and their traffic is still decryptable. giFT-FastTrack
@@ -87,20 +87,24 @@ Session establishment
 
   Cipher seed can be any number.
 
-  Encryption type and its encoding is not covered here.
+  It's suggested to set requested encryption type to zero.
 
 2. Handshake response [<-]
 
   Bytes Desc
   4     incoming cipher seed
-  4     incoming encryption type (encoded)
+  4     encryption type (encoded)
 
   I *think* cipher seed can again be any number.
 
   Outgoing cipher seed is xor'd with the incoming cipher seed to produce
   the final outgoing seed for encryption initialization.
 
-  Again, encryption type is not covered here.
+  The returned encryption type is authoritative for both incoming and
+  outgoing cipher streams; Kazaa sends ((requested_enc_type &
+  supported_enc_type) | minimum_enc_type). Current values for
+  supported_enc_type and minimum_enc_type are 0xBF and 0x29
+  respectively. See also network config.
 
 
 All communication from this point forth is encrypted.
@@ -249,7 +253,7 @@ Message types
   2     maximum number of search results
   2     search id
   1     unknown
-  1     search realm(?)
+  1     search realm
   1     number of search terms
 
   Search id is a unique identifier to refer to this search. Realm may
@@ -339,7 +343,37 @@ Message types
   n     zero-terminated network name
   4     Number of users
 
-0x0A ??? [=]
+0x0A Search forward request? [=]
+
+  Bytes Desc
+  4     IPv4 address
+  2     port
+  4     IPv4 address
+  2     port
+  1     unknown (0x02)
+  4     unknown (some kind of ID?)
+  1     unknown (0x00)
+  1     unknown
+  1     unknown (0x01?)
+  1     search realm
+  1     number of search terms
+
+  Then follows a query in the usual format. See search query.
+
+0x800A Search forward request 2? [=]
+
+  Bytes Desc
+  4     unknown
+  1     unknown (0x00)
+  1     unknown
+  1     unknown (0x01?)
+  1     search realm
+  1     number of search terms
+
+  Then follows a query in the usual format. See search query.
+
+  (Seemingly this is the same as the previous message except without
+  the addresses and ports.)
 
 0x0B ??? [=]
 
@@ -443,7 +477,40 @@ Message types
         unknown
 
       AuthUrlMask
+        unknown (currently 5)
+
+      HTTPAuthBits
+        minimum encryption type for shares listing (currently 38 (0x26))
+
+      MinSupernodeLibVersion
+        unknown (currently 26)
+
+      MinSupernodeSoftwareVersion
         unknown
+
+      SearchIndirectNodesMin
+        unknown (currently 6)
+
+      SearchIndirectNodesMax
+        unknown (currently 10)
+     	
+      SearchIndirectEndResults
+        unknown (currently 10)
+
+      SearchResultsMax
+        maximum number of search results returned (currently 200)
+
+      DownloadSearchStep
+        unknown (currently 1)
+
+      DownloadSearchCount
+        unknown (currently 12)
+
+      UDPMode
+        unknown (currently 7)
+
+      InfoCode
+        unknown (16-byte hash as hex digits - an md5sum?)
 
    Type 0x02 (client upgrade message):
 
@@ -739,6 +806,7 @@ Most of these need verifying.
   0x1D  ?      rating
   0x21  ?      size?
   0x25  ???
+  0x2D  ???
   0x35  ?      ??? (0x02 witnessed)
 
 All integers are packed. Strings are not terminated. Type "intint" is
