@@ -22,25 +22,25 @@ unsigned char enc_20_md5_out[] = "\x44\x29\x82\x10\xa3\x6e\x14\x3a\xd2\x8a\xa2\x
 
 */
 
-static long int quotient  = LONG_MAX / 16807L;
-static long int remain = LONG_MAX % 16807L;
-static long int seed_val = 1L;
+static int quotient  = INT_MAX / 16807L;
+static int remain = INT_MAX % 16807L;
+static int seed_val = 1L;
 
-static unsigned long int randlcg()       /* returns a random unsigned integer */
+static unsigned int randlcg()       /* returns a random unsigned integer */
 {
         if ( seed_val <= quotient )
-                seed_val = (seed_val * 16807L) % LONG_MAX;
+                seed_val = (seed_val * 16807L) % INT_MAX;
         else
         {
-                long int high_part = seed_val / quotient;
-                long int low_part  = seed_val % quotient;
+                int high_part = seed_val / quotient;
+                int low_part  = seed_val % quotient;
 
-                long int test = 16807L * low_part - remain * high_part;
+                int test = 16807L * low_part - remain * high_part;
 
                 if ( test > 0 )
                         seed_val = test;
                 else
-                        seed_val = test + LONG_MAX;
+                        seed_val = test + INT_MAX;
 
         }
 
