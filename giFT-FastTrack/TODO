@@ -1,4 +1,4 @@
-$Id: TODO,v 1.10 2003/07/27 14:54:19 weinholt Exp $
+$Id: TODO,v 1.11 2003/07/27 15:12:53 weinholt Exp $
 
 - add firewalled download support
 - make node cache smarter / use udp discovery
@@ -6,6 +6,5 @@ $Id: TODO,v 1.10 2003/07/27 14:54:19 weinholt Exp $
 - make dowloading less greedy, custom throttle?
 - are searches really resent to new connections? (currently commented out)
 - automatically search more supernodes?
-- make a useful manpage? :)
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
