@@ -1,5 +1,5 @@
 /*
- * $Id: fst_share.c,v 1.2 2003/11/28 19:46:57 mkern Exp $
+ * $Id: fst_share.c,v 1.3 2003/11/29 03:09:41 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -256,6 +256,25 @@ static void share_add_meta_tag (ds_data_t *key, ds_data_t *value,
 
 }
 
+static void share_add_filename (Share *share, ShareAddTagParam *tag_param)
+{
+	FSTPacket *data = tag_param->data;
+	const char *filename;
+	int len;
+	
+	filename = file_basename (share->path);
+
+	if (!filename)
+		return;
+
+	len = strlen (filename);
+	fst_packet_put_uint8 (data, FILE_TAG_FILENAME);
+	fst_packet_put_dynint (data, len);
+	fst_packet_put_ustr (data, filename, len);
+	tag_param->ntags++;
+}
+
+
 int share_register_file (Share *share)
 {
 	FSTPacket *packet;
@@ -305,6 +324,8 @@ int share_register_file (Share *share)
 		return FALSE;
 	}
 	tag_param.ntags = 0;
+
+	share_add_filename (share, &tag_param);
 
 	share_foreach_meta (share,
 	                    (DatasetForeachFn) share_add_meta_tag,
@@ -366,6 +387,8 @@ int share_unregister_file (Share *share)
 		return FALSE;
 	}
 	tag_param.ntags = 0;
+
+	share_add_filename (share, &tag_param);
 
 	share_foreach_meta (share,
 	                    (DatasetForeachFn) share_add_meta_tag,
