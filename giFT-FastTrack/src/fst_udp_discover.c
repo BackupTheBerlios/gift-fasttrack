@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.15 2004/03/03 19:56:57 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.16 2004/03/04 14:19:40 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -346,6 +346,27 @@ static void udp_discover_receive (int fd, input_id input,
 		fst_udp_node_free (udp_node);
 		break;
 
+	case UdpMsgPong2:
+		
+		/* update udp_node with the new data */
+		udp_node->min_enc_type = ntohl (fst_packet_get_uint32 (packet));
+		fst_packet_free (packet);
+	
+		/* this node is up and has free child slots */
+		udp_node->node->last_seen = time (NULL);
+		discover->pinged_nodes--;
+		discover->received_pongs++;
+
+		FST_HEAVY_DBG_4 ("received udp reply 0x%02x (pong2) from %s:%d, pinged nodes: %d",
+		                 type, net_ip_str (udp_node->ip), udp_node->node->port,
+		                 discover->pinged_nodes);
+
+		/* raise callback */
+		discover->callback (discover, UdpNodeStateFree, udp_node->node);
+	
+		fst_udp_node_free (udp_node);
+		break;
+
 	default: /* unknown packet */
 
 		fst_packet_free (packet);
@@ -360,7 +381,7 @@ static void udp_discover_receive (int fd, input_id input,
 					     discover->pinged_nodes);
 
 		/* raise callback */
-		discover->callback (discover, UdpNodeStateFree, udp_node->node);
+		discover->callback (discover, UdpNodeStateUp, udp_node->node);
 
 		fst_udp_node_free (udp_node);
 		break;

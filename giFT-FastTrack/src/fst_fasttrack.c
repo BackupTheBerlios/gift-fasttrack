@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.55 2004/03/04 13:05:29 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.56 2004/03/04 14:19:40 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -158,6 +158,7 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 				               node->port, 100, node->last_seen);
 		}
 		break;
+
 	case UdpNodeStateUp:
 		FST_HEAVY_DBG_2 ("UdpNodeStateUp: %s:%d", node->host, node->port);
 		/* remove node from current position in cache... */
@@ -166,6 +167,7 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 		fst_nodecache_add (FST_PLUGIN->nodecache, node->klass, node->host,
 		                   node->port, 100, node->last_seen);
 		break;
+
 	case UdpNodeStateFree:
 		FST_HEAVY_DBG_2 ("UdpNodeStateFree: %s:%d", node->host, node->port);
 		/* remove node from current position in cache... */

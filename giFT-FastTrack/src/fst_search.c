@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.19 2004/03/03 20:08:18 mkern Exp $
+ * $Id: fst_search.c,v 1.20 2004/03/04 14:19:40 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -170,6 +170,7 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 		fst_packet_put_uint8 (packet, (fst_uint8)FILE_TAG_ANY);
 		fst_packet_put_dynint (packet, strlen(search->query));
 		fst_packet_put_ustr (packet, search->query, strlen(search->query));
+
 		break;
 
 	case SearchTypeLocate:
