@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.24 2003/09/12 22:30:21 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.25 2003/09/17 11:25:04 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -239,6 +239,7 @@ static int fst_giftcb_start (Protocol *p)
 	FSTPlugin *plugin;
 	int i;
 	char *filepath;
+	in_port_t server_port;
 
 	FST_DBG ("starting up");
 
@@ -260,9 +261,6 @@ static int fst_giftcb_start (Protocol *p)
 
 	/* cache user name */
 	FST_PLUGIN->username = strdup (config_get_str (FST_PLUGIN->conf, "main/alias=giFTed"));
-
-	/* set session to NULL */
-	FST_PLUGIN->session = NULL;
 
 	/* init node cache */
 	FST_PLUGIN->nodecache = fst_nodecache_create ();
@@ -291,6 +289,35 @@ static int fst_giftcb_start (Protocol *p)
 		FST_WARN_1 ("Couldn't find banlist \"%s\"", filepath);
 	else
 		FST_DBG_2 ("Loaded %d banned ip ranges from \"%s\"", i, filepath);
+
+	/* attempt to start http server */
+	FST_PLUGIN->server = NULL;
+	server_port = config_get_int (FST_PLUGIN->conf, "main/port=0");
+
+	if (server_port)
+	{
+		FST_PLUGIN->server = fst_http_server_create (server_port,
+													 NULL,
+													 NULL,
+													 NULL);
+
+		if (!FST_PLUGIN->server)
+		{
+			FST_WARN_1 ("Couldn't bind to port %d. Http server not started.",
+						server_port);
+		}
+		else
+		{
+			FST_DBG_1 ("Http server listening on port %d", server_port);
+		}
+	}
+	else
+	{
+		FST_DBG ("Port set to zero. Http server not started.");
+	}
+
+	/* set session to NULL */
+	FST_PLUGIN->session = NULL;
 	
 	/* init searches */
 	FST_PLUGIN->searches = fst_searchlist_create();
@@ -319,14 +346,17 @@ static void fst_giftcb_destroy (Protocol *p)
 	if (!FST_PLUGIN)
 		return;
 
+	/* shutdown http server */
+	fst_http_server_free (FST_PLUGIN->server);
+
+	/* free session */
+	fst_session_free (FST_PLUGIN->session);
+
 	/* free stats */
 	fst_stats_free (FST_PLUGIN->stats);
 
 	/* free searches */
 	fst_searchlist_free (FST_PLUGIN->searches);
-
-	/* free session */
-	fst_session_free (FST_PLUGIN->session);
 
 	/* free list of banned ips */
 	fst_ipset_free (FST_PLUGIN->banlist);

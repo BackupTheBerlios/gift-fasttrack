@@ -125,6 +125,10 @@ SOURCE=..\src\fst_http_header.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\fst_http_server.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\fst_ipset.c
 # End Source File
 # Begin Source File
@@ -186,6 +190,10 @@ SOURCE=..\src\fst_http_client.h
 # Begin Source File
 
 SOURCE=..\src\fst_http_header.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\fst_http_server.h
 # End Source File
 # Begin Source File
 

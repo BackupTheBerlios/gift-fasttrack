@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.19 2003/09/12 21:12:53 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.20 2003/09/17 11:25:04 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -127,11 +127,6 @@ typedef uint32_t fst_uint32;
 #include <libgift/proto/transfer_api.h>
 #include <libgift/proto/protocol.h>
 
-#if 0
-#include "src/transfer.h"
-#include "src/download.h" /* download_remove_source */
-#endif
-
 #include "fst_node.h"
 #include "fst_packet.h"
 #include "fst_session.h"
@@ -142,6 +137,7 @@ typedef uint32_t fst_uint32;
 #include "fst_utils.h"
 #include "fst_meta.h"
 #include "fst_ipset.h"
+#include "fst_http_server.h"
 
 /*****************************************************************************/
 
@@ -179,10 +175,15 @@ typedef struct
 	char *username;					/* copy of user name from config file */
 
 	FSTNodeCache *nodecache;		/* cache that holds known supernode
-									 * addresses */
+									 * addresses
+									 */
 
 	FSTIpSet *banlist;				/* set banned of ip ranges we loaded from
 									 * ~/.giFT/FastTrack/banlist
+									 */
+
+	FSTHttpServer *server;			/* http server used for uploads,
+									 * push replies and incoming sessions
 									 */
 
 	FSTSession *session;			/* established session to supernode we are

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.17 2003/09/12 22:48:55 mkern Exp $
+ * $Id: fst_download.c,v 1.18 2003/09/17 11:25:04 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -349,10 +349,16 @@ static unsigned char *download_parse_url (char *url, in_addr_t *ip,
 		while ((value = string_sep (&param_str, "&")))
 		{
 			if ((name = string_sep (&value, "=")))
+			{
+				string_lower (name);
 				dataset_insertstr (params, name, value);
+			}
 		}
 		if ((name = string_sep (&param_str, "=")))
+		{
+			string_lower (name);
 			dataset_insertstr (params, name, param_str);
+		}
 	}
 
 	free (url0);

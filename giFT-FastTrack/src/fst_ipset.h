@@ -1,5 +1,5 @@
 /*
- * $Id: fst_ipset.h,v 1.1 2003/09/12 21:12:53 mkern Exp $
+ * $Id: fst_ipset.h,v 1.2 2003/09/17 11:25:04 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack

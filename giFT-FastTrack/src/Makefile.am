@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.14 2003/09/12 21:12:53 mkern Exp $
+# $Id: Makefile.am,v 1.15 2003/09/17 11:25:04 mkern Exp $
 AM_CFLAGS = -Wall
 
 SUBDIRS = crypt
@@ -11,6 +11,7 @@ libFastTrack_la_SOURCES = \
 	fst_hash.c			fst_hash.h \
 	fst_http_header.c	fst_http_header.h \
 	fst_http_client.c	fst_http_client.h \
+	fst_http_server.c	fst_http_server.h \
 	fst_meta.c			fst_meta.h \
 	fst_node.c			fst_node.h \
 	fst_packet.c		fst_packet.h \

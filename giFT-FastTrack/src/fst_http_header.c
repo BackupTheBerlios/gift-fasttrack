@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_header.c,v 1.1 2003/09/10 11:10:25 mkern Exp $
+ * $Id: fst_http_header.c,v 1.2 2003/09/17 11:25:04 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -80,12 +80,12 @@ FSTHttpHeader *fst_http_header_parse (char *data, int *data_len)
 	int i, len = 0;
 
 	/* check if header is complete */
-	for (i=0,p=data; i<(*data_len)-3 && *p; i++,p++)
+	for (i=0,p=data; i<=(*data_len)-3 && *p; i++,p++)
 	{
 		if (p[0] != '\r' || p[1] != '\n')
 			continue;
 
-		if (i < (*data_len)-4 && p[2] == '\r' && p[3] == '\n')
+		if (i <= (*data_len)-4 && p[2] == '\r' && p[3] == '\n')
 		{
 			len = i + 4; 
 			break;
@@ -119,13 +119,14 @@ FSTHttpHeader *fst_http_header_parse (char *data, int *data_len)
 	header->method = HTHD_GET;
 	header->uri = NULL;
 	header->code = 0;
+	header->code_str = NULL;
 
 	/* parse first line */
 	if (! (line = string_sep (&curr, "\r\n")))
 	{
 		free (data);
 		fst_http_header_free (header);
-		return FALSE;
+		return NULL;
 	}
 
 	if (strncmp (line, "HTTP", 4) == 0)

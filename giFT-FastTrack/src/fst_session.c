@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.7 2003/09/10 11:10:26 mkern Exp $
+ * $Id: fst_session.c,v 1.8 2003/09/17 11:25:04 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -296,9 +296,6 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 		fst_packet_append (session->in_packet, packet);
 		fst_packet_free (packet);
 	}
-
-	FST_HEAVY_DBG_1 ("session->in_packet->mem_used = %d", fst_packet_size(session->in_packet));
-//	print_bin_data(session->in_packet->data, session->in_packet->used);
 
 	if(session->state == SessWaitingNetName)
 	{
