@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.8 2004/03/06 17:21:53 mkern Exp $
+$Id: PROTOCOL,v 1.9 2004/03/06 17:27:56 mkern Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -619,7 +619,7 @@ Message types
   Exchanged after connect. Observed values:
     kazaa 2.6.2:     0x00000022
     kazaa-lite 2.02: 0x0000001F
-	imesh 4.2:       0x0000001A
+    imesh 4.2:       0x0000001A
     kazaa 1.5        0x00000005
 
 0x2C External IP [<-]
