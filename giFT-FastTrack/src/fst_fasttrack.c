@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.39 2004/01/02 21:50:27 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.40 2004/01/03 17:49:51 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -38,7 +38,7 @@ int discover_callback (FSTUdpDiscover *discover, FSTNode *node)
 	if (!node)
 	{
 		/* we run out of nodes */
-		FST_ERR ("ran out of supernodes. find a better nodes file somewhere");
+		FST_ERR ("ran out of supernodes. find a new nodes file somewhere");
 
 		/* TODO: fall back to index node? */
 		fst_udp_discover_free (FST_PLUGIN->discover, TRUE);
@@ -173,9 +173,12 @@ static int fst_plugin_session_callback (FSTSession *session,
 				   session->node->host, session->node->port, session->node->load);
 
 		/* stop udp discovery */
-		fst_udp_discover_free (FST_PLUGIN->discover, TRUE);
-		FST_PLUGIN->discover = NULL;
-		FST_DBG ("stopped udp node discovery");
+		if (FST_PLUGIN->discover)
+		{
+			fst_udp_discover_free (FST_PLUGIN->discover, TRUE);
+			FST_PLUGIN->discover = NULL;
+			FST_DBG ("stopped udp node discovery");
+		}
 
 		/* resend queries for all running searches */
 		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
