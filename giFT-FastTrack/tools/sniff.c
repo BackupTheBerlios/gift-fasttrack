@@ -1,5 +1,5 @@
 /*
- * $Id: sniff.c,v 1.2 2003/11/28 23:56:49 hex Exp $
+ * $Id: sniff.c,v 1.3 2003/11/29 03:04:11 hex Exp $
  *
  * Based on printall.c from libnids/samples, which is
  * copyright (c) 1999 Rafal Wojtczuk <nergal@avet.com.pl>. All rights reserved.
@@ -115,7 +115,7 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 	switch (tcp->nids_state) {
 	case NIDS_JUST_EST:
 	{
-		if (!verify_port (tcp->addr.dest))
+		if (!verify_port (tcp->addr.dest) && !verify_port (tcp->addr.source))
 			return;
 
 		c=malloc(sizeof(struct session));
