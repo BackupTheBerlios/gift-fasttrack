@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.73 2004/07/16 13:36:40 hex Exp $
+ * $Id: fst_fasttrack.c,v 1.74 2004/07/23 19:26:52 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -45,6 +45,22 @@ static BOOL fst_plugin_netfail_timer (void *udata)
 {
 	fst_plugin_connect_next ();
 	return FALSE;
+}
+
+static int save_nodes (void)
+{
+	char *nodesfile;
+	int i;
+
+	nodesfile = gift_conf_path ("FastTrack/nodes");
+	i = fst_nodecache_save (FST_PLUGIN->nodecache, nodesfile);
+	if (i < 0)
+		FST_WARN_1 ("couldn't save nodes file \"%s\"", nodesfile);
+	else
+		FST_DBG_2 ("saved %d supernode addresses to nodes file \"%s\"",
+				   i, nodesfile);
+
+	return i;
 }
 
 /*
@@ -100,6 +116,27 @@ static void fst_plugin_connect_next ()
 			continue;
 		}
 		
+		/* don't connect to anywhere too close to an existing node */
+		if (dataset_lookup (FST_PLUGIN->peers, &node, sizeof(node)))
+		{
+			FST_DBG_2 ("not connecting to close node %s:%d",
+			           node->host, node->port);
+
+			/* move node to back of cache so next loop
+			 * uses a different one */
+			fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertBack);
+			fst_node_free (node);
+
+			/* we've probably run out of nodes at this point, so
+			 * wait a while until we get some more (continuing
+			 * tends to produce an infinite loop) */
+			if (count++ >= list_length (FST_PLUGIN->sessions))
+				return;
+
+			continue;
+		}
+			
+
 		/* don't connect to banned ips */
 		if (config_get_int (FST_PLUGIN->conf, "main/banlist_filter=0") &&
 			fst_ipset_contains (FST_PLUGIN->banlist, net_ip (node->host)))
@@ -356,6 +393,7 @@ static int fst_plugin_session_callback (FSTSession *session,
 			unsigned int last_seen	= fst_packet_get_uint8 (msg_data);			
 			unsigned int load		= fst_packet_get_uint8 (msg_data);		
 
+			FSTNode *node;
 #if 0
 			FST_DBG_4 ("node: %s:%d   load: %d%% last_seen: %d mins ago",
 					   net_ip_str(ip), port, load, last_seen);
@@ -368,8 +406,12 @@ static int fst_plugin_session_callback (FSTSession *session,
 #endif
 #endif
 
-			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
+			node = fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
 							   net_ip_str (ip), port, load, now - last_seen * 60);
+				      
+			if (node && last_seen == 0)
+				fst_peer_insert (FST_PLUGIN->peers, session->node,
+					      &session->peers, node);
 		}
 
 #ifdef DUMP_NODES
@@ -380,6 +422,10 @@ static int fst_plugin_session_callback (FSTSession *session,
 		fst_nodecache_sort (FST_PLUGIN->nodecache);
 
 		FST_DBG_1 ("added %d received supernode IPs to nodes list", i);
+
+		/* save some new nodes for next time (but not too often) */
+		if (FST_PLUGIN->session == session)
+			save_nodes ();
 
 		/* now that we have some more nodes, try to continue connecting */
 		fst_plugin_connect_next ();
@@ -745,6 +791,9 @@ static int fst_giftcb_start (Protocol *proto)
 		FST_WARN ("Creation of udp discovery failed");
 	}
 	
+	/* init peers */
+	FST_PLUGIN->peers = dataset_new (DATASET_HASH);
+
 	/* init searches */
 	FST_PLUGIN->searches = fst_searchlist_create();
 
@@ -783,7 +832,7 @@ static int fst_giftcb_start (Protocol *proto)
 	fst_plugin_connect_next ();
 
 	/* and periodically retry */
-	timer_add (60*SECONDS, fst_plugin_try_connect, NULL);
+	FST_PLUGIN->retry_timer = timer_add (60*SECONDS, fst_plugin_try_connect, NULL);
 
 	return TRUE;
 }
@@ -798,9 +847,6 @@ static int free_additional_session (FSTSession *session, void *udata)
 
 static void fst_giftcb_destroy (Protocol *proto)
 {
-	char *nodesfile;
-	int i;
-
 	FST_DBG ("shutting down");
 
 	if (!FST_PLUGIN)
@@ -850,13 +896,7 @@ static void fst_giftcb_destroy (Protocol *proto)
 	fst_ipset_free (FST_PLUGIN->banlist);
 
 	/* save and free nodes */
-	nodesfile = gift_conf_path ("FastTrack/nodes");
-	i = fst_nodecache_save (FST_PLUGIN->nodecache, nodesfile);
-	if (i < 0)
-		FST_WARN_1 ("couldn't save nodes file \"%s\"", nodesfile);
-	else
-		FST_DBG_2 ("saved %d supernode addresses to nodes file \"%s\"",
-				   i, nodesfile);
+	save_nodes ();
 	fst_nodecache_free (FST_PLUGIN->nodecache);
 
 	/* free cached user name */
@@ -864,6 +904,8 @@ static void fst_giftcb_destroy (Protocol *proto)
 
 	/* free config */
 	config_free (FST_PLUGIN->conf);
+
+	timer_remove (FST_PLUGIN->retry_timer);
 
 #if 0
 	/* remove algo hack */

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.52 2004/07/14 22:03:17 hex Exp $
+ * $Id: fst_fasttrack.h,v 1.53 2004/07/23 19:26:52 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -135,6 +135,7 @@ typedef uint32_t fst_uint32;
 #include "fst_ipset.h"
 #include "fst_http_server.h"
 #include "fst_push.h"
+#include "fst_peer.h"
 #include "fst_upload.h"
 #include "fst_share.h"
 #include "fst_udp_discover.h"
@@ -256,6 +257,9 @@ typedef struct
 									 * searches
 									 */
 
+	Dataset *peers;                        /* which nodes are currently peered 
+						  with a node we're connected to */
+
 	FSTStats *stats;				/* network statistics */
 
 	FSTPushList *pushlist;			/* list of requested pushes */
@@ -278,6 +282,8 @@ typedef struct
 	int allow_sharing;				/* cache for allow_sharing config key */
 	int shared_files;               /* number of currently shared files */
 
+	timer_id retry_timer;
+	
 } FSTPlugin;
 
 /*****************************************************************************/

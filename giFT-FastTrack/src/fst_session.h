@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.h,v 1.9 2004/07/08 17:58:44 mkern Exp $
+ * $Id: fst_session.h,v 1.10 2004/07/23 19:26:52 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -81,6 +81,8 @@ struct _FSTSession
 
 	TCPC *tcpcon;				/* tcp connection */
 	FSTNode *node;				/* copy of node this session is connected to */
+
+	Dataset *peers;      /* dataset of peer=>list links pointing to this node */
 
 	timer_id ping_timer;        /* timer used for pinging supernode */
 

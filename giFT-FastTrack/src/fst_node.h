@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.h,v 1.9 2004/07/14 22:03:17 hex Exp $
+ * $Id: fst_node.h,v 1.10 2004/07/23 19:26:52 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -82,8 +82,11 @@ void fst_node_init (FSTNode *node, FSTNodeKlass klass, char *host,
 /* alloc and create copy of node */
 FSTNode *fst_node_create_copy (FSTNode *org_node);
 
+/* ref node */
+void fst_node_ref (FSTNode *node);
+
 /* free node */
-void fst_node_free (FSTNode *node);
+BOOL fst_node_free (FSTNode *node);
 
 /*****************************************************************************/
 
@@ -96,7 +99,7 @@ void fst_nodecache_free (FSTNodeCache *cache);
 /*****************************************************************************/
 
 /* create and add node to front of cache */
-void fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
+FSTNode *fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
 					    unsigned short port, unsigned int load,
 					    unsigned int last_seen);
 

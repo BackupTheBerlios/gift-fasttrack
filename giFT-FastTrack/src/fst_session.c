@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.28 2004/07/14 22:03:17 hex Exp $
+ * $Id: fst_session.c,v 1.29 2004/07/23 19:26:52 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -79,6 +79,10 @@ void fst_session_free (FSTSession *session)
 
 	fst_cipher_free (session->in_cipher);
 	fst_cipher_free (session->out_cipher);
+	
+	fst_peer_remove (FST_PLUGIN->peers,
+			 session->node,
+			 session->peers);
 	
 	fst_packet_free (session->in_packet);
 
