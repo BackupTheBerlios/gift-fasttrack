@@ -1,3 +1,10 @@
+gift-fasttrack (0.8.2-2) unstable; urgency=low
+
+  * Added proper dependencies on the giFT packages.
+  * Changed the binary package name to libfasttrack-gift.
+
+ -- Göran Weinholt <weinholt@dtek.chalmers.se>  Fri,  1 Aug 2003 16:07:52 +0200
+
 gift-fasttrack (0.8.2-1) unstable; urgency=low
 
   * New upstream release.

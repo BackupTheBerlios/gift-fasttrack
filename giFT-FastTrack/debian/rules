@@ -58,8 +58,8 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-	# Add here commands to install the package into debian/gift-fasttrack.
-	$(MAKE) install DESTDIR=$(CURDIR)/debian/gift-fasttrack
+	# Add here commands to install the package into debian/libfasttrack-gift.
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/libfasttrack-gift
 
 
 # Build architecture-independent files here.
