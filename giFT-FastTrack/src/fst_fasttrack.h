@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.13 2003/06/28 20:17:34 beren12 Exp $
+ * $Id: fst_fasttrack.h,v 1.14 2003/06/29 15:29:28 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -22,12 +22,23 @@
 
 #define FILE_LINE_FUNC __FILE__,__LINE__,__PRETTY_FUNCTION__
 
+/* The default shall be debugging on, until a stable release is made */
+#ifdef DEBUG
 #define FST_DBG(fmt)			FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt)
 #define FST_DBG_1(fmt,a)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a)
 #define FST_DBG_2(fmt,a,b)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b)
 #define FST_DBG_3(fmt,a,b,c)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c)
 #define FST_DBG_4(fmt,a,b,c,d)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d)
 #define FST_DBG_5(fmt,a,b,c,d,e)	FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d,e)
+#else
+#define FST_DBG(fmt)
+#define FST_DBG_1(fmt,a)
+#define FST_DBG_2(fmt,a,b)
+#define FST_DBG_3(fmt,a,b,c)
+#define FST_DBG_4(fmt,a,b,c,d)
+#define FST_DBG_5(fmt,a,b,c,d,e)
+#endif /* DEBUG */
+
 
 #ifdef HEAVY_DEBUG
 # define FST_HEAVY_DBG(fmt)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt)
@@ -43,7 +54,8 @@
 # define FST_HEAVY_DBG_3(fmt,a,b,c)
 # define FST_HEAVY_DBG_4(fmt,a,b,c,d)
 # define FST_HEAVY_DBG_5(fmt,a,b,c,d,e)
-#endif
+#endif /* HEAVY_DEBUG */
+
 
 #define FST_WARN(fmt)			FST_PROTO->warn(FST_PROTO,fmt)
 #define FST_WARN_1(fmt,a)		FST_PROTO->warn(FST_PROTO,fmt,a)

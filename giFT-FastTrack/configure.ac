@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.12 2003/06/29 13:36:07 beren12 Exp $
+# $Id: configure.ac,v 1.13 2003/06/29 15:29:28 beren12 Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -11,7 +11,7 @@ AC_PREREQ(2.52)
 AC_INIT
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
-AM_INIT_AUTOMAKE(giFT-FastTrack, 0.8.0)
+AM_INIT_AUTOMAKE(giFT-FastTrack, 0.8.1)
 AM_CONFIG_HEADER(config.h)
 
 dnl AM_MAINTAINER_MODE
@@ -23,8 +23,17 @@ dnl ###########################################################################
 AH_VERBATIM([BUILD_DATE], [
 #undef BUILD_DATE
 ])
+
 AH_VERBATIM([USE_LTDL], [
 #undef USE_LTDL
+])
+
+AH_VERBATIM([DEBUG], [
+#undef DEBUG
+])
+
+AH_VERBATIM([HEAVY_DEBUG], [
+#undef HEAVY_DEBUG
 ])
 
 dnl ###########################################################################
@@ -80,8 +89,14 @@ dnl ###########################################################################
 dnl All of the lovely arguments
 dnl ###########################################################################
 
-AC_ARG_ENABLE(ltdl,        [  --disable-ltdl          do not use libltdl],,[enable_ltdl=yes])
-AM_CONDITIONAL(LTDL,        test x$enable_ltdl    = xyes)
+AC_ARG_ENABLE(ltdl,               [  --disable-ltdl          do not use libltdl],,[enable_ltdl=yes])
+AM_CONDITIONAL(LTDL,               test x$enable_ltdl    = xyes)
+
+AC_ARG_ENABLE(debug,              [  --disable-debug         do not use libltdl],,[enable_debug=yes])
+AM_CONDITIONAL(DEBUG,              test x$enable_debug    = xyes)
+
+AC_ARG_ENABLE(heavy_debug,        [  --enable-heavy-debug     do not use libltdl],,[enable_heavy_debug=no])
+AM_CONDITIONAL(HEAVY_DEBUG,        test x$enable_ltdl    = xno)
 
 dnl ###########################################################################
 dnl Overrides
@@ -160,6 +175,36 @@ if test x$enable_ltdl = xyes; then
 fi
 
 dnl ###########################################################################
+dnl normal debug
+dnl ###########################################################################
+
+# set the defaults
+use_debug=yes
+
+if test x$enable_debug = xyes; then
+
+	AC_DEFINE(DEBUG)
+	AC_SUBST(DEBUG)
+
+else
+	use_debug=no
+fi
+
+dnl ###########################################################################
+dnl heavy debug
+dnl ###########################################################################
+
+# set the defaults
+use_heavy_debug=no
+
+if test x$enable_heavy_debug = xyes; then
+
+        AC_DEFINE(HEAVY_DEBUG)
+        AC_SUBST(HEAVY_DEBUG)
+	use_heavy_debug=yes
+fi
+
+dnl ###########################################################################
 dnl Setup some misc build environment settings
 dnl ###########################################################################
 
@@ -200,11 +245,13 @@ dnl ###########################################################################
 echo
 echo "$PACKAGE $VERSION"
 echo
-echo "----------- core ------------"
+echo "------------------ core ------------------"
 echo
 echo "use ltdl................: $use_ltdl"
+echo "normal debugging........: $use_debug"
+echo "heavy debugging.........: $use_heavy_debug"
 echo
-echo "-----------------------------"
+echo "------------------------------------------"
 echo
 echo "$PACKAGE will be installed in $plugindir/"
 echo "configs will be installed in $datadir/"
