@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.c,v 1.6 2003/08/13 21:16:09 weinholt Exp $
+ * $Id: fst_crypt.c,v 1.7 2003/08/15 15:05:02 weinholt Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -401,23 +401,11 @@ static unsigned int calculate_num_xor (unsigned int seed)
 
 static int calculate_num (unsigned int *num, int val)
 {
-	unsigned int temp = *num;
-	int	temp2;
-
 	if (!(val > 0x10001))
 	{
-		temp = temp * 5;
-		temp = temp << 8;
-		temp = temp - (*num);
-		temp = temp * 9;
-		temp = (*num) + temp * 2;
-		temp = temp * 3 + 0x4271;
-		*num = temp;
-		temp = temp >> 16;
-		temp2 = (int) temp;
-		temp2 = temp2 * val;
-		temp2 = temp2 >> 16;
-		return temp2;
+		*num = seed_step(*num);
+
+		return ((int) (*num >> 16) * val) >> 16;
 	}
 	else
 	{
@@ -434,16 +422,7 @@ static int calculate_num (unsigned int *num, int val)
 
 static unsigned int seed_step (unsigned int seed)
 {
-	unsigned int temp;
-
-	temp = seed * 5;
-	temp = temp << 8;
-	temp = temp - seed;
-	temp = temp * 9;
-	seed = seed + temp * 2;
-	seed = seed * 3 + 0x4271;
-	
-	return seed;
+	return 0x10dcd * seed + 0x4271;
 }
 
 
