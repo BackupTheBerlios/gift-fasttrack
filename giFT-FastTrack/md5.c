@@ -25,6 +25,8 @@ static void MD5Transform(unsigned int buf[4], unsigned int const in[MD5_HASH_LEN
 
 /*****************************************************************************/
 
+#define HIGHFIRST
+
 #ifndef HIGHFIRST
 # define byteReverse(buf, len)
 #else /* HIGHFIRST */

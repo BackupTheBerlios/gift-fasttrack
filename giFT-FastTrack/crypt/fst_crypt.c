@@ -141,7 +141,8 @@ void fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type
 		cipher->pad[i] = c | 1;
 	}
 
-	//print_bin_data(cipher->lookup, sizeof(cipher->lookup));
+//	print_bin_data(cipher->pad, sizeof(cipher->pad));
+//	print_bin_data(cipher->lookup, sizeof(cipher->lookup));
 }
 
 /*****************************************************************************/

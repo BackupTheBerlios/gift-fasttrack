@@ -28,7 +28,6 @@ all: $(FST_OBJS) $(CRYPT_OBJS)
 	@echo "If giFT is NOT installed in the above place you MUST change the path in the Makefile before running 'make install'"
 	@echo "*************************************************************"
 
-
 install:
 	@echo "*************************************************************"
 	@echo "Copying files..."

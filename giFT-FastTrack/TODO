@@ -4,3 +4,5 @@
 - implement sharing
 - make dowloading less greedier
 - rename meta data keys
+- are searches really resent to new connections?
+- zero stats while not connected

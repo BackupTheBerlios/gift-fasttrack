@@ -17,11 +17,6 @@
 
 /*****************************************************************************/
 
-/*
-#ifndef LOG_PFX
-# define LOG_PFX "FastTrack: "
-#endif
-*/
 #define FILE_LINE_FUNC __FILE__,__LINE__,__PRETTY_FUNCTION__
 
 #define FST_DBG(fmt)				FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt)
@@ -100,12 +95,12 @@ typedef unsigned int fst_uint32;
 #define FST_MAX_SEARCH_RESULTS 0xFF	// max number of results we want to be returned per search
 
 // various timeouts in ms
-#define FST_SESSION_CONNECT_TIMEOUT		(5*1000)
-#define FST_SESSION_HANDSHAKE_TIMEOUT	(8*1000)
+#define FST_SESSION_CONNECT_TIMEOUT		(10*SECONDS)
+#define FST_SESSION_HANDSHAKE_TIMEOUT	(10*SECONDS)
 
-#define FST_DOWNLOAD_CONNECT_TIMEOUT		(20*1000)
-#define FST_DOWNLOAD_HANDSHAKE_TIMEOUT	(10*1000)
-#define FST_DOWNLOAD_DATA_TIMEOUT		(10*1000)
+#define FST_DOWNLOAD_CONNECT_TIMEOUT	(20*SECONDS)
+#define FST_DOWNLOAD_HANDSHAKE_TIMEOUT	(10*SECONDS)
+#define FST_DOWNLOAD_DATA_TIMEOUT		(10*SECONDS)
 
 /*****************************************************************************/
 
