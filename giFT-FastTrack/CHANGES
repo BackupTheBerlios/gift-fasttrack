@@ -1,4 +1,10 @@
 
+03/05/18
+--------
+
+- Fixed the endianess issues, the plugin should now work fine on big-endian
+
+
 03/05/09
 --------
 

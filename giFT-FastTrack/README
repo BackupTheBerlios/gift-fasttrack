@@ -14,14 +14,14 @@ Then again, running KaZaA in wine may destroy all of the above.
 Compilation & Installation
 --------------------------
 
-Please note that the plugin currently only works on little-endian
-machines. This means MAC users are out of luck, sorry.
-
 Currently there is only a simple make file.
 (You're welcome to provide something better)
 
 So just copy everything into giFT/FastTrack (the giFT source dir
 you got from cvs) and run "make" and "make install" there.
+
+NOTE: If you are using MAC OSX please use "make mac" and
+      "make install" instead.
 
 Maybe look at the Makefile first since it makes some
 stupid assumptions about your system.
