@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.13 2003/06/29 15:29:28 beren12 Exp $
+# $Id: configure.ac,v 1.14 2003/06/29 16:14:19 mkern Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -92,11 +92,11 @@ dnl ###########################################################################
 AC_ARG_ENABLE(ltdl,               [  --disable-ltdl          do not use libltdl],,[enable_ltdl=yes])
 AM_CONDITIONAL(LTDL,               test x$enable_ltdl    = xyes)
 
-AC_ARG_ENABLE(debug,              [  --disable-debug         do not use libltdl],,[enable_debug=yes])
+AC_ARG_ENABLE(debug,              [  --disable-debug         do not create debug messages],,[enable_debug=yes])
 AM_CONDITIONAL(DEBUG,              test x$enable_debug    = xyes)
 
-AC_ARG_ENABLE(heavy_debug,        [  --enable-heavy-debug     do not use libltdl],,[enable_heavy_debug=no])
-AM_CONDITIONAL(HEAVY_DEBUG,        test x$enable_ltdl    = xno)
+AC_ARG_ENABLE(heavy_debug,        [  --enable-heavy-debug    create _lots_ debug messages],,[enable_heavy_debug=no])
+AM_CONDITIONAL(HEAVY_DEBUG,        test x$enable_heavy_debug    = xyes)
 
 dnl ###########################################################################
 dnl Overrides
@@ -108,7 +108,7 @@ DL_LDFLAGS=
 DL_CFLAGS=
 
 # Override -g -O2
-CFLAGS="-g -Wall"
+CFLAGS="-g -Wall -lm"
 
 dnl ###########################################################################
 dnl Architecture specific stuff
