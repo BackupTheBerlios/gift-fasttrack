@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.19 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.20 2004/03/10 20:35:16 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -311,35 +311,30 @@ static void udp_discover_receive (int fd, input_id input,
 	switch (type)
 	{
 	case UdpMsgPong:
+	{
+		fst_uint8 unknown1;
+		fst_uint8 time_inc;
+		fst_uint8 outdegree; /* unconfirmed, confidence < 10% */
+		fst_uint8 children;  /* unconfirmed, confidence < 30% */
+		fst_int8 unknown2;
 		
 		/* update udp_node with the new data */
 		udp_node->min_enc_type = ntohl (fst_packet_get_uint32 (packet));
 
-		fst_packet_get_uint8 (packet); /* unknown (0x00) */
-		fst_packet_get_uint8 (packet); /* unknown (30 minute increment) */
-		fst_packet_get_uint16 (packet); /* unknown (some class?) */
+		unknown1  = fst_packet_get_uint8 (packet); /* unknown (0x00) */
+		time_inc  = fst_packet_get_uint8 (packet); /* 30 minute increment */
+		outdegree = fst_packet_get_uint8 (packet); /* supernode outdegree? */
+		children  = fst_packet_get_uint8 (packet); /* supernode children? */
 
-		/* load (really?) */
+		/* load */
 		udp_node->node->load = fst_packet_get_uint8 (packet);
 
-		fst_packet_get_uint8 (packet); /* unknown (number of children?) */
+		unknown2 =	fst_packet_get_uint8 (packet); /* unknown (signed?) */
 
-#if 0
-		{
-			unsigned int a, b, c, d ,e;
-			char *ip = strdup (net_ip_str (addr.sin_addr.s_addr));
+#if 1
+		FST_HEAVY_DBG_5 ("udp data: unk1: 0x%02x, time_inc: 0x%02x, outdegree: %d, children: %d, unk2: %d",
+		                 unknown1, time_inc, outdegree, children, unknown2);
 
-			a = fst_packet_get_uint8 (packet); /* unknown (0x00) */
-			b = fst_packet_get_uint8 (packet); /* unknown (30 minute increment) */
-			c = fst_packet_get_uint16 (packet); /* unknown (some class?) */
-			d = fst_packet_get_uint8 (packet);
-			e = fst_packet_get_uint8 (packet); /* unknown (number of children?) */
-
-			FST_WARN_5 ("udp data: 0x%02x %3d %3d  (%s:%d)",
-			            b, d, e, ip, ntohs (addr.sin_port));
-
-			free (ip);
-		}
 #endif
 
 		if((len = fst_packet_strlen (packet, 0x00)) < 0)
@@ -369,6 +364,7 @@ static void udp_discover_receive (int fd, input_id input,
 	
 		fst_udp_node_free (udp_node);
 		break;
+	}
 
 	case UdpMsgPong2:
 		

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.61 2004/03/10 11:21:55 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.62 2004/03/10 20:35:16 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -335,7 +335,12 @@ static int fst_plugin_session_callback (FSTSession *session,
 			FST_DBG ("disconnecting from splitted network segment");
 			/* this calls us back with SessMsgDisconnected */
 			fst_session_disconnect (session);
+			return FALSE;
 		}
+
+#if 0
+		fst_udp_discover_ping_node (FST_PLUGIN->discover, session->node);
+#endif
 
 		break;
 	}

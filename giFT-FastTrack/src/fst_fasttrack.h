@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.43 2004/03/10 02:07:01 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.44 2004/03/10 20:35:16 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
