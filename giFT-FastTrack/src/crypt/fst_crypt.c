@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.c,v 1.9 2003/09/18 19:50:03 mkern Exp $
+ * $Id: fst_crypt.c,v 1.10 2003/11/28 22:57:46 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -16,9 +16,97 @@
  * General Public License for more details.
  */
 
-#include "fst_fasttrack.h"
 #include "fst_crypt.h"
 #include "md5.h"
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FST_WARN
+#define FST_WARN(fmt)
+#endif
+
+#ifndef FST_WARN_1
+#define FST_WARN_1(fmt,a)
+#endif
+
+#ifndef FST_WARN_2
+#define FST_WARN_2(fmt,a,b)
+#endif
+
+#ifndef FST_WARN_3
+#define FST_WARN_3(fmt,a,b,c)
+#endif
+
+#ifndef FST_ERR
+#define FST_ERR(fmt)
+#endif
+
+#ifndef FST_ERR_1
+#define FST_ERR_1(fmt,a)
+#endif
+
+#ifndef FST_ERR_2
+#define FST_ERR_2(fmt,a,b)
+#endif
+
+#ifndef FST_ERR_3
+#define FST_ERR_3(fmt,a,b,c)
+#endif
+
+#ifndef FST_DBG
+#define FST_DBG(fmt)
+#endif
+
+#ifndef FST_DBG_1
+#define FST_DBG_1(fmt,a)
+#endif
+
+#ifndef FST_DBG_2
+#define FST_DBG_2(fmt,a,b)
+#endif
+
+#ifndef FST_DBG_3
+#define FST_DBG_3(fmt,a,b,c)
+#endif
+
+#ifndef FST_DBG_4
+#define FST_DBG_4(fmt,a,b,c,d)
+#endif
+
+#ifndef FST_DBG_5
+#define FST_DBG_5(fmt,a,b,c,d,e)
+#endif
+
+#ifndef FST_HEAVY_DBG
+#define FST_HEAVY_DBG(fmt)
+#endif
+
+#ifndef FST_HEAVY_DBG_1
+#define FST_HEAVY_DBG_1(fmt,a)
+#endif
+
+#ifndef FST_HEAVY_DBG_2
+#define FST_HEAVY_DBG_2(fmt,a,b)
+#endif
+
+#ifndef FST_HEAVY_DBG_3
+#define FST_HEAVY_DBG_3(fmt,a,b,c)
+#endif
+
+#ifndef FST_HEAVY_DBG_4
+#define FST_HEAVY_DBG_4(fmt,a,b,c,d)
+#endif
+
+#ifndef FST_HEAVY_DBG_5
+#define FST_HEAVY_DBG_5(fmt,a,b,c,d,e)
+#endif
+
 
 /*****************************************************************************/
 
