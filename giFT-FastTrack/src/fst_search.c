@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.15 2003/11/13 17:48:31 mkern Exp $
+ * $Id: fst_search.c,v 1.16 2004/03/03 16:09:09 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -20,6 +20,7 @@
 
 #include <libgift/proto/share.h>
 #include <libgift/proto/share_hash.h>
+#include <math.h> /* for exp used in bandwidth calculation */
 
 /*****************************************************************************/
 /*
@@ -621,6 +622,7 @@ int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event)
 	FileShare *share;
 	List *item;
 	char *href, *buf;
+	unsigned int avail = 0;
 
 	if (!result || !event)
 		return FALSE;
@@ -662,9 +664,21 @@ int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event)
 	/* create actual user name sent to giFT */
 	buf = stringf_dup ("%s@%s", result->username, net_ip_str(result->ip));
 
+	/* Calculate avilability based on reported bandwidth. */
+	if (result->bandwidth > 0)
+	{
+#if 1
+		avail = 1 + exp(((double)result->bandwidth) * 0.0495105 - 2.9211202) / 1680 * 8;
+#else
+		avail = 1 + (((double)result->bandwidth) / 0xd1) * 8;
+#endif
+		if (avail > 9)
+			avail = 9;
+	}
+
 	/* notify giFT */
 	FST_PROTO->search_result (FST_PROTO, event, buf, result->netname,
-							  href, 1, share);
+							  href, avail, share);
 
 	free (buf);
 	free (href);

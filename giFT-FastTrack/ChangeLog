@@ -1,4 +1,8 @@
- $Id: ChangeLog,v 1.15 2004/03/02 23:14:38 mkern Exp $
+ $Id: ChangeLog,v 1.16 2004/03/03 16:09:09 mkern Exp $
+
+2004-03-03  Markus Kern <mkern@users.berlios.de>
+
+	* Calculate availability based on reported bandwidth
 
 2004-03-02  Markus Kern <mkern@users.berlios.de>
 

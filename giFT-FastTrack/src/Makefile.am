@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.20 2004/01/01 21:44:43 mkern Exp $
+# $Id: Makefile.am,v 1.21 2004/03/03 16:09:09 mkern Exp $
 AM_CFLAGS = -Wall
 
 SUBDIRS = crypt
@@ -33,7 +33,7 @@ INCLUDES = \
 	@GIFT_CFLAGS@ \
 	-I$(top_srcdir)/src/crypt
 
-libFastTrack_la_LDFLAGS = @GIFT_LIBS@ -module -avoid-version
+libFastTrack_la_LDFLAGS = @GIFT_LIBS@ -lm -module -avoid-version
 # -Wl,-z,defs
 
 EXTRA_DIST = Makefile.msvc
