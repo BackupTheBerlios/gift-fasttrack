@@ -1,12 +1,9 @@
-$Id: TODO,v 1.4 2003/06/20 20:15:30 beren12 Exp $
+$Id: TODO,v 1.5 2003/06/22 14:31:14 mkern Exp $
 
 - add firewalled download support
 - make node cache smarter / use udp discovery
 - implement sharing
 - make dowloading less greedy
-- rename meta data keys
 - are searches really resent to new connections?
-- zero stats while not connected
 - make a usefull manpage :)
 - find someone (rasa?) to intagrate into the win32 build of giFT
-- add a debian dir and scripts
