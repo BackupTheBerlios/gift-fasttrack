@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.33 2004/11/10 20:00:57 mkern Exp $
+ * $Id: fst_search.c,v 1.34 2004/11/10 21:46:35 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -24,7 +24,7 @@
 
 /*****************************************************************************/
 /*
-#define LOG_TAGS
+#define LOG_RESULTS
 */
 /*****************************************************************************/
 
@@ -580,8 +580,8 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 		results = list_prepend (results, (void*) result);
 		result->source->snode_ip = sip;
 		result->source->snode_port = sport;
-		/* save our current supernode ip */
-		result->source->parent_ip = FST_PLUGIN->session->tcpcon->host;
+		/* save supernode ip we got this result from */
+		result->source->parent_ip = session->tcpcon->host;
 
 		result->source->ip = fst_packet_get_uint32 (msg_data);
 		result->source->port = ntohs(fst_packet_get_uint16 (msg_data));
@@ -653,7 +653,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 
 		ntags = fst_packet_get_dynint (msg_data);
 
-#ifdef HEAVY_DEBUG
+#ifdef LOG_RESULTS
 		{
 		FST_HEAVY_DBG_2 ("result %d: %s", nresults,
 		                 fst_hash_encode64_fthash (result->hash));
@@ -684,7 +684,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			if (tag > 0x40)
 			{
 				FST_WARN ("Corrupt search result detected. Bitch to the Kazaa developers.");
-#ifdef LOG_TAGS
+#ifdef LOG_RESULTS
 				FST_DBG ("*** Dump of corrupt result saved ***");
 				save_bin_data (msg_data->data, msg_data->used);
 #endif
@@ -696,7 +696,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 				return FALSE;
 			}
 
-#ifdef LOG_TAGS
+#ifdef LOG_RESULTS
 			{
 			char *buf = fst_packet_get_str (tagdata, taglen);
 			FST_HEAVY_DBG_4 ("    tag: 0x%02x (%s), len: %02d, data: %s",

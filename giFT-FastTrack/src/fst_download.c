@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.25 2004/03/10 20:51:40 mkern Exp $
+ * $Id: fst_download.c,v 1.26 2004/11/10 21:46:35 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -28,6 +28,9 @@ static void download_error_gift (Source *source, int remove_source,
 								 unsigned short klass, char *error);
 static char *download_calc_xferuid (char *uri);
 
+/* returns supernode session by supernode ip */
+static FSTSession *session_from_ip (in_addr_t ip);
+
 /*****************************************************************************/
 
 /* called by gift to start downloading of a chunk */
@@ -36,6 +39,7 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 {
 	FSTSource *src;
 	FSTPush *push;
+	FSTSession *session;
 
 	if (!(src = fst_source_create_url (source->url)))
 	{
@@ -48,8 +52,6 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 	/* determine whether we need to send a push. */
 	if (fst_source_firewalled (src))
 	{
-		fst_source_free (src);
-
 		/* check if we already sent a push for this source */
 		if ((push = fst_pushlist_lookup_source (FST_PLUGIN->pushlist, source)))
 		{
@@ -61,14 +63,37 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 						source->url, push->push_id);
 			fst_pushlist_remove (FST_PLUGIN->pushlist, push);
 			fst_push_free (push);
+			fst_source_free (src);
 		}
+
+		/* Find correct supernode to send push to. */
+		if (!(session = session_from_ip (src->parent_ip)))
+		{
+			fst_source_free (src);
+
+			/* We are no longer connected to the supernode this push should go
+			 * to. Remove the source.
+			 */
+			FST_DBG_1 ("No supernode for sending push, removing source %s",
+			           source->url);
+
+			/* this will call fst_giftcb_source_remove */
+			FST_PROTO->source_abort (FST_PROTO, source->chunk->transfer, source);
+
+			/* Need to return TRUE because gift fill otherwise access the already
+			 * removed source in download.c::activate_chunk and crash.
+			 */
+			return TRUE;
+		}
+
+		fst_source_free (src);
 
 		/* create push and add to list */
 		if (! (push = fst_pushlist_add (FST_PLUGIN->pushlist, source)))
 			return FALSE;
 
 		/* send push request */
-		if (!fst_push_send_request (push, FST_PLUGIN->session))
+		if (!fst_push_send_request (push, session))
 		{
 			FST_DBG_1 ("push send failed, removing source %s", source->url);
 			fst_pushlist_remove (FST_PLUGIN->pushlist, push);
@@ -169,17 +194,8 @@ BOOL fst_giftcb_source_add (Protocol *p,Transfer *transfer, Source *source)
 			return FALSE;
 		}
 
-		/* if there is no active session the supernode has most likely changed */
-		if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
-		{
-			FST_DBG_1 ("no established session, rejecting fw source %s",
-			           source->url);
-			fst_source_free (src);
-			return FALSE;
-		}
-
 		/* we must still be connected to the correct supernode */
-		if (FST_PLUGIN->session->tcpcon->host != src->parent_ip)
+		if (!session_from_ip (src->parent_ip))
 		{
 			FST_DBG_1 ("no longer connected to correct supernode, rejecting source %s",
 			           source->url);
@@ -606,6 +622,26 @@ static char *download_calc_xferuid (char *uri)
 	free (base64_ptr);
 	
 	return base64;
+}
+
+/*****************************************************************************/
+
+/* returns supernode session by supernode ip */
+static FSTSession *session_from_ip (in_addr_t ip)
+{
+	List *l;
+
+	if (FST_PLUGIN->session->tcpcon->host == ip)
+		return FST_PLUGIN->session;
+
+	/* Check additional connections. */
+	for (l = FST_PLUGIN->sessions; l; l = l->next)
+	{
+		if (((FSTSession*)l->data)->tcpcon->host == ip)
+			return l->data;
+	}
+
+	return NULL;
 }
 
 /*****************************************************************************/

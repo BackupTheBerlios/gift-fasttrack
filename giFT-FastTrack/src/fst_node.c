@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.20 2004/11/10 20:00:57 mkern Exp $
+ * $Id: fst_node.c,v 1.21 2004/11/10 21:46:35 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -18,7 +18,7 @@
 #include "fst_fasttrack.h"
 #include "fst_node.h"
 
-#define NODECACHE_DEBUG
+/* #define NODECACHE_DEBUG */
 
 /*****************************************************************************/
 

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_source.c,v 1.1 2004/03/10 02:07:01 mkern Exp $
+ * $Id: fst_source.c,v 1.2 2004/11/10 21:46:35 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -482,6 +482,7 @@ static URL_OPT_UNSERIALIZE (parent_ip)
 		return FALSE;
 
 	source->parent_ip = ip;
+
 	return TRUE;
 }
 
