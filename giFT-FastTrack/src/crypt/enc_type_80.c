@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_80.c,v 1.1 2003/08/27 15:26:09 mkern Exp $
+ * $Id: enc_type_80.c,v 1.2 2003/08/27 20:29:24 weinholt Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -20,8 +20,6 @@
  * Used for encryption version 0x80
  */
 
-#include <math.h>	// for floating point stuff
-
 typedef unsigned int u32;
 typedef unsigned char u8;
 
@@ -32,14 +30,39 @@ typedef int THROWS_RET;
 #define TRY(x) { if((x) == -1) return 0; }
 #define RETURN return 0;
 
+/* some helper funcs */
+
+#ifndef __GNUC__
+#define __attribute__(x)
+#endif
+
+/* my_cos() and my_sin() are equal to cos()<0 and sin()<0. */
+static int __attribute__ ((const)) my_cos (unsigned char i)
+{
+	return (i * 39 + 61) % 245 > 122;
+}
+
+/* It works because of fmod(i, 2*M_PI) > M_PI. */
+static int __attribute__ ((const)) my_sin (unsigned char i)
+{
+	return (i * 46) % 289 > 144;
+}
+
+/* this is (unsigned int) floor(sqrt(((double)(((unsigned char)(i))))+1) + 0.001). */
+static int __attribute__ ((const)) my_sqrt (unsigned char i)
+{
+	int j, k;
+
+	for (j = 0, k = 0; j++ <= i; j += ++k << 1);
+	return k;
+}
+
+
 /* macro for easier access to the key */
 
 #define KEY(x) (*((u32*)(((u8*)key)+(x))))
 
 /* some constants and helper funcs */ 
-
-static double math_const_1 = 0.001;
-static double math_const_2 = 0;
 
 static u32 ROR(u32 value, u32 count)
 {
@@ -51,11 +74,6 @@ static u32 ROL(u32 value, u32 count)
 {
   count = (count & 0xff) % 32;
   return (value << count) | (value >> (32 - count));
-}
-
-static u32 my_ftol (double var)
-{
-	return (u32)var;
 }
 
 /* the entry point of this mess */
@@ -366,74 +384,74 @@ void enc_80_4E5DD0 (u32 *key, u32 seed)
 
 void enc_80_4E8530 (u32 *key, u32 seed)
 {
-	KEY(0x4C) += my_ftol(floor(sqrt(((double)(((u8)( KEY(0x48) ))))+1) + math_const_1));
+	KEY(0x4C) += my_sqrt(KEY(0x48));
 }
 
 void enc_80_4EF2A0 (u32 *key, u32 seed)
 {
-	KEY(0x2C) ^= my_ftol(floor(sqrt(((double)(((u8)( KEY(0x10) ))))+1) + math_const_1));
+	KEY(0x2C) ^= my_sqrt(KEY(0x10) );
 }
 
 void enc_80_49B280 (u32 *key, u32 seed)
 {
-	KEY(0x44) ^= my_ftol(floor(sqrt(((double)(((u8)( KEY(0x40) ))))+1) + math_const_1));
+	KEY(0x44) ^= my_sqrt(KEY(0x40) );
 }
 
 void enc_80_4E85C0 (u32 *key, u32 seed)
 {
-	KEY(0x24) += my_ftol(floor(sqrt(((double)(((u8)( KEY(0x34) ))))+1) + math_const_1));
+	KEY(0x24) += my_sqrt(KEY(0x34) );
 }
 
 
 void enc_80_4E8620 (u32 *key, u32 seed)
 {
-	KEY(0x28) -= (cos((double)((u8)seed)) < math_const_2) ? 0x19C6C6E : KEY(0x1C);
+	KEY(0x28) -= my_cos(seed) ? 0x19C6C6E : KEY(0x1C);
 }
 
 void enc_80_4EF300 (u32 *key, u32 seed)
 {
-	KEY(0x28) -= (cos((double)((u8)KEY(0x28))) < math_const_2) ? 0x5F18F01 : KEY(0x34);
+	KEY(0x28) -= my_cos(KEY(0x28)) ? 0x5F18F01 : KEY(0x34);
 }
 
 void enc_80_4E5E00 (u32 *key, u32 seed)
 {
-	KEY(0x44) = ROL(KEY(0x44), (sin((double)((u8)KEY(0x1C))) < math_const_2) ? 0x4262ED6B : seed);
+	KEY(0x44) = ROL(KEY(0x44), my_sin(KEY(0x1C)) ? 0x4262ED6B : seed);
 }
 
 void enc_80_4E5E60 (u32 *key, u32 seed)
 {
-	KEY(0x24) += (cos((double)((u8)KEY(0x18))) < math_const_2) ? 0x14F5046C : KEY(0x2C);
+	KEY(0x24) += my_cos(KEY(0x18)) ? 0x14F5046C : KEY(0x2C);
 }
 
 void enc_80_4E5F30 (u32 *key, u32 seed)
 {
-	KEY(0x38) ^= (cos((double)((u8)KEY(0x2C))) < math_const_2) ? 0x562482FA : KEY(0x38);
+	KEY(0x38) ^= my_cos(KEY(0x2C)) ? 0x562482FA : KEY(0x38);
 }
 
 void enc_80_49ECD0 (u32 *key, u32 seed)
 {
-	KEY(0x0C) -= (cos((double)((u8)KEY(0x38))) < math_const_2) ? 0x39702EDD : KEY(0x18);
+	KEY(0x0C) -= my_cos(KEY(0x38)) ? 0x39702EDD : KEY(0x18);
 }
 
 void enc_80_4DB030 (u32 *key, u32 seed)
 {
-	KEY(0x18) ^= (cos((double)((u8)KEY(0x28))) < math_const_2) ? 0x53236223 : KEY(0x1C);
+	KEY(0x18) ^= my_cos(KEY(0x28)) ? 0x53236223 : KEY(0x1C);
 }
 
 void enc_80_4DB270 (u32 *key, u32 seed)
 {
-	KEY(0x04) |= (sin((double)((u8)seed)) < math_const_2) ? 0x1BE7FECF : KEY(0x40);
+	KEY(0x04) |= my_sin(seed) ? 0x1BE7FECF : KEY(0x40);
 }
 
 void enc_80_4DB2E0 (u32 *key, u32 seed)
 {
-	KEY(0x44) *= (cos((double)((u8)KEY(0x40))) < math_const_2) ? 0x2C15B485 : KEY(0x0C);
+	KEY(0x44) *= my_cos(KEY(0x40)) ? 0x2C15B485 : KEY(0x0C);
 }
 
 
 THROWS_RET enc_80_4F31A0 (u32 *key, u32 seed)
 {
-	KEY(0x4C) += my_ftol(floor(sqrt(((double)(((u8)( KEY(0x00) ))))+1) + math_const_1));
+	KEY(0x4C) += my_sqrt(KEY(0x00) );
 
 	if (KEY(0x4C) & 1)
 		THROW;
@@ -443,7 +461,7 @@ THROWS_RET enc_80_4F31A0 (u32 *key, u32 seed)
 
 THROWS_RET enc_80_4ECBE0 (u32 *key, u32 seed)
 {
-	KEY(0x1C) = ROL(KEY(0x1C), my_ftol(floor(sqrt(((double)(((u8)( KEY(0x04) ))))+1) + math_const_1)));
+	KEY(0x1C) = ROL(KEY(0x1C), my_sqrt(KEY(0x04) ));
 
 	if (KEY(0x1C) & 1)
 		THROW;
@@ -453,7 +471,7 @@ THROWS_RET enc_80_4ECBE0 (u32 *key, u32 seed)
 
 THROWS_RET enc_80_4DB3D0 (u32 *key, u32 seed)
 {
-	KEY(0x10) += (cos((double)((u8)KEY(0x04))) < math_const_2) ? 0x890AFEF : KEY(0x10);
+	KEY(0x10) += my_cos(KEY(0x04)) ? 0x890AFEF : KEY(0x10);
 
 	if (KEY(0x10) & 1)
 		THROW;
@@ -463,7 +481,7 @@ THROWS_RET enc_80_4DB3D0 (u32 *key, u32 seed)
 
 THROWS_RET enc_80_4B2BC0 (u32 *key, u32 seed)
 {
-	KEY(0x1C) = ROL(KEY(0x1C), (sin((double)((u8)KEY(0x48))) < math_const_2) ? 0x14D1DE3D : seed );
+	KEY(0x1C) = ROL(KEY(0x1C), my_sin(KEY(0x48)) ? 0x14D1DE3D : seed );
 
 	if (KEY(0x1C) & 1)
 		THROW;
@@ -629,7 +647,7 @@ void enc_80_49B630 (u32 *key, u32 seed)
 	u32 var_magic = 0x5008C0A3;
 
 	var_magic |= 0x4E75FE;
-	KEY(0x28) *= (cos((double)((u8)KEY(0x0C))) < math_const_2) ? 0x1DD34A4 : KEY(0x08);
+	KEY(0x28) *= my_cos(KEY(0x0C)) ? 0x1DD34A4 : KEY(0x08);
 
 	var_magic += 0x4F4BA2;
 	KEY(0x30) |= (KEY(0x40) * 11) << 2;
@@ -639,15 +657,15 @@ void enc_80_49B630 (u32 *key, u32 seed)
 	KEY(0x34) += (0 - (((KEY(0x24) * 15) << 1) - KEY(0x24))) << 2;
 
 	var_magic += 0x47203F;
-	seed -= (cos((double)((u8)KEY(0x08))) < math_const_2) ? 0xD7A79F4 : KEY(0x14);
-	KEY(0x08) -= (sin((double)((u8)KEY(0x30))) < math_const_2) ? var_magic : KEY(0x04);
+	seed -= my_cos(KEY(0x08)) ? 0xD7A79F4 : KEY(0x14);
+	KEY(0x08) -= my_sin(KEY(0x30)) ? var_magic : KEY(0x04);
 
 	var_magic |= 0x46235B;
-	seed ^= (sin((double)((u8)KEY(0x10))) < math_const_2) ? 0x241147A3 : KEY(0x34);
+	seed ^= my_sin(KEY(0x10)) ? 0x241147A3 : KEY(0x34);
 
 	var_magic |= 0x40FE18;
-	KEY(0x0C) += my_ftol(floor(sqrt(((double)(((u8)(seed))))+1) + math_const_1));
-	KEY(0x00) -= (sin((double)((u8)seed)) < math_const_2) ? var_magic : KEY(0x3C);
+	KEY(0x0C) += my_sqrt(seed);
+	KEY(0x00) -= my_sin(seed) ? var_magic : KEY(0x3C);
 
 	var_magic &= 0x442339;
 	KEY(0x0C) += (0 - (((KEY(0x24) * 15) << 1) - KEY(0x24))) * 3;
@@ -681,7 +699,7 @@ void enc_80_4C50E0 (u32 *key, u32 seed)
 	KEY(0x1C) += KEY(0x10) & 0x3996FD51;
 	
 	var_magic -= 0x484488;
-	KEY(0x08) += (sin((double)((u8)KEY(0x4C))) < math_const_2) ? 0x34311111 : KEY(0x14);
+	KEY(0x08) += my_sin(KEY(0x4C)) ? 0x34311111 : KEY(0x14);
 }
 
 
@@ -691,7 +709,7 @@ THROWS_RET enc_80_major_4E5F90 (u32 *key, u32 seed)
 	u32 var_magic = 0x32EF0625;
 
 	var_magic &= 0x4D21A3;
-	seed *= my_ftol(floor(sqrt(((double)(((u8)(seed))))+1) + math_const_1));
+	seed *= my_sqrt(seed);
 	var_magic ^= 0x4B7FA9;
 	KEY(0x10) |=  seed < var_magic ? seed : KEY(0x0C);
 
@@ -715,7 +733,7 @@ THROWS_RET enc_80_major_4E5F90 (u32 *key, u32 seed)
 
 	var_magic -= 0x40E6F2;
 	seed -= KEY(0x38) ^ var_magic;
-	seed &= my_ftol(floor(sqrt(((double)(((u8)(KEY(0x04)))))+1) + math_const_1));
+	seed &= my_sqrt(KEY(0x04));
 
 	if (type == 2)
 	{
@@ -736,7 +754,7 @@ THROWS_RET enc_80_major_4E5F90 (u32 *key, u32 seed)
 		TRY(enc_80_major_4D7AE0 (key, KEY(0x20)));
 	}
 
-	KEY(0x20) ^= (cos((double)((u8)KEY(0x40))) < math_const_2) ? 0x12DA5B58 : KEY(0x08);
+	KEY(0x20) ^= my_cos(KEY(0x40)) ? 0x12DA5B58 : KEY(0x08);
 	var_magic ^= 0x43759A;
 	KEY(0x38) ^= KEY(0x34) - var_magic;
 
@@ -887,7 +905,6 @@ THROWS_RET enc_80_major_4E86B0 (u32 *key, u32 seed)
 		TRY(enc_80_major_49B330 (key, KEY(0x4)));
 	}
 
-	var_magic &= 0x4692D1;
 	KEY(0x08) *= KEY(0x14) * 105;
 
 	RETURN;
@@ -1003,7 +1020,7 @@ THROWS_RET enc_80_major_4ECD20 (u32 *key, u32 seed)
 		TRY(enc_80_major_49E930 (key, seed));
 	}
 
-	KEY(0x40) *= (cos((double)((u8)seed)) < math_const_2) ? 0x40E92E8A : KEY(0x24);
+	KEY(0x40) *= my_cos(seed) ? 0x40E92E8A : KEY(0x24);
 
 	if (type == 0)
 	{
@@ -1088,7 +1105,7 @@ THROWS_RET enc_80_major_4EF430 (u32 *key, u32 seed)
 
 	var_magic -= 0x4631B0;
 	seed += 0 - (((KEY(0x18) * 5) << 4) - KEY(0x18));
-	KEY(0x20) = ROL(KEY(0x20), my_ftol(floor(sqrt(((double)(((u8)(KEY(0x24)))))+1) + math_const_1)));
+	KEY(0x20) = ROL(KEY(0x20), my_sqrt(KEY(0x24)));
 
 	if (type == 0)
 	{
@@ -1206,7 +1223,7 @@ THROWS_RET enc_80_major_4F3220 (u32 *key, u32 seed)
 		TRY(enc_80_major_4E5F90 (key, KEY(0x10)));
 	}
 
-	KEY(0x2C) += (sin((double)((u8)seed)) < math_const_2) ? 0x44ACFBD : KEY(0x24);
+	KEY(0x2C) += my_sin(seed) ? 0x44ACFBD : KEY(0x24);
 
 	if (type == 9)
 	{
@@ -1280,7 +1297,7 @@ THROWS_RET enc_80_major_49B330 (u32 *key, u32 seed)
 	u32 var_magic = 0x1214C499;
 
 	var_magic += 0x4D1304;
-	KEY(0x30) += my_ftol(floor(sqrt(((double)(((u8)(KEY(0x04)))))+1) + math_const_1));
+	KEY(0x30) += my_sqrt(KEY(0x04));
 	var_magic -= 0x438C04;
 	KEY(0x48) += KEY(0x4C) + 0x2B7FD413;
 
@@ -1314,10 +1331,10 @@ THROWS_RET enc_80_major_49B330 (u32 *key, u32 seed)
 	}
 
 	var_magic ^= 0x4EC99D;
-	KEY(0x28) &= (sin((double)((u8)KEY(0x44))) < math_const_2) ? var_magic : KEY(0x34);
+	KEY(0x28) &= my_sin(KEY(0x44)) ? var_magic : KEY(0x34);
 
 	var_magic ^= 0x40354F;
-	KEY(0x4C) |= (sin((double)((u8)KEY(0x48))) < math_const_2) ? var_magic : KEY(0x10);
+	KEY(0x4C) |= my_sin(KEY(0x48)) ? var_magic : KEY(0x10);
 	KEY(0x34) *= ROR(KEY(0x30), var_magic);
 
 	if (type == 2)
@@ -1359,7 +1376,7 @@ THROWS_RET enc_80_major_49E930 (u32 *key, u32 seed)
 		enc_80_49B630 (key, KEY(0x10));
 	}
 
-	KEY(0x0C) += (sin((double)((u8)seed)) < math_const_2) ? var_magic : KEY(0x20);
+	KEY(0x0C) += my_sin(seed) ? var_magic : KEY(0x20);
 
 	if (type == 5)
 	{
@@ -1379,7 +1396,7 @@ THROWS_RET enc_80_major_49E930 (u32 *key, u32 seed)
 	}
 
 	var_magic ^= 0x439DC1;
-	KEY(0x00) += (sin((double)((u8)KEY(0x10))) < math_const_2) ? var_magic : seed;
+	KEY(0x00) += my_sin(KEY(0x10)) ? var_magic : seed;
 
 	if (type == 2)
 	{
@@ -1446,7 +1463,7 @@ THROWS_RET enc_80_major_49ED30 (u32 *key, u32 seed)
 		enc_80_49B630 (key, KEY(0x3C));
 	}
 
-	KEY(0x1C) &= (sin((double)((u8)seed)) < math_const_2) ? 0x5228985F : KEY(0x14);
+	KEY(0x1C) &= my_sin(seed) ? 0x5228985F : KEY(0x14);
 
 	if (type == 3)
 	{
@@ -1514,7 +1531,7 @@ THROWS_RET enc_80_major_49ED30 (u32 *key, u32 seed)
 	}
 
 	var_magic ^= 0x4C5428;
-	KEY(0x44) |= my_ftol(floor(sqrt(((double)(((u8)(KEY(0x30)))))+1) + math_const_1));
+	KEY(0x44) |= my_sqrt(KEY(0x30));
 
 	RETURN;
 }
@@ -1556,7 +1573,7 @@ THROWS_RET enc_80_major_4A1BB0 (u32 *key, u32 seed)
 	}
 
 	var_magic &= 0x4EF618;
-	KEY(0x34) *= (cos((double)((u8)seed)) < math_const_2) ? 0x46223265 : KEY(0x48);
+	KEY(0x34) *= my_cos(seed) ? 0x46223265 : KEY(0x48);
 
 	if (type == 6)
 	{
@@ -1589,7 +1606,7 @@ THROWS_RET enc_80_major_4A1BB0 (u32 *key, u32 seed)
 	}
 
 	var_magic |= 0x479E9B;
-	seed ^= (sin((double)((u8)KEY(0x2C))) < math_const_2) ? 0x2F24FB19 : KEY(0x40);
+	seed ^= my_sin(KEY(0x2C)) ? 0x2F24FB19 : KEY(0x40);
 
 	if (type == 0x0A)
 	{
@@ -1703,7 +1720,7 @@ THROWS_RET enc_80_major_4A1BB0 (u32 *key, u32 seed)
 	}
 
 	var_magic |= 0x495B98;
-	KEY(0x28) += (cos((double)((u8)KEY(0x00))) < math_const_2) ? 0xF1B21FE : seed;
+	KEY(0x28) += my_cos(KEY(0x00)) ? 0xF1B21FE : seed;
 
 	if (type == 3)
 	{
@@ -1727,7 +1744,7 @@ THROWS_RET enc_80_major_4AC300 (u32 *key, u32 seed)
 	KEY(0x28) &= var_magic ^ seed;
 	
 	var_magic -= 0x4AEEF9;
-	KEY(0x2C) ^= (cos((double)((u8)KEY(0x04))) < math_const_2) ? 0x2E0A5BE7 : KEY(0x18);
+	KEY(0x2C) ^= my_cos(KEY(0x04)) ? 0x2E0A5BE7 : KEY(0x18);
 	KEY(0x00) += seed + 0x1FE76B44;
 
 	var_magic += 0x4D7317;
@@ -1742,7 +1759,7 @@ THROWS_RET enc_80_major_4AC300 (u32 *key, u32 seed)
 
 	var_magic += 0x488687;
 	KEY(0x40) -= KEY(0x2C) < 0x56C0185B ? KEY(0x2C) : KEY(0x4C);
-	KEY(0x00) ^= (sin((double)((u8)KEY(0x40))) < math_const_2) ? 0x5A271260 : seed;
+	KEY(0x00) ^= my_sin(KEY(0x40)) ? 0x5A271260 : seed;
 
 	var_magic -= 0x4D591C;
 	KEY(0x18) += KEY(0x2C) | 0x58E035D2;
@@ -1791,7 +1808,7 @@ THROWS_RET enc_80_major_4AC560 (u32 *key, u32 seed)
 	}
 
 	var_magic += 0x4C8417;
-	KEY(0x1C) *= (cos((double)((u8)KEY(0x10))) < math_const_2) ? 0xA45B84A : KEY(0x34);
+	KEY(0x1C) *= my_cos(KEY(0x10)) ? 0xA45B84A : KEY(0x34);
 
 	if (type == 4)
 	{
@@ -1800,7 +1817,7 @@ THROWS_RET enc_80_major_4AC560 (u32 *key, u32 seed)
 		TRY(enc_80_major_4EF430 (key, KEY(0x00)));
 	}
 
-	seed |= (sin((double)((u8)seed)) < math_const_2) ? var_magic : KEY(0x28);
+	seed |= my_sin(seed) ? var_magic : KEY(0x28);
 
 	if (type == 0x0D)
 	{
@@ -1834,7 +1851,7 @@ THROWS_RET enc_80_major_4AC560 (u32 *key, u32 seed)
 	}
 
 	var_magic ^= 0x4885D9;
-	KEY(0x24) -= (cos((double)((u8)seed)) < math_const_2) ? var_magic : KEY(0x3C);
+	KEY(0x24) -= my_cos(seed) ? var_magic : KEY(0x3C);
 
 	if (type == 0x0C)
 	{
@@ -1860,7 +1877,7 @@ THROWS_RET enc_80_major_4AC560 (u32 *key, u32 seed)
 	}
 
 	var_magic += 0x4FF798;
-	KEY(0x1C) -= (sin((double)((u8)KEY(0x14))) < math_const_2) ? var_magic : KEY(0x30);
+	KEY(0x1C) -= my_sin(KEY(0x14)) ? var_magic : KEY(0x30);
 
 	if (type == 6)
 	{
@@ -1877,7 +1894,7 @@ THROWS_RET enc_80_major_4AC560 (u32 *key, u32 seed)
 	}
 
 	var_magic &= 0x473790;
-	KEY(0x14) *= (cos((double)((u8)seed)) < math_const_2) ? 0x5DF8323 : seed;
+	KEY(0x14) *= my_cos(seed) ? 0x5DF8323 : seed;
 
 	if (type == 8)
 	{
@@ -1921,7 +1938,7 @@ THROWS_RET enc_80_major_4AE780 (u32 *key, u32 seed)
 	}
 
 	var_magic -= 0x475C26;
-	KEY(0x10) -= (cos((double)((u8)KEY(0x38))) < math_const_2) ? 0x76F737A3 : seed;
+	KEY(0x10) -= my_cos(KEY(0x38)) ? 0x76F737A3 : seed;
 
 	if (type == 0x0A)
 	{
@@ -1970,7 +1987,7 @@ THROWS_RET enc_80_major_4AE780 (u32 *key, u32 seed)
 		TRY(enc_80_major_4E5F90 (key, KEY(0x00)));
 	}
 
-	seed ^= (cos((double)((u8)seed)) < math_const_2) ? 0x30851F11 : KEY(0x28);
+	seed ^= my_cos(seed) ? 0x30851F11 : KEY(0x28);
 
 	if (type == 8)
 	{
@@ -2026,7 +2043,7 @@ THROWS_RET enc_80_major_4AE780 (u32 *key, u32 seed)
 	}
 
 	var_magic ^= 0x4EEA25;
-	KEY(0x00) &= (cos((double)((u8)KEY(0x00))) < math_const_2) ? var_magic : KEY(0x14);
+	KEY(0x00) &= my_cos(KEY(0x00)) ? var_magic : KEY(0x14);
 
 	RETURN;
 }
@@ -2062,7 +2079,7 @@ THROWS_RET enc_80_major_4B2FD0 (u32 *key, u32 seed)
 	}
 
 	var_magic -= 0x475639;
-	KEY(0x00) -= (sin((double)((u8)seed)) < math_const_2) ? 0xE2D0D9 : seed;
+	KEY(0x00) -= my_sin(seed) ? 0xE2D0D9 : seed;
 
 	if (type == 7)
 	{
@@ -2078,7 +2095,7 @@ THROWS_RET enc_80_major_4B2FD0 (u32 *key, u32 seed)
 		TRY(enc_80_major_49ED30 (key, KEY(0x00)));
 	}
 
-	KEY(0x2C) = ROR(KEY(0x2C), (cos((double)((u8)seed)) < math_const_2) ? var_magic : KEY(0x2C));
+	KEY(0x2C) = ROR(KEY(0x2C), my_cos(seed) ? var_magic : KEY(0x2C));
 
 	if (type == 1)
 	{
@@ -2112,7 +2129,7 @@ THROWS_RET enc_80_major_4B2FD0 (u32 *key, u32 seed)
 	}
 
 	var_magic -= 0x4C4FE4;
-	seed |= (sin((double)((u8)KEY(0x20))) < math_const_2) ? var_magic : KEY(0x8);
+	seed |= my_sin(KEY(0x20)) ? var_magic : KEY(0x8);
 
 	if (type == 0x0A)
 	{
@@ -2162,7 +2179,7 @@ THROWS_RET enc_80_major_4B2FD0 (u32 *key, u32 seed)
 	}
 
 	var_magic += 0x4D352E;
-	KEY(0x4C) ^= (cos((double)((u8)KEY(0x38))) < math_const_2) ? var_magic : KEY(0x28);
+	KEY(0x4C) ^= my_cos(KEY(0x38)) ? var_magic : KEY(0x28);
 
 	if (type == 0x0D)
 	{
@@ -2249,7 +2266,7 @@ THROWS_RET enc_80_major_4BB410 (u32 *key, u32 seed)
 	}
 
 	var_magic ^= 0x42FD8B;
-	KEY(0x20) ^= my_ftol(floor(sqrt(((double)(((u8)(KEY(0x44)))))+1) + math_const_1));
+	KEY(0x20) ^= my_sqrt(KEY(0x44));
 
 	if (type == 4)
 	{
@@ -2518,10 +2535,10 @@ THROWS_RET enc_80_major_4C52A0 (u32 *key, u32 seed)
 	}
 
 	var_magic &= 0x4E33E9;
-	KEY(0x34) |= my_ftol(floor(sqrt(((double)(((u8)(KEY(0x4C)))))+1) + math_const_1));
+	KEY(0x34) |= my_sqrt(KEY(0x4C));
 
 	var_magic += 0x49D53B;
-	KEY(0x1C) -= (cos((double)((u8)KEY(0x28))) < math_const_2) ? var_magic : KEY(0x44);
+	KEY(0x1C) -= my_cos(KEY(0x28)) ? var_magic : KEY(0x44);
 
 	if (type == 0)
 	{
@@ -2653,7 +2670,7 @@ THROWS_RET enc_80_major_4CFE70 (u32 *key, u32 seed)
 	}
 
 	var_magic += 0x4CAD15;
-	KEY(0x30) -= (cos((double)((u8)seed)) < math_const_2) ? var_magic : KEY(0x24);
+	KEY(0x30) -= my_cos(seed) ? var_magic : KEY(0x24);
 
 	if (type == 0x0B)
 	{
@@ -2879,7 +2896,7 @@ THROWS_RET enc_80_major_4D2900 (u32 *key, u32 seed)
 	}
 
 	var_magic ^= 0x44568F;
-	KEY(0x18) -= (cos((double)((u8)KEY(0x38))) < math_const_2) ? var_magic : KEY(0x24);
+	KEY(0x18) -= my_cos(KEY(0x38)) ? var_magic : KEY(0x24);
 
 	if (type == 2)
 	{
@@ -2979,7 +2996,7 @@ THROWS_RET enc_80_major_4D2900 (u32 *key, u32 seed)
 	}
 
 	var_magic &= 0x4E1DEB;
-	KEY(0x18) ^= (cos((double)((u8)KEY(0x34))) < math_const_2) ? 0xB29627F : seed;
+	KEY(0x18) ^= my_cos(KEY(0x34)) ? 0xB29627F : seed;
 
 	if (type == 0x0C)
 	{
@@ -3027,8 +3044,8 @@ THROWS_RET enc_80_major_4D7AE0 (u32 *key, u32 seed)
 	seed ^= var_magic ^ KEY(0x44);
 
 	var_magic ^= 0x4A79DF;
-	KEY(0x3C) = ROL(KEY(0x3C), (sin((double)((u8)seed)) < math_const_2) ? 0x236D13F3 : KEY(0x4C));
-	KEY(0x40) ^= my_ftol(floor(sqrt(((double)(((u8)(seed))))+1) + math_const_1));
+	KEY(0x3C) = ROL(KEY(0x3C), my_sin(seed) ? 0x236D13F3 : KEY(0x4C));
+	KEY(0x40) ^= my_sqrt(seed);
 
 	if (type == 0)
 	{
@@ -3055,7 +3072,7 @@ THROWS_RET enc_80_major_4D7AE0 (u32 *key, u32 seed)
 	KEY(0x00) -= KEY(0x28) | var_magic;
 
 	var_magic &= 0x484A3B;
-	KEY(0x20) -= (cos((double)((u8)KEY(0x18))) < math_const_2) ? var_magic : KEY(0x28);
+	KEY(0x20) -= my_cos(KEY(0x18)) ? var_magic : KEY(0x28);
 	KEY(0x44) &= var_magic | seed;
 
 	var_magic |= 0x43BE36;
@@ -3104,7 +3121,7 @@ THROWS_RET enc_80_major_4DB520 (u32 *key, u32 seed)
 	}
 
 	var_magic ^= 0x47A890;
-	seed -= (cos((double)((u8)KEY(0x28))) < math_const_2) ? var_magic : seed;
+	seed -= my_cos(KEY(0x28)) ? var_magic : seed;
 
 	if (type == 4)
 	{
@@ -3120,7 +3137,7 @@ THROWS_RET enc_80_major_4DB520 (u32 *key, u32 seed)
 		TRY(enc_80_major_4C1A00 (key, KEY(0x40)));
 	}
 
-	KEY(0x40) *= my_ftol(floor(sqrt(((double)(((u8)(KEY(0x08)))))+1) + math_const_1));
+	KEY(0x40) *= my_sqrt(KEY(0x08));
 
 	if (type == 0x0E)
 	{
@@ -3137,7 +3154,7 @@ THROWS_RET enc_80_major_4DB520 (u32 *key, u32 seed)
 	}
 
 	var_magic -= 0x4A065E;
-	KEY(0x48) -= my_ftol(floor(sqrt(((double)(((u8)(KEY(0x08)))))+1) + math_const_1));
+	KEY(0x48) -= my_sqrt(KEY(0x08));
 
 	if (type == 6)
 	{
@@ -3187,7 +3204,7 @@ THROWS_RET enc_80_major_4DB520 (u32 *key, u32 seed)
 	}
 
 	var_magic &= 0x409751;
-	KEY(0x00) -= my_ftol(floor(sqrt(((double)(((u8)(seed))))+1) + math_const_1));
+	KEY(0x00) -= my_sqrt(seed);
 
 	if (type == 0x0D)
 	{
@@ -3220,7 +3237,7 @@ THROWS_RET enc_80_major_4DB520 (u32 *key, u32 seed)
 		TRY(enc_80_major_4C1A00 (key, KEY(0x20)));
 	}
 
-	KEY(0x0C) ^= (cos((double)((u8)seed)) < math_const_2) ? var_magic : KEY(0x10);
+	KEY(0x0C) ^= my_cos(seed) ? var_magic : KEY(0x10);
 
 	if (type == 7)
 	{
@@ -3247,7 +3264,7 @@ THROWS_RET enc_80_major_4DB520 (u32 *key, u32 seed)
 	}
 
 	var_magic |= 0x429937;
-	KEY(0x1C) ^= my_ftol(floor(sqrt(((double)(((u8)(KEY(0x28)))))+1) + math_const_1));
+	KEY(0x1C) ^= my_sqrt(KEY(0x28));
 
 	if (type == 4)
 	{

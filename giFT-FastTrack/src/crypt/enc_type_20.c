@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_20.c,v 1.9 2003/07/23 17:54:13 weinholt Exp $
+ * $Id: enc_type_20.c,v 1.10 2003/08/27 20:29:24 weinholt Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -33,18 +33,18 @@ typedef unsigned int u32;
 #endif
 
 /* my_cos() and my_sin() are equal to cos()<0 and sin()<0. */
-int __attribute__ ((const)) my_cos (unsigned char i)
+static int __attribute__ ((const)) my_cos (unsigned char i)
 {
-	return (unsigned) ((i * 39) % 245) - 62 < 122;
+	return (i * 39 + 61) % 245 > 122;
 }
 
-int __attribute__ ((const)) my_sin (unsigned char i)
+static int __attribute__ ((const)) my_sin (unsigned char i)
 {
 	return (i * 46) % 289 > 144;
 }
 
 /* this is (unsigned int) floor(sqrt(((double)(((unsigned char)(i))))+1) + 0.001). */
-int __attribute__ ((const)) my_sqrt (unsigned char i)
+static int __attribute__ ((const)) my_sqrt (unsigned char i)
 {
 	int j, k;
 
