@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.29 2003/09/27 15:56:56 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.30 2003/09/27 15:58:39 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -391,11 +391,11 @@ static int fst_giftcb_start (Protocol *p)
 	FST_PLUGIN->external_ip = 0;
 
 	/* temporary, until we have a way to find useful nodes faster */
-/*	
+	
 	FST_DBG ("adding fm2.imesh.com:1214 as temporary index node");
 	fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex,
 					   "fm2.imesh.com", 1214, 0, time (NULL));
-*/
+
 	/* start first connection */
 	fst_plugin_connect_next ();
 
