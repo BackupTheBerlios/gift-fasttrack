@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.16 2004/03/03 16:09:09 mkern Exp $
+ * $Id: fst_search.c,v 1.17 2004/03/03 16:13:03 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -668,12 +668,12 @@ int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event)
 	if (result->bandwidth > 0)
 	{
 #if 1
-		avail = 1 + exp(((double)result->bandwidth) * 0.0495105 - 2.9211202) / 1680 * 8;
+		avail = 1 + exp(((double)result->bandwidth) * 0.0495105 - 2.9211202) / 1680 * 5;
 #else
-		avail = 1 + (((double)result->bandwidth) / 0xd1) * 8;
+		avail = 1 + (((double)result->bandwidth) / 0xd1) * 5;
 #endif
-		if (avail > 9)
-			avail = 9;
+		if (avail > 7)
+			avail = 7;
 	}
 
 	/* notify giFT */
