@@ -1,4 +1,9 @@
- $Id: ChangeLog,v 1.27 2004/11/27 10:36:18 mkern Exp $
+ $Id: ChangeLog,v 1.28 2004/12/19 14:49:00 mkern Exp $
+
+2004-12-19  Markus Kern <mkern@users.berlios.de>
+
+	* Fixed unchecked FST_PLUGIN->session access in fst_download.c
+	* Fixed url decoder memmove overrun.
 
 2004-11-27  Markus Kern <mkern@users.berlios.de>
 
