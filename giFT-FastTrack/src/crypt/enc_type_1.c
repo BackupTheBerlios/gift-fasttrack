@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_1.c,v 1.5 2003/06/28 17:07:54 beren12 Exp $
+ * $Id: enc_type_1.c,v 1.6 2003/06/29 06:54:34 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -34,9 +34,9 @@
 	typedef unsigned long long u64;
 #endif /* WIN32 */
 
-#define addCarryOf (x,y)		( ( (x)+(y)) < (x) || ( (x)+(y)) < (y))
-#define subCarryOf (x,y)		( (x) < (y))
-#define negCarryOf (x)			( (0-x) != 0)
+#define addCarryOf(x,y)		( ( (x) + (y)) < (x) || ( (x) + (y)) < (y))
+#define subCarryOf(x,y)		( (x) < (y))
+#define negCarryOf(x)		( (0 - x) != 0)
 
 static unsigned int cipher_table[] =
 {
@@ -286,11 +286,12 @@ void enc_1_sub7 (unsigned int cnt /*ecx*/, unsigned char *buf1 /*edx*/, unsigned
 	unsigned int	i;
 	unsigned int	table_val;
 
-	unsigned int eax, ebx;
-	unsigned int eax, ecx;
-	unsigned int eax, edx;
-	unsigned int eax, esi;
-	unsigned int eax, edi;
+	unsigned int eax;
+	unsigned int ebx;
+	unsigned int ecx;
+	unsigned int edx;
+	unsigned int esi;
+	unsigned int edi;
 
 	esi = (unsigned int)table;
 
