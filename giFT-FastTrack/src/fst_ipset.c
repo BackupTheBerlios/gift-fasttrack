@@ -1,5 +1,5 @@
 /*
- * $Id: fst_ipset.c,v 1.2 2003/09/17 11:25:04 mkern Exp $
+ * $Id: fst_ipset.c,v 1.3 2003/10/23 19:05:18 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -146,7 +146,8 @@ int fst_ipset_load (FSTIpSet *ipset, const char *filename)
 		first =	net_ip (string_sep (&ptr, "-"));
 		last = net_ip (ptr);
 
-		if (first == INADDR_NONE || last == INADDR_NONE)
+		if (first == INADDR_NONE || first == 0 ||
+			last == INADDR_NONE || last == 0) 
 			continue;
 
 		fst_ipset_add (ipset, first, last);
