@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.22 2003/07/28 21:03:38 beren12 Exp $
+# $Id: configure.ac,v 1.23 2003/07/28 21:10:20 beren12 Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -9,7 +9,7 @@ dnl ###########################################################################
 AC_PREREQ(2.52)
 
 AC_INIT(giFT-FastTrack, 0.8.2, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
-AC_REVISION($Revision: 1.22 $)
+AC_REVISION($Revision: 1.23 $)
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
 AM_INIT_AUTOMAKE
@@ -33,9 +33,6 @@ AC_PROG_INSTALL
 
 AM_DISABLE_STATIC
 AC_PROG_LIBTOOL
-
-PLUGIN_LDFLAGS="-module -avoid-version"
-AC_SUBST(PLUGIN_LDFLAGS)
 
 dnl ###########################################################################
 dnl Checks for libraries.
