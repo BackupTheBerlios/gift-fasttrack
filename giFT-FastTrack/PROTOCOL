@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.9 2004/03/06 17:27:56 mkern Exp $
+$Id: PROTOCOL,v 1.10 2004/03/06 22:31:14 mkern Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -818,7 +818,7 @@ Most of these need verifying.
   0x00     N/A     any
   0x01     int     year
   0x02     string  filename
-  0x03     hash    hash
+  0x03     hash    hash (used for searching, overpeer also sends it with shares)
   0x04     string  title
   0x05     int     duration (seconds)
   0x06     string  artist
@@ -827,15 +827,16 @@ Most of these need verifying.
   0x0C     string  keywords
   0x0D     intint  resolution
   0x0E     string  genre
-  0x10     ?       OS
+  0x10     string  OS
   0x11     int     bitdepth
-  0x12     ?       "type"?
+  0x12     string  "type"?
   0x15     int     quality (bitrate in kbps?)
-  0x18     ?       version
+  0x18     string  version
+  0x19     int     ??? 0x00 and large numbers like 0x3FF72648 witnessed
   0x1A     string  comment
-  0x1C     string  codec?
-  0x1D     ?       rating
-  0x21     ?       size?
+  0x1C     string  codec
+  0x1D     int     rating, 0 lowest, 4 highest
+  0x21     int     size (used for searching)
   0x25     ???     Sent with every kazaa query. Comparison type always 0x06.
                    Observed values are 0x00 and 0x02.
   0x2D     ???     Sent by imesh with hash query. Comparison type 0x06. 
