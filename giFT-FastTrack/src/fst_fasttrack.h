@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.14 2003/06/29 15:29:28 beren12 Exp $
+ * $Id: fst_fasttrack.h,v 1.15 2003/06/29 16:14:06 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -19,6 +19,12 @@
 #define __FASTTRACK_H
 
 /*****************************************************************************/
+
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif /* HAVE_CONFIG_H */
+
+
 
 #define FILE_LINE_FUNC __FILE__,__LINE__,__PRETTY_FUNCTION__
 
