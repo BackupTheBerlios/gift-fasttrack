@@ -11,7 +11,7 @@
 ; Compile time options
 ;------------------------------------------------------------------------------------------
 
-!define VERSION "0.8.8"
+!define VERSION "0.8.9"
 
 !define OUTFILE "gift-fasttrack-${VERSION}.exe"
 
