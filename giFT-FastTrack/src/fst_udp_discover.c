@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.21 2004/03/11 12:05:49 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.22 2004/03/11 14:47:31 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -329,7 +329,7 @@ static void udp_discover_receive (int fd, input_id input,
 
 		unknown2 =	fst_packet_get_uint8 (packet); /* unknown (signed?) */
 
-#if 1
+#if 0
 		FST_HEAVY_DBG_5 ("udp data: unk1: 0x%02x, time_inc: 0x%02x, outdegree: %d, children: %d, unk2: %d",
 		                 unknown1, time_inc, outdegree, children, unknown2);
 

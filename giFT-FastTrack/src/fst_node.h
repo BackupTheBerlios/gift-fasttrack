@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.h,v 1.7 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_node.h,v 1.8 2004/03/11 14:47:31 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -20,13 +20,13 @@
 
 #include "fst_fasttrack.h"
 
-/**************************************************************************/
+/*****************************************************************************/
 
 typedef enum
 {
-	NodeKlassUser = 0x00,		/* simple user node not acting as supernode */
-	NodeKlassSuper = 0x01,		/* supernode we use for searches */
-	NodeKlassIndex = 0x02		/* index node we use to get supernode ips */
+	NodeKlassUser = 0x00,   /* simple user node not acting as supernode */
+	NodeKlassSuper = 0x01,  /* supernode we use for searches */
+	NodeKlassIndex = 0x02   /* index node we use to get supernode ips */
 } FSTNodeKlass;
 
 typedef struct
@@ -36,8 +36,12 @@ typedef struct
 	char *host;
 	unsigned short port;
 
-	unsigned int load;			/* load of node in percent */
-	unsigned int last_seen;		/* time in seconds since the epoch nodes was last seen */
+	unsigned int load;        /* Load of node in percent.
+	                             UPDATE: I now believe this is the remaining
+	                             capacity of the node. Needs further
+	                             investigation! */
+	unsigned int last_seen;   /* time in seconds since the epoch nodes was
+	                             last seen */
 } FSTNode;
 
 typedef struct

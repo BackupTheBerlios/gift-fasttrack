@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.15 2004/03/10 19:53:00 mkern Exp $
+$Id: PROTOCOL,v 1.16 2004/03/11 14:47:31 mkern Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -193,6 +193,9 @@ Message types
 
   "Last seen" and "load" are from giFT-FastTrack. Last seen is in
   minutes, load is a percentage. Allegedly.
+  Update: Connecting to nodes with high load works much better than to low
+          nodes. I think this may actually be "remaining capacity" instead
+          of load!
 
   This 8 bytes structure can be repeated several times within a single
   message. Kazaa appears always to send 200 nodes (i.e. a 1600 byte
