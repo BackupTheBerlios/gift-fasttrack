@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.h,v 1.2 2004/01/01 22:45:18 mkern Exp $
+ * $Id: fst_udp_discover.h,v 1.3 2004/01/02 14:04:03 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.37 2004/01/01 22:45:18 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.38 2004/01/02 14:04:03 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -35,12 +35,12 @@ static int fst_plugin_connect_next ();
 
 int discover_callback (FSTUdpDiscover *discover, FSTNode *node)
 {
-	/* did we run out of nodes? */
 	if (!node)
 	{
-		/* TODO: fall back to index node */
-		FST_WARN ("ran out of nodes. find a better nodes file somewhere");
+		/* we run out of nodes */
+		FST_ERR ("ran out of supernodes. find a better nodes file somewhere");
 
+		/* TODO: fall back to index node? */
 		fst_udp_discover_free (FST_PLUGIN->discover, TRUE);
 		FST_PLUGIN->discover = NULL;
 
@@ -216,6 +216,9 @@ static int fst_plugin_session_callback (FSTSession *session,
 			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
 							   net_ip_str (ip), port, load, now - last_seen * 60);
 		}
+
+		/* sort the cache again */
+		fst_nodecache_sort (FST_PLUGIN->nodecache);
 
 		FST_DBG_1 ("added %d received supernode IPs to nodes list", i);
 
@@ -472,12 +475,17 @@ static int fst_giftcb_start (Protocol *p)
 	FST_PLUGIN->allow_sharing = config_get_int (FST_PLUGIN->conf,
 	                                            "main/allow_sharing=0");
 
-	/* temporary, until we have a way to find useful nodes faster */
-/*
-	FST_DBG ("adding fm2.imesh.com:1214 as temporary index node");
+#if 0
+	/*
+	 * add some static nodes for faster startup
+	 * note: apparently fm2.imesh.com sends udp replies from different ips.
+	 * for security reasons we drop those.
+	 */
+	FST_DBG ("adding fm2.imesh.com:1214 as index node");
 	fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex,
 					   "fm2.imesh.com", 1214, 0, time (NULL));
-*/
+#endif
+
 	/* start first connection */
 	fst_plugin_connect_next ();
 

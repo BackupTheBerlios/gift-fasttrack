@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.8 2004/01/01 22:45:18 mkern Exp $
+ * $Id: fst_node.c,v 1.9 2004/01/02 14:04:03 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -114,8 +114,16 @@ void fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
 	{	
 		/* create new node */
 		node = fst_node_create (klass, host, port, load, last_seen);
-		/* insert node into list and hash table */
-		cache->list = list_prepend (cache->list, node);
+
+		/* 
+		 * insert node into list and hash table
+		 * if load is >= 100 append instead of prepend
+		 */
+		if (load >= 100)
+			cache->list = list_append (cache->list, node);
+		else
+			cache->list = list_prepend (cache->list, node);
+
 		dataset_insert (&cache->hash, node->host, strlen (node->host) + 1, node, 0);	
 	}
 }
