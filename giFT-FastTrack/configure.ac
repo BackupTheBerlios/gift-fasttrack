@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.32 2004/03/20 23:39:05 mkern Exp $
+# $Id: configure.ac,v 1.33 2004/06/19 20:05:00 mkern Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -8,8 +8,8 @@ dnl ###########################################################################
 
 AC_PREREQ(2.52)
 
-AC_INIT(giFT-FastTrack, 0.8.6, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
-AC_REVISION($Revision: 1.32 $)
+AC_INIT(giFT-FastTrack, 0.8.7, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
+AC_REVISION($Revision: 1.33 $)
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
 AM_INIT_AUTOMAKE
