@@ -1,0 +1,11 @@
+Source: gift-fasttrack
+Section: unknown
+Priority: optional
+Maintainer: Dan Weber <knoppix@mirrorlynx.com>
+Build-Depends: debhelper (>> 4.0.0)
+Standards-Version: 3.5.8
+
+Package: gift-fasttrack
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: a FastTrack/Kazaa Plugin for giFT
