@@ -3,7 +3,7 @@ Section: net
 Priority: optional
 Maintainer: Göran Weinholt <weinholt@dtek.chalmers.se>
 Build-Depends: debhelper (>= 4.1.0), cdbs, autotools-dev,
- libgiftproto-dev (>= 0.11.1), libgiftproto-dev (<< 0.12)
+ libgiftproto-dev (>= 0.11.3), libgiftproto-dev (<< 0.12)
 Standards-Version: 3.6.0
 
 Package: libfasttrack-gift
