@@ -1,7 +1,3 @@
- $Id: README.win32,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ $Id: README.win32,v 1.3 2003/10/14 16:47:02 mkern Exp $
 
-03/05/09
---------
-
-The win32 build currently doesn't work out of the box.
-You will have to fix symbol importing from giFT/libgiFT.
+Please see the windows build instructions comming with giFT.

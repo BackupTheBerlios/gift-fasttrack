@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.23 2003/09/27 15:58:39 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.24 2003/10/14 16:47:02 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -77,8 +77,10 @@
 
 #define GIFT_PLUGIN
 #include <libgift/libgift.h>
-
-#include <libgift/giftconfig.h>
+#include <libgift/proto/protocol.h>
+#include <libgift/proto/share.h>
+#include <libgift/file.h>
+#include <libgift/mime.h>
 
 #if TIME_WITH_SYS_TIME
 # include <time.h>
@@ -117,15 +119,6 @@ typedef uint32_t fst_uint32;
 
 #include <ctype.h>
 #include <string.h>
-
-#include <libgift/file.h>
-#include <libgift/parse.h>
-#include <libgift/network.h>
-#include <libgift/dataset.h>
-#include <libgift/mime.h>
-#include <libgift/tcpc.h>
-#include <libgift/proto/transfer_api.h>
-#include <libgift/proto/protocol.h>
 
 #include "fst_node.h"
 #include "fst_packet.h"
@@ -214,11 +207,8 @@ typedef struct
 extern Protocol *fst_proto;			// global pointer to plugin struct
 
 // called by gift to init plugin
-#ifdef WIN32
-int __declspec(dllexport) FastTrack_init (Protocol *p);
-#else
-int FastTrack_init (Protocol *p);
-#endif
+PLUGIN_EXPORT
+  int FastTrack_init (Protocol *p);
 
 /*****************************************************************************/
 
