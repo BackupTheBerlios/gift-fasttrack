@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.h,v 1.10 2004/07/23 19:26:52 hex Exp $
+ * $Id: fst_session.h,v 1.11 2004/11/10 20:00:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -94,10 +94,12 @@ struct _FSTSession
 /* allocate and init session */
 FSTSession *fst_session_create (FSTSessionCallback callback);
 
-/* free session */
+/* Free session. Sets session->node->session to NULL. */
 void fst_session_free (FSTSession *session);
 
-/* connect to node, node is automatically freed in fst_session_free() */
+/* Connect to node. Increments node's refcount and keeps a pointer to it.
+ * Sets node->session to self.
+ */
 int fst_session_connect (FSTSession *session, FSTNode *node);
 
 /* disconnect session */

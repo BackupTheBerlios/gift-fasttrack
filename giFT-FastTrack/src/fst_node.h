@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.h,v 1.11 2004/07/24 19:33:26 hex Exp $
+ * $Id: fst_node.h,v 1.12 2004/11/10 20:00:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -74,22 +74,21 @@ typedef enum
 
 /*****************************************************************************/
 
-/* alloc node */
-FSTNode *fst_node_new (void);
+/* Alloc new node with refcount 1 */
+FSTNode *fst_node_create (void);
 
-/* init node */
+/* Init node. Does not change ref count. */
 void fst_node_init (FSTNode *node, FSTNodeKlass klass, char *host,
 		    unsigned short port, unsigned int load,
 		    unsigned int last_seen);
 
-/* alloc and create copy of node */
-FSTNode *fst_node_create_copy (FSTNode *org_node);
+/* Increment node's reference count and return it. */
+int fst_node_addref (FSTNode *node);
 
-/* ref node */
-void fst_node_ref (FSTNode *node);
-
-/* free node */
-BOOL fst_node_free (FSTNode *node);
+/* Decrement node's reference count and free if it goes to zero. Returns new
+ * reference count.
+ */
+int fst_node_release (FSTNode *node);
 
 /*****************************************************************************/
 
@@ -101,19 +100,24 @@ void fst_nodecache_free (FSTNodeCache *cache);
 
 /*****************************************************************************/
 
-/* create and add node to front of cache */
+/* Create and add node to front of cache. If node with the same ip is already
+ * present it is updated and returned in which case the reference count is
+ * not changed.
+ */
 FSTNode *fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
-					    unsigned short port, unsigned int load,
-					    unsigned int last_seen);
+                            unsigned short port, unsigned int load,
+                            unsigned int last_seen);
 
-/* Insert copy of node at pos. If node is already in the cache it is moved. */
-void fst_nodecache_insert (FSTNodeCache *cache, FSTNode *node,
-                           FSTNodeInsertPos pos);
+/* Move node already in cache to new pos or add node not yet in cache.
+ * Refcount is unchanged in either case.
+ */
+void fst_nodecache_move (FSTNodeCache *cache, FSTNode *node,
+                         FSTNodeInsertPos pos);
 
-/* remove node from node cache and free it */
+/* Remove node from node cache and release it. */
 void fst_nodecache_remove (FSTNodeCache *cache, FSTNode *node);
 
-/* returns _copy_ of the first node, caller must free returned copy */
+/* Increment ref count of front node and return it. */
 FSTNode *fst_nodecache_get_front (FSTNodeCache *cache);
 
 /*

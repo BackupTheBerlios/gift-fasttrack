@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.31 2004/07/24 19:33:26 hex Exp $
+ * $Id: fst_session.c,v 1.32 2004/11/10 20:00:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -71,7 +71,7 @@ FSTSession *fst_session_create (FSTSessionCallback callback)
 	return session;
 }
 
-/* free session */
+/* Free session. Sets session->node->session to NULL. */
 void fst_session_free (FSTSession *session)
 {
 	if (!session)
@@ -91,13 +91,15 @@ void fst_session_free (FSTSession *session)
 	if (session->node)
 		session->node->session = NULL;
 
-	fst_node_free (session->node);
+	fst_node_release (session->node);
 	timer_remove (session->ping_timer);
 
 	free (session);
 }
 
-/* connect to node, node is automatically freed in fst_session_free() */
+/* Connect to node. Increments node's refcount and keeps a pointer to it.
+ * Sets node->session to self.
+ */
 int fst_session_connect (FSTSession *session, FSTNode *node)
 {
 	in_addr_t ip;
@@ -140,6 +142,7 @@ int fst_session_connect (FSTSession *session, FSTNode *node)
 	
 	session->tcpcon->udata = (void*)session;
 	session->node = node;
+	fst_node_addref (session->node);
 
 	session->node->session = session;
 

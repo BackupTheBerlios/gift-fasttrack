@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.c,v 1.10 2004/09/03 11:36:40 mkern Exp $
+ * $Id: fst_http_client.c,v 1.11 2004/11/10 20:00:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -198,7 +198,7 @@ int fst_http_client_request (FSTHttpClient *client, FSTHttpHeader *request,
 		/* TODO: make this non-blocking */
 		if (! (he = gethostbyname (client->host)))
 		{
-			AS_WARN_1 ("gethostbyname failed for host %s", client->host);
+			FST_WARN_1 ("gethostbyname failed for host %s", client->host);
 			client_reset (client, FALSE);
 			return FALSE;
 		}

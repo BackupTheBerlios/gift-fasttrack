@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.19 2004/07/08 17:58:44 mkern Exp $
+ * $Id: fst_search.h,v 1.20 2004/11/10 20:00:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -57,9 +57,14 @@ typedef struct
 	IFEvent *gift_event;		/* giFT event used to send results back  */
 	unsigned int fst_id;		/* id used with FastTrack protocol  */
 	FSTSearchType type;         /* type of search  */
-	unsigned int sent;			/* number of times a query for this search has
-								 * been sent to supernodes
-								 */
+
+	Dataset *sent_nodes;        /* Pointers to nodes in node cache we already
+	                             * sent this search to. Entries are removed as
+	                             * each supernode reports end of results or
+	                             * disconnects. The search is finished when 
+	                             * this becomes empty.
+	                             */
+
 	unsigned int search_more;   /* auto search more count down */
 
 	int banlist_filter;			/* cache for config key main/banlist_filter */
@@ -151,19 +156,27 @@ FSTSearch *fst_searchlist_lookup_id (FSTSearchList *searchlist, fst_uint16 fst_i
 /* lookup search by giFT event */
 FSTSearch *fst_searchlist_lookup_event (FSTSearchList *searchlist, IFEvent *event);
 
-/* send queries for every search in list if search->count == 0
- * or resent == TRUE
+/* send queries to supernode for every search in list
  */
-int fst_searchlist_send_queries (FSTSearchList *searchlist, FSTSession *session,
-								 int resent);
+int fst_searchlist_send_queries (FSTSearchList *searchlist,
+                                 FSTSession *session);
 
 /* process reply and send it to giFT
  * accepts SessMsgQueryReply and SessMsgQueryEnd
  */
 int fst_searchlist_process_reply (FSTSearchList *searchlist,
+                                  FSTSession *session,
 								  FSTSessionMsg msg_type, FSTPacket *msg_data);
 
+/* Terminate all queries sent to session since it disconnected us. */
+void fst_searchlist_session_disconnected (FSTSearchList *searchlist,
+                                          FSTSession *session);
+
 /*****************************************************************************/
+
+/* FXIME: These should never be accessed from outside fst_search.c. They
+ * shouldn't be here.
+ */
 
 /* alloc and init result */
 FSTSearchResult *fst_searchresult_create ();

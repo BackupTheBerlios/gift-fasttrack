@@ -1,5 +1,24 @@
+/*
+ * $Id: fst_peer.c,v 1.3 2004/11/10 20:00:57 mkern Exp $
+ *
+ * Copyright (C) 2003 giFT-FastTrack project
+ * http://developer.berlios.de/projects/gift-fasttrack
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2, or (at your option) any
+ * later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ */
+
 #include "fst_fasttrack.h"
 #include "fst_node.h"
+
+/*****************************************************************************/
 
 /*
  * Global dataset:
@@ -24,7 +43,7 @@ static List *add_global (Dataset *gpeers, FSTNode *node, FSTNode *peer)
 
 	dataset_insert (&gpeers, &peer, sizeof(peer), l, 0);
 
-	fst_node_ref (peer);
+	fst_node_addref (peer);
 
 	return l;
 }
@@ -33,7 +52,6 @@ static List *add_global (Dataset *gpeers, FSTNode *node, FSTNode *peer)
 /* dataset is keyed by peer, and contains a list of nodes */
 static void remove_global (Dataset *gpeers, FSTNode *peer, List *nodelink)
 {
-	FSTNode *node = nodelink->data;
 	List *l, *lnew;
 
 	l = dataset_lookup (gpeers, &peer, sizeof(peer));
@@ -42,7 +60,7 @@ static void remove_global (Dataset *gpeers, FSTNode *peer, List *nodelink)
 
 	lnew = list_remove_link (l, nodelink);
 
-	fst_node_free (peer);
+	fst_node_release (peer);
 
 	if (l == lnew)
 		return;
@@ -57,10 +75,12 @@ static int remove_peer (ds_data_t *key, ds_data_t *value,
 			 void *udata)
 {
 	remove_global ((Dataset *)udata, *(FSTNode **)key->data,
-		       (List *)value->data);
+	               (List *)value->data);
 
 	return DS_REMOVE;
 }
+
+/*****************************************************************************/
 
 void fst_peer_remove (Dataset *gpeers, FSTNode *node, Dataset *peers)
 {
@@ -71,11 +91,13 @@ void fst_peer_remove (Dataset *gpeers, FSTNode *node, Dataset *peers)
 	dataset_clear (peers);
 }
 
-void fst_peer_insert (Dataset *gpeers, FSTNode *node, Dataset **peers, FSTNode *peer)
+void fst_peer_insert (Dataset *gpeers, FSTNode *node, Dataset **peers,
+                      FSTNode *peer)
 {
 	List *nodelink = dataset_lookup (*peers, &peer, sizeof(peer));
 	List *nl;
-	fst_node_ref (peer);
+	
+	fst_node_addref (peer);
 
 	if (nodelink)
 		remove_global (gpeers, peer, nodelink);
@@ -86,5 +108,7 @@ void fst_peer_insert (Dataset *gpeers, FSTNode *node, Dataset **peers, FSTNode *
 
 	nl = dataset_lookup (*peers, &peer, sizeof (peer));
 	assert (nl == nodelink);
-	fst_node_free (peer);
+	fst_node_release (peer);
 }
+
+/*****************************************************************************/

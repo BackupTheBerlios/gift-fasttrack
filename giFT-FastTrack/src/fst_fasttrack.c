@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.76 2004/07/24 19:33:26 hex Exp $
+ * $Id: fst_fasttrack.c,v 1.77 2004/11/10 20:00:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -78,12 +78,16 @@ static void fst_plugin_connect_next ()
 {
 	FSTNode *node;
 	FSTSession *sess;
+	int count = 0, nsessions;
 
-	int count = 0;
+	nsessions = config_get_int (FST_PLUGIN->conf, "main/additional_sessions=0");
+
+	if (nsessions > FST_MAX_ADDITIONAL_SESSIONS)
+		nsessions = FST_MAX_ADDITIONAL_SESSIONS;
 
 	/* connect to head node in node cache */
 	while (!FST_PLUGIN->session || 
-	       list_length (FST_PLUGIN->sessions) < FST_ADDITIONAL_SESSIONS)
+	       list_length (FST_PLUGIN->sessions) <= nsessions)
 	{
 		if (!(node = fst_nodecache_get_front (FST_PLUGIN->nodecache)))
 		{
@@ -104,8 +108,8 @@ static void fst_plugin_connect_next ()
 		{
 			/* move node to back of cache so next loop
 			 * uses a different one */
-			fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertBack);
-			fst_node_free (node);
+			fst_nodecache_move (FST_PLUGIN->nodecache, node, NodeInsertBack);
+			fst_node_release (node);
 			
 			/* we've probably run out of nodes at this point, so
 			 * wait a while until we get some more (continuing
@@ -126,8 +130,8 @@ static void fst_plugin_connect_next ()
 
 			/* move node to back of cache so next loop
 			 * uses a different one */
-			fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertBack);
-			fst_node_free (node);
+			fst_nodecache_move (FST_PLUGIN->nodecache, node, NodeInsertBack);
+			fst_node_release (node);
 
 			/* we've probably run out of nodes at this point, so
 			 * wait a while until we get some more (continuing
@@ -146,7 +150,7 @@ static void fst_plugin_connect_next ()
 			           node->host, node->port);
 			/* remove this node from cache */
 			fst_nodecache_remove (FST_PLUGIN->nodecache, node);
-			fst_node_free (node);
+			fst_node_release (node);
 			continue;
 		}
 
@@ -169,18 +173,19 @@ static void fst_plugin_connect_next ()
 				timer_add (FST_SESSION_NETFAIL_INTERVAL,
 				           fst_plugin_netfail_timer,NULL);
 
-				fst_node_free (node);
+				fst_node_release (node);
 				return;
 			}
 
 			/* remove this node from cache */
 			fst_nodecache_remove (FST_PLUGIN->nodecache, node);
-			fst_node_free (node);
+			fst_node_release (node);
 			continue;
 		}
 
 		/* move node to back of cache so next loop uses a different one */
-		fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertBack);
+		fst_nodecache_move (FST_PLUGIN->nodecache, node, NodeInsertBack);
+		fst_node_release (node);
 
 		/* We now have a new session object. Use it as primary session if we
 		 * don't already have one. Otherwise use it as an additional one. */
@@ -248,14 +253,14 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 			FST_HEAVY_DBG_2 ("UdpNodeStateDown: %s:%d, UDP not verified",
 			                 node->host, node->port);
 			/* move the node to back of cache */
-			fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertBack);
+			fst_nodecache_move (FST_PLUGIN->nodecache, node, NodeInsertBack);
 		}
 		break;
 
 	case UdpNodeStateUp:
 		FST_HEAVY_DBG_2 ("UdpNodeStateUp: %s:%d", node->host, node->port);
 		/* move the node to back of cache */
-		fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertBack);
+		fst_nodecache_move (FST_PLUGIN->nodecache, node, NodeInsertBack);
 		break;
 
 	case UdpNodeStateFree:
@@ -265,7 +270,7 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 		 * Move the node to the front part of the list so it gets picked the 
 		 * next time we connect.
 		 */
-		fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertSorted);
+		fst_nodecache_move (FST_PLUGIN->nodecache, node, NodeInsertSorted);
 
 /*
  * Enabling this has proven to be a bad idea since it terminates connections
@@ -347,7 +352,8 @@ static int fst_plugin_session_callback (FSTSession *session,
 				FST_PLUGIN->stats->size = 0;
 			}
 
-			/* TODO: terminate searches for this session? */
+			/* Terminate all queries sent to this session */
+			fst_searchlist_session_disconnected (FST_PLUGIN->searches, session);
 		}
 
 		/* close old session */
@@ -546,7 +552,7 @@ static int fst_plugin_session_callback (FSTSession *session,
 		}
 
 		/* resend queries for all running searches */
-		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
+		fst_searchlist_send_queries (FST_PLUGIN->searches, session);
 
 		break;
 	}
@@ -574,16 +580,15 @@ static int fst_plugin_session_callback (FSTSession *session,
 	case SessMsgQueryReply:
 	{
 		/* forward results from all sessions */ 
-		fst_searchlist_process_reply (FST_PLUGIN->searches, msg_type, msg_data);
+		fst_searchlist_process_reply (FST_PLUGIN->searches, session,
+		                              msg_type, msg_data);
 		break;
 	}
 
 	case SessMsgQueryEnd:
 	{
-		/* TODO: handle multi-searchnode case */
-
-		if (!FST_ADDITIONAL_SESSIONS)
-			fst_searchlist_process_reply (FST_PLUGIN->searches, msg_type, msg_data);
+		fst_searchlist_process_reply (FST_PLUGIN->searches, session,
+		                              msg_type, msg_data);
 		break;
 	}
 
@@ -865,16 +870,9 @@ static void fst_giftcb_destroy (Protocol *proto)
 	/* put currently used supernode at the front of the node cache */
 	if (FST_PLUGIN->session && FST_PLUGIN->session->state == SessEstablished)
 	{
-#if 0
-		fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
-		                   FST_PLUGIN->session->node->host,
-		                   FST_PLUGIN->session->node->port,
-		                   0, time (NULL));
-#else
-		fst_nodecache_insert (FST_PLUGIN->nodecache, 
-				      FST_PLUGIN->session->node,
-				      NodeInsertFront);
-#endif
+		fst_nodecache_move (FST_PLUGIN->nodecache, 
+		                    FST_PLUGIN->session->node,
+		                    NodeInsertFront);
 
 		FST_DBG_2 ("added current supernode %s:%d back into node cache",
 		           FST_PLUGIN->session->node->host,
@@ -886,6 +884,9 @@ static void fst_giftcb_destroy (Protocol *proto)
 	FST_PLUGIN->sessions = list_foreach_remove (FST_PLUGIN->sessions,
 	                                            (ListForeachFunc)free_additional_session,
 	                                            NULL);
+
+	/* free peer dataset */
+	dataset_clear (FST_PLUGIN->peers);
 
 	/* free stats */
 	fst_stats_free (FST_PLUGIN->stats);

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.c,v 1.14 2004/04/06 13:35:15 mkern Exp $
+ * $Id: fst_hash.c,v 1.15 2004/11/10 20:00:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -152,7 +152,7 @@ static BOOL cache_set_hash (const char* path, FSTHash *hash)
 
 #ifdef WIN32
 	if (WaitForSingleObject (hcache.hMutex, INFINITE) == WAIT_FAILED)
-		return NULL;
+		return FALSE;
 #endif
 
 	fst_hash_free (hcache.hash);

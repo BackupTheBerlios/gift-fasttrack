@@ -1,4 +1,4 @@
-$Id: TODO,v 1.38 2004/11/06 12:10:55 mkern Exp $
+$Id: TODO,v 1.39 2004/11/10 20:00:57 mkern Exp $
 
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
@@ -17,8 +17,6 @@ $Id: TODO,v 1.38 2004/11/06 12:10:55 mkern Exp $
 
 - increase timeout for downloads (much) and session connects (not so much)
 
-- searches don't terminate with multi searchnode searching
 - pushes don't get forwarded to correct supernodes
-- auto search more still uses primary supernode
 - downloads of files > ~1GB don't work.
 

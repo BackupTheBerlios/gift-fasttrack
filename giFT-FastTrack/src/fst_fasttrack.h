@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.53 2004/07/23 19:26:52 hex Exp $
+ * $Id: fst_fasttrack.h,v 1.54 2004/11/10 20:00:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -153,7 +153,7 @@ typedef uint32_t fst_uint32;
 #define FST_USER_NAME (FST_PLUGIN->username)
 
 /* max number of nodes we save in nodes file */
-#define FST_MAX_NODESFILE_SIZE 40000
+#define FST_MAX_NODESFILE_SIZE 1000
 
 /* Nodes with a load below FST_NODE_MIN_LOAD or above FST_NODE_MAX_LOAD are
  * thrown out. This is done because I'm not sure if we should connect to high
@@ -222,8 +222,10 @@ typedef uint32_t fst_uint32;
 /* max number of simultaneous udp pings */
 #define FST_UDP_DISCOVER_MAX_PINGS      (10)
 
-/* number of supernode sessions we keep besides the main one */
-#define FST_ADDITIONAL_SESSIONS (config_get_int (FST_PLUGIN->conf, "main/additional_sessions=0"))
+/* The actual number of additional sessions is read from the config file.
+ * This is just to keep the common man from hurting himself.
+ */
+#define FST_MAX_ADDITIONAL_SESSIONS 10
 
 /*****************************************************************************/
 
@@ -257,8 +259,11 @@ typedef struct
 									 * searches
 									 */
 
-	Dataset *peers;                        /* which nodes are currently peered 
-						  with a node we're connected to */
+	Dataset *peers;                 /* Which nodes are currently peered 
+	                                 * with a node we're connected to. Used
+	                                 * to optimize multi supernode
+	                                 * connections.
+	                                 */
 
 	FSTStats *stats;				/* network statistics */
 

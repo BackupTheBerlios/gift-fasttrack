@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.32 2004/10/19 16:47:39 mkern Exp $
+ * $Id: fst_search.c,v 1.33 2004/11/10 20:00:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -166,7 +166,13 @@ FSTSearch *fst_search_create (IFEvent *event, FSTSearchType type, char *query,
 	search->gift_event = event;
 	search->fst_id = 0x0000;
 	search->type = type;
-	search->sent = 0;
+
+	if (!(search->sent_nodes = dataset_new (DATASET_HASH)))
+	{
+		free (search);
+		return NULL;
+	}
+
 	search->search_more = config_get_int (FST_PLUGIN->conf,
 	                                      "main/auto_search_more=0");
 
@@ -195,6 +201,7 @@ void fst_search_free (FSTSearch *search)
 	free (search->exclude);
 	free (search->realm);
 	fst_hash_free (search->hash);
+	dataset_clear (search->sent_nodes);
 
 	free (search);
 }
@@ -202,8 +209,24 @@ void fst_search_free (FSTSearch *search)
 /* send search request to supernode via this session */
 int fst_search_send_query (FSTSearch *search, FSTSession *session)
 {
-	FSTPacket *packet = fst_packet_create();
+	FSTPacket *packet;
+	FSTNode *node;
 	fst_uint8 realm = QUERY_REALM_EVERYTHING;
+
+	/* If we already sent a query to this session don't to it again but
+	 * return as though we succeeded.
+	 */
+	if ((node = dataset_lookup (search->sent_nodes, &session->node,
+	                            sizeof(session->node))))
+	{
+		assert (node == session->node);
+		FST_HEAVY_DBG_2 ("Not resending search %d to supernode %s",
+		                 search->fst_id, node->host);
+		return TRUE;
+	}
+
+	if (!(packet = fst_packet_create()))
+		return FALSE;
 
 	fst_packet_put_ustr (packet, "\x00\x01", 2);
 	fst_packet_put_uint16 (packet, htons(FST_MAX_SEARCH_RESULTS));
@@ -270,8 +293,12 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 		return FALSE;
 	}
 
-	search->sent++;
 	fst_packet_free (packet);
+
+	/* increase sent cound and add supernode to sent set */
+	dataset_insert (&search->sent_nodes, &session->node,
+	                sizeof(session->node), session->node, 0);
+	fst_node_addref (session->node);
 
 	return TRUE;
 }
@@ -397,11 +424,9 @@ FSTSearch *fst_searchlist_lookup_event (FSTSearchList *searchlist,
 	return (FSTSearch*)node->data;
 }
 
-/* send queries for every search in list if search->count == 0
- * or resent == TRUE
- */
+/* send queries to supernode for every search in list */
 int fst_searchlist_send_queries (FSTSearchList *searchlist,
-								 FSTSession *session, int resent)
+								 FSTSession *session)
 {
 	List *node = searchlist->searches;
 	FSTSearch *search;
@@ -410,19 +435,14 @@ int fst_searchlist_send_queries (FSTSearchList *searchlist,
 	for (; node; node = node->next)
 	{
 		search = (FSTSearch*)node->data;
-		if (!search->sent || resent)
-			if (!fst_search_send_query (search, session))
-				return FALSE;
+		if (!fst_search_send_query (search, session))
+			return FALSE;
 		i++;
 	}
 
 	if (i)
-	{
-		if (resent)
-			FST_DBG_1 ("resent %d pending searches to supernode", i);
-		else
-			FST_HEAVY_DBG_1 ("sent %d searches to supernode", i);
-	}
+		FST_HEAVY_DBG_2 ("sent %d searches to supernode %s", i,
+		                 session->node->host);
 
 	return TRUE;
 }
@@ -434,10 +454,75 @@ static int result_free (FSTSearchResult *result, void *udata)
 	return TRUE;
 }
 
+/* Handle end of result from session. */
+static int end_of_results (FSTSearchList *searchlist,
+                           FSTSearch *search,
+                           FSTSession *session)
+{
+	int remaining;
+	int good_replies;
+
+	/* Remove the supernode which returned this from the sent_nodes
+	 * dataset
+	 */
+	dataset_remove (search->sent_nodes, &session->node,
+	                sizeof(session->node));
+
+	remaining = dataset_length (search->sent_nodes);
+
+	FST_HEAVY_DBG_3 ("Got EOR for fst_id %d from %s. %d more nodes left to reply.",
+	                 search->fst_id, session->node->host, remaining);
+
+	/* If there are more outstanding queries just wait. */
+	if (remaining > 0)
+		return TRUE;
+
+	/* All nodes replied, remove search. */
+	good_replies = search->replies - search->fw_replies - search->banlist_replies;
+
+	FST_DBG_4 ("Search with fst_id %d ended, %d replies, %d firewalled, %d banned",
+			   search->fst_id, search->replies, search->fw_replies,
+	           search->banlist_replies);
+
+	/* check if we need to auto search more */
+	if (search->search_more > 0 &&
+	    search->type == SearchTypeSearch &&
+		good_replies < FST_MAX_SEARCH_RESULTS)
+	{
+		/* send off another query */
+		FST_DBG_2 ("auto searching more (%d) for fst_id %d",
+		           search->search_more - 1, search->fst_id);
+
+		if (!fst_search_send_query_to_all (search))
+		{
+			FST_DBG_2 ("fst_search_send_query_to_all failed for \"%s\", fst_id = %d",
+			           search->query, search->fst_id);
+			/* return, we will search again on next supernode */
+			return FALSE;
+		}
+
+		search->search_more--;
+
+		return TRUE;
+	}
+
+	/* remove search from list */
+	fst_searchlist_remove (searchlist, search);
+
+	/* tell giFT we're finished, this makes giFT call gift_cb_search_cancel() */
+	FST_PROTO->search_complete (FST_PROTO, search->gift_event);
+
+	/* free search */
+	fst_search_free (search);
+
+	return TRUE;
+}
+
 /* process reply and send it to giFT
  * accepts SessMsgQueryReply and SessMsgQueryEnd 
  */
 int fst_searchlist_process_reply (FSTSearchList *searchlist,
+                                  FSTSession *session,
 								  FSTSessionMsg msg_type, FSTPacket *msg_data)
 {
 	FSTSearch *search;
@@ -449,7 +534,6 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 
 	if (msg_type == SessMsgQueryEnd)
 	{
-		int good_replies;
 		fst_id = ntohs(fst_packet_get_uint16 (msg_data));
 
 		if (! (search = fst_searchlist_lookup_id (searchlist, fst_id)))
@@ -459,43 +543,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			return FALSE;
 		}
 
-		good_replies = search->replies - search->fw_replies - search->banlist_replies;
-
-		FST_DBG_4 ("received end of search for fst_id %d, %d replies, %d firewalled, %d banned",
-				   fst_id, search->replies, search->fw_replies, search->banlist_replies);
-
-		/* check if we need to auto search more */
-		if (search->search_more > 0 &&
-		    search->type == SearchTypeSearch &&
-			good_replies < FST_MAX_SEARCH_RESULTS)
-		{
-			/* send off another query */
-			FST_DBG_2 ("auto searching more (%d) for fst_id %d",
-			           search->search_more - 1, search->fst_id);
-
-			if (!fst_search_send_query (search, FST_PLUGIN->session))
-			{
-				FST_DBG_2 ("fst_search_send_query failed for \"%s\", fst_id = %d",
-						search->query, search->fst_id);
-				/* return, we will search again on next supernode */
-				return FALSE;
-			}
-
-			search->search_more--;
-
-			return TRUE;
-		}
-
-		/* remove search from list */
-		fst_searchlist_remove (searchlist, search);
-
-		/* tell giFT we're finished, this makes giFT call gift_cb_search_cancel() */
-		FST_PROTO->search_complete (FST_PROTO, search->gift_event);
-
-		/* free search */
-		fst_search_free (search);
-
-		return TRUE;
+		return end_of_results (searchlist, search, session);
 	}
 
 	assert (msg_type == SessMsgQueryReply);
@@ -719,6 +767,28 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 	list_foreach_remove (results, (ListForeachFunc)result_free, NULL);			
 
 	return TRUE;
+}
+
+/* Terminate all queries sent to session since it disconnected us. */
+void fst_searchlist_session_disconnected (FSTSearchList *searchlist,
+                                          FSTSession *session)
+{
+	List *l;
+	
+	for (l = searchlist->searches; l; l = l->next)
+	{
+		FSTSearch *search = l->data;
+		FSTNode *node;
+
+		if ((node = dataset_lookup (search->sent_nodes, &session->node,
+		                            sizeof(session->node))))
+		{
+			assert (node == session->node);
+
+			/* Remove supernode from sent_nodes set */
+			end_of_results (searchlist, search, session);
+		}
+	}
 }
 
 /*****************************************************************************/

@@ -1,4 +1,4 @@
-# $Id: Makefile.msvc,v 1.7 2004/03/10 02:07:01 mkern Exp $
+# $Id: Makefile.msvc,v 1.8 2004/11/10 20:00:57 mkern Exp $
 
 
 !include ../Make.msvc
@@ -34,6 +34,7 @@ OBJECTS = \
 	fst_ipset$(O) \
 	fst_meta$(O) \
 	fst_node$(O) \
+	fst_peer$(O) \
 	fst_packet$(O) \
 	fst_push$(O) \
 	fst_search$(O) \

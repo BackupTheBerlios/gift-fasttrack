@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.24 2004/04/05 09:13:03 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.25 2004/11/10 20:00:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -65,7 +65,10 @@ static FSTUdpNode* fst_udp_node_create (FSTNode *node)
 		return NULL;
 
 	if (node)
-		udp_node->node = fst_node_create_copy (node);
+	{
+		fst_node_addref (node);
+		udp_node->node = node;
+	}
 	else
 		udp_node->node = NULL;
 
@@ -82,7 +85,7 @@ static void fst_udp_node_free (FSTUdpNode* udp_node)
 	if (!udp_node)
 		return;
 
-	fst_node_free (udp_node->node);
+	fst_node_release (udp_node->node);
 	free (udp_node->network);
 	free (udp_node);
 }
