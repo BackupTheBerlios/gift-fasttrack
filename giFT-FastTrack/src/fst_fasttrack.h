@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.16 2003/07/04 03:54:45 beren12 Exp $
+ * $Id: fst_fasttrack.h,v 1.17 2003/08/25 20:17:21 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -120,6 +120,7 @@ typedef uint32_t fst_uint32;
 #include <libgift/parse.h>
 #include <libgift/network.h>
 #include <libgift/dataset.h>
+#include <libgift/mime.h>
 #include <libgift/tcpc.h>
 #include <libgift/proto/transfer_api.h>
 #include <libgift/proto/protocol.h>

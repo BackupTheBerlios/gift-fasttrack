@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.4 2003/06/27 17:29:52 mkern Exp $
+ * $Id: fst_search.c,v 1.5 2003/08/25 20:17:21 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -134,12 +134,12 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 		if((p = strchr(realm, '/')))
 			*p = 0;
 
-		if		(!strcasecmp(realm, "audio"))			fst_packet_put_uint8 (packet, QUERY_REALM_AUDIO);
+		if	(!strcasecmp(realm, "audio"))			fst_packet_put_uint8 (packet, QUERY_REALM_AUDIO);
 		else if	(!strcasecmp(realm, "video"))			fst_packet_put_uint8 (packet, QUERY_REALM_VIDEO);
 		else if	(!strcasecmp(realm, "image"))			fst_packet_put_uint8 (packet, QUERY_REALM_IMAGES);
 		else if	(!strcasecmp(realm, "text"))			fst_packet_put_uint8 (packet, QUERY_REALM_DOCUMENTS);
 		else if	(!strcasecmp(realm, "application"))		fst_packet_put_uint8 (packet, QUERY_REALM_SOFTWARE);
-		else											fst_packet_put_uint8 (packet, QUERY_REALM_EVERYTHING);
+		else							fst_packet_put_uint8 (packet, QUERY_REALM_EVERYTHING);
 
 		free (realm);
 	}
@@ -340,7 +340,8 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 			return FALSE;
 		}
 
-		FST_DBG_3 ("received query end for search with fst_id = %d, got %d replies of which %d are firewalled", fst_id, search->replies, search->fw_replies);
+		FST_DBG_3 ("received query end for search with fst_id = %d, got %d replies of which %d are firewalled",
+			   fst_id, search->replies, search->fw_replies);
 
 		// remove search from list
 		fst_searchlist_remove (searchlist, search);
@@ -484,9 +485,8 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 			fst_packet_free (tagdata);
 		}
 
-		// create FileShare for giFT, we just pass the realm used in the query for now
-		file = share_new_ex (FST_PROTO, NULL, 0, filename,
-		                     search->realm, filesize, 0);
+		// create FileShare for giFT
+		file = share_new_ex (FST_PROTO, NULL, 0, filename, mime_type (filename), filesize, 0);
 
 		// add hash, hash is freed in share_free()
 		share_set_hash (file, "FTH", hash, FST_HASH_LEN, FALSE);
@@ -499,16 +499,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 		}
 
 		// create href for giFT
-/*
-		{
-			char *url_filename = fst_utils_url_encode (filename);
-			href = malloc (strlen(url_filename) + 128);
-			sprintf(href, "FastTrack://%s:%d/%s", net_ip_str (ip), port, url_filename);
-			free (url_filename);
-		}
-*/
-		href = malloc (FST_HASH_STR_LEN + 128);
-		sprintf(href, "FastTrack://%s:%d/.hash=%s", net_ip_str (ip), port, fst_hash_get_string(hash));
+		href = strdup (stringf("FastTrack://%s:%d/.hash=%s", net_ip_str (ip), port, fst_hash_get_string(hash)));
 
 		// send result to giFT if the ip is not private and port != 0
 		if(!fst_utils_ip_private (ip) && port != 0)
