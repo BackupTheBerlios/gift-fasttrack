@@ -1,6 +1,0 @@
-
-03/05/09
---------
-
-The win32 build currently doesn't work out of the box.
-You will have to fix symbol importing from giFT/libgiFT.
