@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.h,v 1.5 2003/06/28 20:17:34 beren12 Exp $
+ * $Id: fst_crypt.h,v 1.6 2003/11/28 23:11:08 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -53,11 +53,8 @@ void fst_cipher_crypt (FSTCipher *cipher, unsigned char *data, int len);
 
 /*****************************************************************************/
 
-/* returns encrypted enc_type */
-unsigned int fst_cipher_encode_enc_type (unsigned int seed, unsigned int enc_type);
-
-/* returns decrypted enc_type */
-unsigned int fst_cipher_decode_enc_type (unsigned int seed, unsigned int crypted_enc_type);
+/* returns encrypted or decrypted enc_type */
+unsigned int fst_cipher_mangle_enc_type (unsigned int seed, unsigned int enc_type);
 
 /*****************************************************************************/
 

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.14 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_session.c,v 1.15 2003/11/28 23:11:08 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -251,7 +251,7 @@ static void session_connected(int fd, input_id input, FSTSession *session)
 		return;
 	}
 
-	encoded_enc_type = fst_cipher_encode_enc_type(session->out_cipher->seed,
+	encoded_enc_type = fst_cipher_mangle_enc_type(session->out_cipher->seed,
 												  session->out_cipher->enc_type);
 
 	fst_packet_put_uint32 (packet, htonl(0xFA00B62B)); /* random number? */
@@ -510,7 +510,7 @@ static int session_do_handshake (FSTSession *session)
 	/* get seed and enc_type */
 	seed = ntohl (fst_packet_get_uint32 (session->in_packet));
 	enc_type = ntohl (fst_packet_get_uint32 (session->in_packet));
-	enc_type = fst_cipher_decode_enc_type (seed, enc_type);
+	enc_type = fst_cipher_mangle_enc_type (seed, enc_type);
 
 	/* generate send key */
 	session->out_cipher->seed ^= seed; /* xor send cipher with received seed */

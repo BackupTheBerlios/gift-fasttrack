@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.c,v 1.10 2003/11/28 22:57:46 hex Exp $
+ * $Id: fst_crypt.c,v 1.11 2003/11/28 23:11:08 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -259,16 +259,22 @@ int fst_cipher_init (FSTCipher *cipher, unsigned int seed, unsigned int enc_type
 
 /*****************************************************************************/
 
-/* returns encrypted enc_type */
-unsigned int fst_cipher_encode_enc_type (unsigned int seed, unsigned int enc_type)
+/* returns encrypted or decrypted enc_type */
+unsigned int fst_cipher_mangle_enc_type (unsigned int seed, unsigned int enc_type)
 {
-	return enc_type ^ calculate_num_xor (seed);
-}
+	unsigned int key_80[20];
+	int i;
 
-/* returns decrypted enc_type */
-unsigned int fst_cipher_decode_enc_type (unsigned int seed, unsigned int crypted_enc_type)
-{
-	return crypted_enc_type ^ calculate_num_xor (seed);
+	for (i = 0; i < 20; i++)
+	{
+		seed = seed_step (seed);
+		key_80[i] = seed;
+	}
+
+	seed = seed_step (seed);
+	enc_type_2 (key_80, seed);
+
+	return enc_type ^ key_80[7];
 }
 
 /*****************************************************************************/
@@ -466,23 +472,6 @@ static unsigned char clock_cipher (FSTCipher *cipher)
 	temp = cipher->add_to_lookup + xor;
 	xor = cipher->lookup[temp];
 	return xor;
-}
-
-static unsigned int calculate_num_xor (unsigned int seed)
-{
-	unsigned int key_80[20];
-	int i;
-
-	for (i = 0; i < 20; i++)
-	{
-		seed = seed_step (seed);
-		key_80[i] = seed;
-	}
-
-	seed = seed_step (seed);
-	enc_type_2 (key_80, seed);
-
-	return key_80[7];
 }
 
 
