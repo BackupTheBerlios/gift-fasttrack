@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.5 2004/01/03 13:34:59 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.6 2004/01/03 22:44:07 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -233,7 +233,7 @@ static void udp_discover_receive (int fd, input_id input,
 		}
 		else
 		{
-			FST_ERR ("udp_discover_receive: recvfrom failed");
+			FST_ERR ("udp_discover_receive: recvfrom failed: %d", WSAGetLastError ());
 			return;
 		}
 #else
@@ -269,44 +269,45 @@ static void udp_discover_receive (int fd, input_id input,
 	/* parse packet */
 	type = fst_packet_get_uint8 (packet);
 
-	/* update udp_node with the new data */
-	udp_node->min_enc_type = ntohl (fst_packet_get_uint32 (packet));
-	fst_packet_get_uint8 (packet); /* unknown (0x00) */
-	fst_packet_get_uint8 (packet); /* unknown */
-	fst_packet_get_uint32 (packet); /* unknown */
-
-	if((len = fst_packet_strlen (packet, 0x00)) < 0)
+	switch (type)
 	{
-		FST_DBG_2 ("received corrupted udp reply from %s:%d",
-		            net_ip_str (udp_node->ip), udp_node->port);
-		/* remove udp_node from list */
-		discover->nodes = list_remove_link(discover->nodes, udp_node_link);
-		fst_udp_node_free (udp_node);
+	case UdpMsgPong:
+		
+		/* update udp_node with the new data */
+		udp_node->min_enc_type = ntohl (fst_packet_get_uint32 (packet));
+		fst_packet_get_uint8 (packet); /* unknown (0x00) */
+		fst_packet_get_uint8 (packet); /* unknown */
+		fst_packet_get_uint32 (packet); /* unknown */
+
+		if((len = fst_packet_strlen (packet, 0x00)) < 0)
+		{
+			FST_DBG_2 ("received corrupted udp reply from %s:%d",
+						net_ip_str (udp_node->ip), udp_node->port);
+			/* remove udp_node from list */
+			discover->nodes = list_remove_link(discover->nodes, udp_node_link);
+			fst_udp_node_free (udp_node);
+			fst_packet_free (packet);
+			return;
+		}
+
+		udp_node->network = fst_packet_get_ustr (packet, len+1);
 		fst_packet_free (packet);
-		return;
-	}
+	
+		udp_node->last_seen = time (NULL);
+		udp_node->state = UdpNodeStateUp;
+		discover->pinged_nodes--;
 
-	udp_node->network = fst_packet_get_ustr (packet, len+1);
-	fst_packet_free (packet);
+		/* notify plugin using FSTNode */
+		node = fst_node_create (NodeKlassSuper, net_ip_str (udp_node->ip),
+		                        udp_node->port, 0, udp_node->last_seen);
 
-	udp_node->last_seen = time (NULL);
-	udp_node->state = UdpNodeStateUp;
+		if (!node)
+		{
+			discover->nodes = list_remove_link(discover->nodes, udp_node_link);
+			fst_udp_node_free (udp_node);
+			return;
+		}
 
-	/* notify plugin using FSTNode */
-	node = fst_node_create (NodeKlassSuper, net_ip_str (udp_node->ip),
-	                        udp_node->port, 0, udp_node->last_seen);
-
-	if (!node)
-	{
-		discover->nodes = list_remove_link(discover->nodes, udp_node_link);
-		fst_udp_node_free (udp_node);
-		return;
-	}
-
-	discover->pinged_nodes--;
-
-	if (type == UdpMsgPong)
-	{
 		FST_DBG_4 ("received udp reply 0x%02x (pong) from %s:%d, pinged nodes: %d",
 		           type, net_ip_str (udp_node->ip), udp_node->port,
 		           discover->pinged_nodes);
@@ -316,27 +317,30 @@ static void udp_discover_receive (int fd, input_id input,
 	
 		/* don't send another ping right now since this was a pong */
 		fst_node_free (node);
+		
 		return;
+
+	default: /* unknown packet */
+
+		fst_packet_free (packet);
+
+		FST_DBG_4 ("received udp reply 0x%02x from %s:%d, pinged nodes: %d",
+					type, net_ip_str (udp_node->ip), udp_node->port,
+					discover->pinged_nodes);
+		
+		/* remove udp_node from list */
+		discover->nodes = list_remove_link(discover->nodes, udp_node_link);
+		
+		/* add this node back to cache with high load */
+		fst_nodecache_add (discover->cache, NodeKlassSuper,
+		                   net_ip_str (udp_node->ip), udp_node->port,
+		                   100, udp_node->last_seen);
+
+		fst_udp_node_free (udp_node);
+
+		/* callback may free us */
+		udp_discover_ping_nodes (discover, 1);
 	}
-
-	fst_node_free (node);
-
-	FST_DBG_4 ("received udp reply 0x%02x from %s:%d, pinged nodes: %d",
-	           type, net_ip_str (udp_node->ip), udp_node->port,
-		       discover->pinged_nodes);
-		
-	/* remove udp_node from list */
-	discover->nodes = list_remove_link(discover->nodes, udp_node_link);
-		
-	/* add this node back to cache with high load */
-	fst_nodecache_add (discover->cache, NodeKlassSuper,
-		               net_ip_str (udp_node->ip), udp_node->port,
-		               100, udp_node->last_seen);
-
-	fst_udp_node_free (udp_node);
-
-	/* callback may free us */
-	udp_discover_ping_nodes (discover, 1);
 
 	/* wait for next packet */
 	return;
