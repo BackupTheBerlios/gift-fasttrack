@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.7 2004/01/04 17:24:01 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.8 2004/01/11 16:57:52 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -348,16 +348,18 @@ static void udp_discover_receive (int fd, input_id input,
 
 static int udp_discover_timeout (FSTUdpDiscover *discover)
 {
-	List *item;
+	List *item, *next;
 	unsigned int now = time (NULL);
 
 	FST_HEAVY_DBG ("timer raised");
 
 	/* check all pending udp nodes for timeout */
-	for (item=discover->nodes; item; item=item->next)
+	for (item=discover->nodes; item; item=next)
 	{
 		FSTUdpNode *udp_node = (FSTUdpNode*)item->data;
 
+		next = item->next;
+		
 		if (udp_node->state != UdpNodeStatePinged)
 			continue;
 
@@ -375,7 +377,7 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 		fst_udp_node_free (udp_node);
 
 		/* restart iteration at beginning of list */
-		item = discover->nodes;
+		next = discover->nodes;
 	}
 	
 	if (udp_discover_ping_nodes (discover, 0) == -2)
