@@ -4,7 +4,7 @@ PLUGIN_NAME = FastTrack.so
 
 #DEBUGFLAGS = -DDEBUG -DHEAVY_DEBUG
 #DEBUGFLAGS = -DDEBUG
-DEBUGFLAGS =
+DEBUGFLAGS = 
 
 FST_SOURCES = \
 	fst_fasttrack.c \
@@ -33,8 +33,8 @@ CRYPT_OBJS = $(CRYPT_SOURCES:%.c=%.o)
 
 OBJS = $(FST_OBJS) $(CRYPT_OBJS)
 
-LIBGIFT_CFLAGS = $(pkg-config --cflags libgift)
-LIBGIFT_LDFLAGS = $(pkg-config --libs libgift)
+LIBGIFT_CFLAGS = $(shell pkg-config --cflags libgift)
+LIBGIFT_LDFLAGS = $(shell pkg-config --libs libgift) -lgiftproto
 
 CFLAGS += \
 	$(LIBGIFT_CFLAGS) \
