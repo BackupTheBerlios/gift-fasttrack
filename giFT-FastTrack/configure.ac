@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.15 2003/06/30 16:12:23 mkern Exp $
+# $Id: configure.ac,v 1.16 2003/07/14 20:18:15 mkern Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -11,7 +11,7 @@ AC_PREREQ(2.52)
 AC_INIT
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
-AM_INIT_AUTOMAKE(giFT-FastTrack, 0.8.1)
+AM_INIT_AUTOMAKE(giFT-FastTrack, 0.8.2)
 AM_CONFIG_HEADER(config.h)
 
 dnl AM_MAINTAINER_MODE

@@ -1,4 +1,4 @@
-$Id: TODO,v 1.8 2003/07/14 19:52:50 mkern Exp $
+$Id: TODO,v 1.9 2003/07/14 20:18:15 mkern Exp $
 
 - add firewalled download support
 - make node cache smarter / use udp discovery
@@ -9,3 +9,4 @@ $Id: TODO,v 1.8 2003/07/14 19:52:50 mkern Exp $
 - make a usefull manpage? :)
 - add the fixes i made to gift's configure.ac to this project
 - we don't need names and email addresses in both AUTHORS AND README
+- replace FT_ prefix with FST_ in autogen.sh
