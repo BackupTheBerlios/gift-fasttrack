@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_header.c,v 1.4 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_http_header.c,v 1.5 2004/06/19 19:53:55 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -137,10 +137,27 @@ FSTHttpHeader *fst_http_header_parse (char *data, int *data_len)
 		header->type = HTHD_REPLY;
 
 		/* get version */
-		p = string_sep (&line, " ");
+		if((p = string_sep (&line, " ")) == NULL || line == NULL)
+		{
+			/* invalid header */
+			free (data);
+			fst_http_header_free (header);
+			return NULL;
+		}
+
 		header->version = (! strcmp (p, "HTTP/1.1")) ? HTHD_VER_11 : HTHD_VER_10;
+
 		/* get code */
-		header->code = ATOI (string_sep (&line, " "));
+		if((p = string_sep (&line, " ")) == NULL || line == NULL)
+		{
+			/* invalid header */
+			free (data);
+			fst_http_header_free (header);
+			return NULL;
+		}
+
+		header->code = ATOI (p);
+
 		/* get code string */
 		header->code_str = strdup (line);
 	}
@@ -151,9 +168,9 @@ FSTHttpHeader *fst_http_header_parse (char *data, int *data_len)
 
 		/* get method */
 		p = string_sep (&line, " ");
-		if (! strcmp (p, "GET")) header->method = HTHD_GET;
-		else if (! strcmp (p, "HEAD")) header->method = HTHD_HEAD;
-		else if (! strcmp (p, "GIVE")) header->method = HTHD_GIVE;
+		if      (p && line && !strcmp (p, "GET" )) header->method = HTHD_GET;
+		else if (p && line && !strcmp (p, "HEAD")) header->method = HTHD_HEAD;
+		else if (p && line && !strcmp (p, "GIVE")) header->method = HTHD_GIVE;
 		else
 		{
 			/* unknown method */
@@ -161,10 +178,20 @@ FSTHttpHeader *fst_http_header_parse (char *data, int *data_len)
 			fst_http_header_free (header);
 			return NULL;
 		}
+
 		/* get uri */
-		header->uri = strdup (string_sep (&line, " "));
+		if ((p = string_sep (&line, " ")) == NULL || line == NULL)
+		{
+			/* invalid header */
+			free (data);
+			fst_http_header_free (header);
+			return NULL;
+		}
+
+		header->uri = strdup (p);
+
 		/* get version */
-		header->version = (! strcmp (line, "HTTP/1.1")) ? HTHD_VER_11 : HTHD_VER_10;
+		header->version = (!strcmp (line, "HTTP/1.1")) ? HTHD_VER_11 : HTHD_VER_10;
 	}
 
 	/* parse header fields */

@@ -1,4 +1,13 @@
- $Id: ChangeLog,v 1.23 2004/03/20 14:31:12 mkern Exp $
+ $Id: ChangeLog,v 1.24 2004/06/19 19:53:55 mkern Exp $
+
+2004-06-19  Markus Kern <mkern@users.berlios.de>
+	
+	* Fixed remote DoS on HTTP server (not exploitable).
+	* Fixed remote DoS on HTTP client (not exploitable).
+
+2004-06-16  HEx <hex@users.berlios.de>
+
+	* Use default nodes file if cache runs out of nodes.
 
 2004-03-20  Markus Kern <mkern@users.berlios.de>
 
