@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.c,v 1.11 2004/03/10 02:07:01 mkern Exp $
+ * $Id: fst_hash.c,v 1.12 2004/03/23 18:45:54 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -1112,7 +1112,7 @@ int main (int argc, char *argv[])
 
 	for (i=0; i < sizeof (test_vectors) / sizeof (test_vectors[0]); i++)
 	{
-		hash1 = fst_hash_create_copy (test_vectors[i].kzhash, FST_KZHASH_LEN);
+		hash1 = fst_hash_create_raw (test_vectors[i].kzhash, FST_KZHASH_LEN);
 		printf ("\nTest len: %d\n", test_vectors[i].len);
 		printf ("  reference:     %s\n", fst_hash_encode16_kzhash (hash1));
 		fst_hash_free (hash1);
