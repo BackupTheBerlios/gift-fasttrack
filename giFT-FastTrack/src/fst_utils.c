@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.c,v 1.13 2004/03/10 02:07:01 mkern Exp $
+ * $Id: fst_utils.c,v 1.14 2004/12/11 20:35:43 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -139,7 +139,7 @@ char *fst_utils_url_decode (char *encoded)
 
 				*ptr = (char) oct_val;
 
-				memmove (ptr + 1, ptr + 3, strlen (ptr + 1) + 1);
+				string_move (ptr + 1, ptr + 3);
 			}
 			break;
 		 default:
