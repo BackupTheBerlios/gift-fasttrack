@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.h,v 1.5 2003/07/04 03:54:45 beren12 Exp $
+ * $Id: fst_node.h,v 1.6 2004/03/08 18:21:37 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -40,16 +40,24 @@ typedef struct
 	unsigned int last_seen;		/* time in seconds since the epoch nodes was last seen */
 } FSTNode;
 
-
 typedef struct
 {
-	List *list;				/* we keep a list in which we instert and remove modes
-								from the beginning... */
+	List *list;      /* The list which holds all nodes. When connecting the
+	                  * first node is used.
+	                  */
 
-	Dataset *hash;			/* ...and a hash table keyed by ip to prevent
-								duplicates efficiently */
-
+	Dataset *hash;   /* A hash table keyed by host and pointing to the same
+					  * node the list contains to efficiently prevent
+					  * duplicates.
+	                  */
 } FSTNodeCache;
+
+typedef enum
+{
+	NodeInsertFront,
+	NodeInsertBack,
+	NodeInsertSorted
+} FSTNodeInsertPos;
 
 /*****************************************************************************/
 
@@ -73,10 +81,14 @@ void fst_nodecache_free (FSTNodeCache *cache);
 
 /*****************************************************************************/
 
-/* add node to node cache */
+/* create and add node to front of cache */
 void fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
 					    unsigned short port, unsigned int load,
 					    unsigned int last_seen);
+
+/* Insert copy of node at pos. If node is already in the cache it is moved. */
+void fst_nodecache_insert (FSTNodeCache *cache, FSTNode *node,
+                           FSTNodeInsertPos pos);
 
 /* remove node from node cache by host and free it */
 void fst_nodecache_remove (FSTNodeCache *cache, char *host);

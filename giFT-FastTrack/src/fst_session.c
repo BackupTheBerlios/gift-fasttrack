@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.18 2004/01/11 19:19:57 mkern Exp $
+ * $Id: fst_session.c,v 1.19 2004/03/08 18:21:37 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -101,10 +101,10 @@ int fst_session_connect (FSTSession *session, FSTNode *node)
 		session->state = SessDisconnected;
 		FST_WARN_1 ("gethostbyname failed for host %s", node->host);
 		return FALSE;
-   }
+	}
 
-	FST_DBG_3 ("connecting to %s(%s):%d", node->host,
-			   net_ip_str(*((in_addr_t*)he->h_addr_list[0])), node->port);
+	FST_DBG_3 ("connecting to %s:%d, load: %d%%",
+	           node->host, node->port, node->load);
 
 	session->tcpcon = tcp_open (*((in_addr_t*)he->h_addr_list[0]),
 								node->port, FALSE);
@@ -560,7 +560,7 @@ static int session_greet_supernode (FSTSession *session)
 {
 	FSTPacket *packet;
 
-	FST_DBG ("sending ip, bandwidth and user name to supernode");
+	FST_HEAVY_DBG ("sending ip, bandwidth and user name to supernode");
 
 	if (! (packet = fst_packet_create ()))
 		return FALSE;

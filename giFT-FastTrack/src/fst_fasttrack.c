@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.58 2004/03/07 23:16:30 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.59 2004/03/08 18:21:37 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -170,30 +170,25 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 		{
 			FST_HEAVY_DBG_2 ("UdpNodeStateDown: %s:%d, UDP not verified",
 			                 node->host, node->port);
-			/* remove node from current position in cache... */
-			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
-			/* ... and add it to the back */
-			fst_nodecache_add (FST_PLUGIN->nodecache, node->klass, node->host,
-				               node->port, 100, node->last_seen);
+			/* move the node to back of cache */
+			fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertBack);
 		}
 		break;
 
 	case UdpNodeStateUp:
 		FST_HEAVY_DBG_2 ("UdpNodeStateUp: %s:%d", node->host, node->port);
-		/* remove node from current position in cache... */
-		fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
-		/* ... and add it to the back */
-		fst_nodecache_add (FST_PLUGIN->nodecache, node->klass, node->host,
-		                   node->port, 100, node->last_seen);
+		/* move the node to back of cache */
+		fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertBack);
 		break;
 
 	case UdpNodeStateFree:
 		FST_HEAVY_DBG_2 ("UdpNodeStateFree: %s:%d", node->host, node->port);
-		/* remove node from current position in cache... */
-		fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
-		/* ... and add it to the front */
-		fst_nodecache_add (FST_PLUGIN->nodecache, node->klass, node->host,
-		                   node->port, 0, node->last_seen);
+
+		/* Insert node with new load and last_seen values. This will inevitably
+		 * Move the node to the front part of the list so it gets picked the 
+		 * next time we connect.
+		 */
+		fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertSorted);
 
 /*
  * Enabling this has proven to be a bad idea since it terminates connections
@@ -237,18 +232,16 @@ static int fst_plugin_session_callback (FSTSession *session,
 	{
 		/* determine local ip */
 		FST_PLUGIN->local_ip = net_local_ip (session->tcpcon->fd, NULL);
-		FST_DBG_1 ("connected, local ip: %s", net_ip_str (FST_PLUGIN->local_ip));
+		FST_DBG_3 ("CONNECTED to %s:%d, local ip: %s",
+		           session->node->host, session->node->port,			
+		           net_ip_str (FST_PLUGIN->local_ip));
 		break;
 	}
 
 	case SessMsgEstablished:
 	{
-		FST_DBG_3 ("supernode connection established to %s:%d, load: %d%%",
-				   session->node->host, session->node->port, session->node->load);
-
-		/* resend queries for all running searches */
-		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
-
+		FST_DBG_2 ("ESTABLISHED session to %s:%d",
+				   session->node->host, session->node->port);
 		break;
 	}
 
@@ -305,6 +298,7 @@ static int fst_plugin_session_callback (FSTSession *session,
 	case SessMsgNetworkStats:
 	{
 		unsigned int mantissa, exponent;
+		unsigned int prev_users = FST_PLUGIN->stats->users;
 
 		if (fst_packet_remaining (msg_data) < 12)
 			break;
@@ -331,6 +325,16 @@ static int fst_plugin_session_callback (FSTSession *session,
 				   FST_PLUGIN->stats->users,
 				   FST_PLUGIN->stats->files,
 				   FST_PLUGIN->stats->size);
+
+		/* if we connected to a splitted network segment move on */
+		if (FST_PLUGIN->stats->users < FST_MIN_USERS_ON_CONNECT &&
+		    prev_users == 0)
+		{
+			FST_DBG ("disconnecting from splitted network segment");
+			/* this calls us back with SessMsgDisconnected */
+			fst_session_disconnect (session);
+		}
+
 		break;
 	}
 
@@ -375,6 +379,9 @@ static int fst_plugin_session_callback (FSTSession *session,
 			if (!fst_share_register_all ())
 				FST_DBG ("registering shares with new supernode failed");
 		}
+
+		/* resend queries for all running searches */
+		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
 
 		break;
 	}

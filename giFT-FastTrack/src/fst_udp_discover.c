@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.17 2004/03/07 23:16:30 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.18 2004/03/08 18:21:37 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -314,9 +314,33 @@ static void udp_discover_receive (int fd, input_id input,
 		
 		/* update udp_node with the new data */
 		udp_node->min_enc_type = ntohl (fst_packet_get_uint32 (packet));
+
 		fst_packet_get_uint8 (packet); /* unknown (0x00) */
-		fst_packet_get_uint8 (packet); /* unknown */
-		fst_packet_get_uint32 (packet); /* unknown */
+		fst_packet_get_uint8 (packet); /* unknown (30 minute increment) */
+		fst_packet_get_uint16 (packet); /* unknown (some class?) */
+
+		 /* load (really?) */
+		udp_node->node->load = fst_packet_get_uint8 (packet);
+
+		fst_packet_get_uint8 (packet); /* unknown (number of children?) */
+
+#if 0
+		{
+			unsigned int a, b, c, d ,e;
+			char *ip = strdup (net_ip_str (addr.sin_addr.s_addr));
+
+			a = fst_packet_get_uint8 (packet); /* unknown (0x00) */
+			b = fst_packet_get_uint8 (packet); /* unknown (30 minute increment) */
+			c = fst_packet_get_uint16 (packet); /* unknown (some class?) */
+			d = fst_packet_get_uint8 (packet);
+			e = fst_packet_get_uint8 (packet); /* unknown (number of children?) */
+
+			FST_WARN_5 ("udp data: 0x%02x %3d %3d  (%s:%d)",
+			            b, d, e, ip, ntohs (addr.sin_port));
+
+			free (ip);
+		}
+#endif
 
 		if((len = fst_packet_strlen (packet, 0x00)) < 0)
 		{
@@ -336,9 +360,9 @@ static void udp_discover_receive (int fd, input_id input,
 		discover->pinged_nodes--;
 		discover->received_pongs++;
 
-		FST_HEAVY_DBG_4 ("received udp reply 0x%02x (pong) from %s:%d, pinged nodes: %d",
+		FST_HEAVY_DBG_4 ("received udp reply 0x%02x (pong) from %s:%d, load: %d%%",
 		                 type, net_ip_str (udp_node->ip), udp_node->node->port,
-		                 discover->pinged_nodes);
+		                 udp_node->node->load);
 
 		/* raise callback */
 		discover->callback (discover, UdpNodeStateFree, udp_node->node);

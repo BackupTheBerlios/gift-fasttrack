@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.40 2004/03/07 23:16:30 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.41 2004/03/08 18:21:37 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -32,12 +32,12 @@
 
 /* The default shall be debugging on, unless it is a stable release */
 #ifdef DEBUG
-#define FST_DBG(fmt)			FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt)
-#define FST_DBG_1(fmt,a)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a)
-#define FST_DBG_2(fmt,a,b)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b)
-#define FST_DBG_3(fmt,a,b,c)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c)
-#define FST_DBG_4(fmt,a,b,c,d)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d)
-#define FST_DBG_5(fmt,a,b,c,d,e)	FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d,e)
+#define FST_DBG(fmt)             FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt)
+#define FST_DBG_1(fmt,a)         FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a)
+#define FST_DBG_2(fmt,a,b)       FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b)
+#define FST_DBG_3(fmt,a,b,c)     FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c)
+#define FST_DBG_4(fmt,a,b,c,d)   FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d)
+#define FST_DBG_5(fmt,a,b,c,d,e) FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d,e)
 #else
 #define FST_DBG(fmt)
 #define FST_DBG_1(fmt,a)
@@ -49,12 +49,12 @@
 
 
 #ifdef HEAVY_DEBUG
-# define FST_HEAVY_DBG(fmt)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt)
-# define FST_HEAVY_DBG_1(fmt,a)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a)
-# define FST_HEAVY_DBG_2(fmt,a,b)	FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b)
-# define FST_HEAVY_DBG_3(fmt,a,b,c)	FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c)
-# define FST_HEAVY_DBG_4(fmt,a,b,c,d)	FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d)
-# define FST_HEAVY_DBG_5(fmt,a,b,c,d,e)	FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d,e)
+# define FST_HEAVY_DBG(fmt)             FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt)
+# define FST_HEAVY_DBG_1(fmt,a)         FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a)
+# define FST_HEAVY_DBG_2(fmt,a,b)       FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b)
+# define FST_HEAVY_DBG_3(fmt,a,b,c)     FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c)
+# define FST_HEAVY_DBG_4(fmt,a,b,c,d)   FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d)
+# define FST_HEAVY_DBG_5(fmt,a,b,c,d,e) FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d,e)
 #else
 # define FST_HEAVY_DBG(fmt)
 # define FST_HEAVY_DBG_1(fmt,a)
@@ -65,17 +65,19 @@
 #endif /* HEAVY_DEBUG */
 
 
-#define FST_WARN(fmt)			FST_PROTO->warn(FST_PROTO,fmt)
-#define FST_WARN_1(fmt,a)		FST_PROTO->warn(FST_PROTO,fmt,a)
-#define FST_WARN_2(fmt,a,b)		FST_PROTO->warn(FST_PROTO,fmt,a,b)
-#define FST_WARN_3(fmt,a,b,c)	FST_PROTO->warn(FST_PROTO,fmt,a,b,c)
-#define FST_WARN_4(fmt,a,b,c,d)	FST_PROTO->warn(FST_PROTO,fmt,a,b,c,d)
+#define FST_WARN(fmt)             FST_PROTO->warn(FST_PROTO,fmt)
+#define FST_WARN_1(fmt,a)         FST_PROTO->warn(FST_PROTO,fmt,a)
+#define FST_WARN_2(fmt,a,b)       FST_PROTO->warn(FST_PROTO,fmt,a,b)
+#define FST_WARN_3(fmt,a,b,c)     FST_PROTO->warn(FST_PROTO,fmt,a,b,c)
+#define FST_WARN_4(fmt,a,b,c,d)   FST_PROTO->warn(FST_PROTO,fmt,a,b,c,d)
+#define FST_WARN_5(fmt,a,b,c,d,e) FST_PROTO->warn(FST_PROTO,fmt,a,b,c,d,e)
 
-#define FST_ERR(fmt)			FST_PROTO->err(FST_PROTO,fmt)
-#define FST_ERR_1(fmt,a)		FST_PROTO->err(FST_PROTO,fmt,a)
-#define FST_ERR_2(fmt,a,b)		FST_PROTO->err(FST_PROTO,fmt,a,b)
-#define FST_ERR_3(fmt,a,b,c)	FST_PROTO->err(FST_PROTO,fmt,a,b,c)
-#define FST_ERR_4(fmt,a,b,c,d)	FST_PROTO->err(FST_PROTO,fmt,a,b,c,d)
+#define FST_ERR(fmt)              FST_PROTO->err(FST_PROTO,fmt)
+#define FST_ERR_1(fmt,a)          FST_PROTO->err(FST_PROTO,fmt,a)
+#define FST_ERR_2(fmt,a,b)        FST_PROTO->err(FST_PROTO,fmt,a,b)
+#define FST_ERR_3(fmt,a,b,c)      FST_PROTO->err(FST_PROTO,fmt,a,b,c)
+#define FST_ERR_4(fmt,a,b,c,d)    FST_PROTO->err(FST_PROTO,fmt,a,b,c,d)
+#define FST_ERR_5(fmt,a,b,c,d, e) FST_PROTO->err(FST_PROTO,fmt,a,b,c,d, e)
 
 #include <libgift/libgift.h>
 #include <libgift/proto/protocol.h>
@@ -176,7 +178,7 @@ typedef uint32_t fst_uint32;
  * to share too much. This is a workaround until we figure out the true reason
  * behind this.
  */
-#define FST_MAX_SHARED_FILES 197
+#define FST_MAX_SHARED_FILES 95
 
 /* the amount of time we wait before retrying with another node 
  * after resolve/tcp_open failed
@@ -189,8 +191,15 @@ typedef uint32_t fst_uint32;
 /* timeout for sessions handshakes */
 #define FST_SESSION_HANDSHAKE_TIMEOUT	(10*SECONDS)
 
+/* Sometimes we connect to a splitted segment of the network. While these
+ * segments usually find their way back on the main network after a short time
+ * we don't want to stay with them and disconnect if this happens.
+ * This value defines the minimum number of users so we don't disconnect.
+ */
+#define FST_MIN_USERS_ON_CONNECT        (100000)
+
 /* timeout for udp ping */
-#define FST_UDP_DISCOVER_TIMEOUT        (10*SECONDS)
+#define FST_UDP_DISCOVER_TIMEOUT        (20*SECONDS)
 
 /* max number of simultaneous udp pings */
 #define FST_UDP_DISCOVER_MAX_PINGS      (20)

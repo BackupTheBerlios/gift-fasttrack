@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.11 2004/03/02 23:14:38 mkern Exp $
+ * $Id: fst_node.c,v 1.12 2004/03/08 18:21:37 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -17,6 +17,25 @@
 
 #include "fst_fasttrack.h"
 #include "fst_node.h"
+
+/*****************************************************************************/
+
+/* This is the magic function which sorts our node cache.
+ * The current strategy is to first sort by last_seen with 5 minute precision
+ * and then by load.
+ */
+static int nodecache_cmp_nodes (FSTNode *a, FSTNode *b)
+{
+	/* compare with 5 minute accuracy */
+	if ( (a->last_seen / 300) == (b->last_seen / 300))
+		return (a->load < b->load) ? -1 : (a->load > b->load);
+
+	else if (a->last_seen > b->last_seen)
+		return -1;
+
+	else
+		return 1;
+}
 
 /*****************************************************************************/
 
@@ -95,38 +114,56 @@ void fst_nodecache_free (FSTNodeCache *cache)
 
 /*****************************************************************************/
 
-/* add node to node cache */
+/* create and add node to front of cache */
 void fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
 						unsigned short port, unsigned int load,
 						unsigned int last_seen)
 {
 	FSTNode *node;
 
-	if ( (node = dataset_lookupstr (cache->hash, host)))
-	{
-		/* update node */
-		node->klass = klass;
-		node->port = port;
-		node->load = load;
-		node->last_seen = last_seen;
-	}
-	else
-	{	
-		/* create new node */
-		node = fst_node_create (klass, host, port, load, last_seen);
+	/* create node*/
+	node = fst_node_create (klass, host, port, load, last_seen);
 
-		/* 
-		 * insert node into list and hash table
-		 * if load is >= 100 append instead of prepend
-		 */
-		if (load >= 100)
-			cache->list = list_append (cache->list, node);
-		else
-			cache->list = list_prepend (cache->list, node);
-
-		dataset_insert (&cache->hash, node->host, strlen (node->host) + 1, node, 0);	
-	}
+	/* insert at front */
+	fst_nodecache_insert (cache, node, NodeInsertFront);
 }
+
+/* Insert copy of node at pos. If node is already in the cache it is moved. */
+void fst_nodecache_insert (FSTNodeCache *cache, FSTNode *node,
+                           FSTNodeInsertPos pos)
+{
+	FSTNode *node_cpy;
+
+	/* make copy of node */
+	node_cpy = fst_node_create_copy (node);
+
+	/* remove old node if present */
+	fst_nodecache_remove (cache, node->host);
+
+	/* insert into linked list */
+	switch (pos)
+	{
+	case NodeInsertFront:
+		cache->list = list_prepend (cache->list, node_cpy);
+		break;
+
+	case NodeInsertBack:
+		/* this involves traversing the entire list! */
+		cache->list = list_append (cache->list, node_cpy);
+		break;
+
+	case NodeInsertSorted:
+		cache->list = list_insert_sorted (cache->list,
+		                                  (CompareFunc) nodecache_cmp_nodes,
+		                                  node_cpy);
+		break;
+	}
+
+	/* insert link into hash table */
+	dataset_insert (&cache->hash, node_cpy->host, strlen (node_cpy->host) + 1,
+	                node_cpy, 0);	
+}
+
 
 /* remove node from node cache by host and free it */
 void fst_nodecache_remove (FSTNodeCache *cache, char *host)
@@ -136,8 +173,8 @@ void fst_nodecache_remove (FSTNodeCache *cache, char *host)
 	if ( (node = dataset_lookupstr (cache->hash, host)))
 	{
 		/* remove node */
-		cache->list = list_remove (cache->list, node);
 		dataset_removestr (cache->hash, node->host);
+		cache->list = list_remove (cache->list, node);
 		fst_node_free (node);
 	}
 }
@@ -150,19 +187,6 @@ FSTNode *fst_nodecache_get_front (FSTNodeCache *cache)
 		return fst_node_create_copy ( (FSTNode*)cache->list->data);
 	else
 		return NULL;
-}
-
-static int nodecache_cmp_nodes (FSTNode *a, FSTNode *b)
-{
-	/* compare with 3 minute accuracy */
-	if ( (a->last_seen / 180) == (b->last_seen / 180))
-		return (a->load < b->load) ? -1 : (a->load > b->load);
-
-	else if (a->last_seen > b->last_seen)
-		return -1;
-
-	else
-		return 1;
 }
 
 /*
@@ -283,3 +307,5 @@ int fst_nodecache_save (FSTNodeCache *cache, const char *filename)
 
 	return i;
 }
+
+/*****************************************************************************/

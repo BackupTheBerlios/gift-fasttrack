@@ -1,5 +1,5 @@
 /*
- * $Id: fst_share.c,v 1.6 2004/03/07 23:16:30 mkern Exp $
+ * $Id: fst_share.c,v 1.7 2004/03/08 18:21:37 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -338,7 +338,9 @@ int share_register_file (Share *share)
 	/* media type */
 	media_type = fst_meta_mediatype_from_mime (share->mime);
 	fst_packet_put_uint8 (packet, media_type);
+#ifdef LOG_TAGS
 	FST_HEAVY_DBG_1 ("\tmedia_type: 0x%02X", media_type);
+#endif
 	
 	/* unknown */
 	fst_packet_put_ustr (packet, "\x00\x00", 2);

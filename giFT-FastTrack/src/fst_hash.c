@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.c,v 1.8 2004/03/07 23:16:30 mkern Exp $
+ * $Id: fst_hash.c,v 1.9 2004/03/08 18:21:37 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
