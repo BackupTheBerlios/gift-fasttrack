@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.14 2003/06/28 20:17:34 beren12 Exp $
+ * $Id: fst_fasttrack.c,v 1.15 2003/07/01 20:14:53 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -386,7 +386,7 @@ static void fst_plugin_setup_functbl (Protocol *p)
 int FastTrack_init (Protocol *p)
 {
 	/* make sure we're loaded with the correct plugin interface version */
-	if (protocol_compat (LIBGIFTPROTO_MKVERSION (0, 10, 1)) != 0)
+	if (protocol_compat (p, LIBGIFTPROTO_MKVERSION (0, 10, 1)) != 0)
 		return FALSE;
 	
 	/* put protocol in global variable so we always have access to it */
