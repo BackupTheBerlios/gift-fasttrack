@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.72 2004/07/14 22:03:17 hex Exp $
+ * $Id: fst_fasttrack.c,v 1.73 2004/07/16 13:36:40 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -359,11 +359,22 @@ static int fst_plugin_session_callback (FSTSession *session,
 #if 0
 			FST_DBG_4 ("node: %s:%d   load: %d%% last_seen: %d mins ago",
 					   net_ip_str(ip), port, load, last_seen);
+#else
+#ifdef DUMP_NODES
+			fprintf (stderr, "%08x %08x:%d %08x:%d %d %d\n",
+				   now, session->tcpcon->host, session->tcpcon->port,
+				   ip, port, load, last_seen);
+
+#endif
 #endif
 
 			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
 							   net_ip_str (ip), port, load, now - last_seen * 60);
 		}
+
+#ifdef DUMP_NODES
+		fprintf (stderr, "\n");
+#endif
 
 		/* sort the cache again */
 		fst_nodecache_sort (FST_PLUGIN->nodecache);
