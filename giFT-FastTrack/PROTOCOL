@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.4 2003/11/20 19:38:25 mkern Exp $
+$Id: PROTOCOL,v 1.5 2003/11/25 17:39:18 hex Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -150,8 +150,8 @@ Communication consists of one of the following:
   1     0x4B
   4     encoded message type and length
 
-  Message type is a single byte; length is a two-byte integer. Those
-  three bytes, combined with a single zero byte, are stored in one of
+  Message type is two bytes (of which one is used for flags); length
+  is a two-byte integer. Those four bytes are stored in one of
   three orders, according to a variable that historically has been
   called "xinu_state".
 
@@ -161,23 +161,19 @@ Communication consists of one of the following:
 
            xinu_state % 3
   Bytes   0       1       2
-  1      type    0x00    0x00
-  1      0x00    len_hi  len_lo
-  1      len_hi  type    len_hi
-  1      len_lo  len_lo  type
+  1      type_lo type_hi type_hi
+  1      type_hi len_hi  len_lo
+  1      len_hi  type_lo len_hi
+  1      len_lo  len_lo  type_lo
 
-  where "type" is the message type, and "len_hi" and "len_lo" are the
-  high and low bytes of the message length respectively.
+  Where "len_hi" and "len_lo" are the high and low bytes of the
+  message length respectively, and similarly for "type_hi" and
+  "type_lo".
 
   After each packet, xinu_state is xor'd with the sum of the message
-  type and message length, then all bits are inverted. (FIXME: there
-  must be a better way to calculate this...)
+  type (both bytes of it) and message length, then all bits are
+  inverted. (FIXME: there must be a better way to calculate this...)
 
-8. ??? [=]
-
-  Bytes Desc
-  1     unknown (0x00 or 0x0a or 0x76, maybe others)
-  n     unknown
 
 
 Message types
@@ -344,6 +340,10 @@ Message types
   4     Number of users
 
 0x0A ??? [=]
+
+0x0B ??? [=]
+
+0x0C ??? [=]
 
 0x0D Push request [->, <-]
 
@@ -519,6 +519,8 @@ Message types
   n     tag contents
 
 0x23 ??? [<-]
+
+0x24 ??? [=?]
 
 0x26 ??? [->, <-]
 
