@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.66 2004/03/20 13:08:55 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.67 2004/04/08 01:05:29 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -375,6 +375,9 @@ static int fst_plugin_session_callback (FSTSession *session,
 		FST_PLUGIN->external_ip = fst_packet_get_uint32 (msg_data);
 		FST_DBG_1 ("received external ip: %s",
 				   net_ip_str (FST_PLUGIN->external_ip));
+
+		/* resend our info with new external ip */
+		fst_session_send_info (session);
 
 		/* upload our shares to supernode.
 		 * we do this here because we have to make sure we are accessible

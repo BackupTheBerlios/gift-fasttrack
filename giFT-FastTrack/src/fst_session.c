@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.22 2004/04/05 09:13:03 mkern Exp $
+ * $Id: fst_session.c,v 1.23 2004/04/08 01:05:29 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -27,7 +27,6 @@ char *valid_network_names[] = { "kazaa", "fileshare", "grokster", NULL};
 static void session_connected (int fd, input_id input, FSTSession *session);
 static void session_decrypt_packet (int fd, input_id input, FSTSession *session);
 static int session_do_handshake (FSTSession *session);
-static int session_greet_supernode (FSTSession *session);
 static void session_received_pong (FSTSession *session);
 static BOOL session_ping (FSTSession *session);
 static BOOL session_ping_timeout (FSTSession *session);
@@ -225,6 +224,58 @@ int fst_session_send_message(FSTSession *session, FSTSessionMsg msg_type,
 	return TRUE;
 }
 
+/* sends info about us to supernode */
+int fst_session_send_info (FSTSession *session)
+{
+	FSTPacket *packet;
+	in_addr_t ip;
+	in_port_t port;
+
+	if (! (packet = fst_packet_create ()))
+		return FALSE;
+
+	/* send outside ip if available, local ip otherwise. */
+	if (FST_PLUGIN->external_ip)
+		ip = FST_PLUGIN->external_ip;
+	else
+		ip = FST_PLUGIN->local_ip;
+
+	/* send port if server is running, zero otherwise */
+	if (FST_PLUGIN->server)
+		port = FST_PLUGIN->server->port;
+	else
+		port = 0;
+
+	FST_DBG_4 ("sending address: %s:%d, bandwidth: 0x%02x, username: %s",
+	           net_ip_str (ip), port, FST_ADVERTISED_BW, FST_USER_NAME);
+
+	/* send ip and port */
+	fst_packet_put_uint32 (packet, ip);
+	fst_packet_put_uint16 (packet, htons (port));
+
+	/* This next byte represents the user's advertised bandwidth, on
+ 	 * a logarithmic scale.  0xd1 represents "infinity" (actually,
+	 * 1680 kbps).  The value is approximately 14*log_2(x)+59, where
+	 * x is the bandwidth in kbps.
+	 */
+	fst_packet_put_uint8 (packet, FST_ADVERTISED_BW);
+
+	/* 1 byte: dunno. */
+	fst_packet_put_uint8 (packet, 0x00);
+
+	/* user name, no trailing '\0' */
+	fst_packet_put_ustr (packet, FST_USER_NAME, strlen (FST_USER_NAME));
+
+	if (! fst_session_send_message (session, SessMsgNodeInfo, packet))
+	{
+		fst_packet_free (packet);
+		return FALSE;
+	}
+
+	fst_packet_free (packet);
+	return TRUE;
+}
+
 /*****************************************************************************/
 
 static void session_connected(int fd, input_id input, FSTSession *session)
@@ -385,7 +436,7 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 		session->state = SessEstablished;
 		fst_packet_truncate (session->in_packet);
 
-		if (!session_greet_supernode (session))
+		if (!fst_session_send_info (session))
 		{
 			fst_session_disconnect (session);
 			return;
@@ -566,49 +617,6 @@ static int session_do_handshake (FSTSession *session)
 	fst_packet_encrypt (packet, session->out_cipher);
 
 	if (!fst_packet_send (packet, session->tcpcon))
-	{
-		fst_packet_free (packet);
-		return FALSE;
-	}
-
-	fst_packet_free (packet);
-	return TRUE;
-}
-
-static int session_greet_supernode (FSTSession *session)
-{
-	FSTPacket *packet;
-
-	FST_HEAVY_DBG ("sending ip, bandwidth and user name to supernode");
-
-	if (! (packet = fst_packet_create ()))
-		return FALSE;
-
-	/* Send our ip address and port.
-	 * Should we send our outside ip if NATed? We don't have it at this
-	 * point from the supernode.
-	 */
-	fst_packet_put_uint32 (packet, FST_PLUGIN->local_ip);
-
-	if (FST_PLUGIN->server)
-		fst_packet_put_uint16 (packet, htons (FST_PLUGIN->server->port));
-	else
-		fst_packet_put_uint16 (packet, htons (0x0000));
-	
-	/* This next byte represents the user's advertised bandwidth, on
- 	 * a logarithmic scale.  0xd1 represents "infinity" (actually,
-	 * 1680 kbps).  The value is approximately 14*log_2(x)+59, where
-	 * x is the bandwidth in kbps.
-	 */
-	fst_packet_put_uint8 (packet, FST_ADVERTISED_BW);
-
-	/* 1 byte: dunno. */
-	fst_packet_put_uint8 (packet, 0x00);
-
-	/* user name, no trailing '\0' */
-	fst_packet_put_ustr (packet, FST_USER_NAME, strlen (FST_USER_NAME));
-
-	if (! fst_session_send_message (session, 0x02, packet))
 	{
 		fst_packet_free (packet);
 		return FALSE;

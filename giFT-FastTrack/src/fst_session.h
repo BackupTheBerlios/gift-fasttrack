@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.h,v 1.7 2004/03/11 12:05:49 mkern Exp $
+ * $Id: fst_session.h,v 1.8 2004/04/08 01:05:29 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -47,6 +47,7 @@ typedef enum
 	
 	/* FastTrack messages */
 	SessMsgNodeList = 0x00,
+	SessMsgNodeInfo = 0x02,        /* use to tell supernode about ourselves */
 	SessMsgQuery = 0x06,
 	SessMsgQueryReply = 0x07,
 	SessMsgQueryEnd = 0x08,
@@ -101,6 +102,9 @@ int fst_session_disconnect (FSTSession *session);
 /* sends 0x4B packet over session */
 int fst_session_send_message (FSTSession *session, FSTSessionMsg msg_type,
 							  FSTPacket *msg_data);
+
+/* sends info about us to supernode */
+int fst_session_send_info (FSTSession *session);
 
 /*****************************************************************************/
 
