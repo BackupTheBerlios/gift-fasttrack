@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.9 2003/09/18 14:54:50 mkern Exp $
+ * $Id: fst_search.h,v 1.10 2003/09/18 19:50:02 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -20,6 +20,7 @@
 
 #include "fst_session.h"
 #include "fst_packet.h"
+#include "fst_meta.h"
 
 /*****************************************************************************/
 
@@ -82,6 +83,26 @@ typedef struct
 } FSTSearchList;
 
 
+typedef struct
+{
+	in_addr_t ip, sip;
+	in_port_t port, sport;
+
+	char *username;
+	char *netname;
+
+	char *filename;
+	unsigned int filesize;
+	unsigned char *hash;
+	unsigned int checksum;
+
+	unsigned char bandwidth;
+
+	List *metatags;	/* list of FSTMetaTags */
+
+} FSTSearchResult;
+
+
 /*****************************************************************************/
 
 /* called by giFT to initiate search */
@@ -140,6 +161,20 @@ int fst_searchlist_send_queries (FSTSearchList *searchlist, FSTSession *session,
  */
 int fst_searchlist_process_reply (FSTSearchList *searchlist,
 								  FSTSessionMsg msg_type, FSTPacket *msg_data);
+
+/*****************************************************************************/
+
+/* alloc and init result */
+FSTSearchResult *fst_searchresult_create ();
+
+/* free result */
+void fst_searchresult_free (FSTSearchResult *result);
+
+/* add meta data tag to result */
+void fst_searchresult_add_tag (FSTSearchResult *result, FSTMetaTag *tag);
+
+/* send result to gift */
+int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event);
 
 /*****************************************************************************/
 

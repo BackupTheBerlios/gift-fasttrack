@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.c,v 1.8 2003/08/27 15:26:09 mkern Exp $
+ * $Id: fst_crypt.c,v 1.9 2003/09/18 19:50:03 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -317,8 +317,6 @@ static unsigned char clock_cipher (FSTCipher *cipher)
 		int sortpos = xor + cipher->pad[2];
 		sortpos = ( (sortpos * sortpos) + 2) % (sizeof (cipher->pad) - 4);
 
-		FST_HEAVY_DBG ("clock_cipher: sorting pad");
-		
 		/* Sort those 5 elements according to the qsort_cmp_func comparison
 		* function. */
 		qsort (cipher->pad + sortpos, 5, 1, qsort_cmp_func);

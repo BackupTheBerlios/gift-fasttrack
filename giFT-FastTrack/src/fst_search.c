@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.10 2003/09/18 14:54:50 mkern Exp $
+ * $Id: fst_search.c,v 1.11 2003/09/18 19:50:02 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -21,6 +21,10 @@
 #include <libgift/proto/share.h>
 #include <libgift/proto/share_hash.h>
 
+/*****************************************************************************/
+/*
+#define LOG_TAGS
+*/
 /*****************************************************************************/
 
 /* called by giFT to initiate search */
@@ -334,6 +338,13 @@ int fst_searchlist_send_queries (FSTSearchList *searchlist,
 	return TRUE;
 }
 
+/* remove tag */
+static int result_free (FSTSearchResult *result, void *udata)
+{
+	fst_searchresult_free (result);
+	return TRUE;
+}
+
 /* process reply and send it to giFT
  * accepts SessMsgQueryReply and SessMsgQueryEnd 
  */
@@ -341,26 +352,18 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 								  FSTSessionMsg msg_type, FSTPacket *msg_data)
 {
 	FSTSearch *search;
-	fst_uint16 fst_id, port, super_port;
-	fst_uint32 ip, super_ip;
-	char *username, *netname, *tmp;
-	unsigned char *hash;
-	unsigned int filesize;
-	char *filename, *href;
+	fst_uint16 fst_id;
+	in_addr_t sip;
+	in_port_t sport;
 	int nresults, ntags, i;
-	FileShare *file;
+	List *results = NULL, *item;
+	char *buf;
 
-	/* meta data */
-	int tag, taglen;
-	FSTPacket *tagdata;
-	FSTMetaTag *metatag;
-	List *metalist = NULL;
-
-	if(msg_type == SessMsgQueryEnd)
+	if (msg_type == SessMsgQueryEnd)
 	{
 		fst_id = ntohs(fst_packet_get_uint16 (msg_data));
 
-		if((search = fst_searchlist_lookup_id (searchlist, fst_id)) == NULL)
+		if (! (search = fst_searchlist_lookup_id (searchlist, fst_id)))
 		{
 			FST_DBG_1 ("received query end for search not in list, fst_id = %d",
 					   fst_id);
@@ -376,173 +379,166 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 		/* tell giFT we're finished, this makes giFT call gift_cb_search_cancel() */
 		FST_PROTO->search_complete (FST_PROTO, search->gift_event);
 
-		// free search
+		/* free search */
 		fst_search_free (search);
 
 		return TRUE;
 	}
-	else if(msg_type != SessMsgQueryReply)
-	{
-		return FALSE;
-	}
+
+	assert (msg_type == SessMsgQueryReply);
 
 	/* we got a query result */
 
-	super_ip = fst_packet_get_uint32 (msg_data);
-	super_port = ntohs(fst_packet_get_uint16 (msg_data));
+	/* supernode ip an port */
+	sip = fst_packet_get_uint32 (msg_data);
+	sport = ntohs(fst_packet_get_uint16 (msg_data));
 
 	/* get query id and look up search */
 	fst_id = ntohs(fst_packet_get_uint16 (msg_data));
 
-	if((search = fst_searchlist_lookup_id (searchlist, fst_id)) == NULL)
+	if (! (search = fst_searchlist_lookup_id (searchlist, fst_id)))
 	{
 		FST_HEAVY_DBG_1 ("received query reply for search not in list, fst_id = %d",
 						 fst_id);
 		return FALSE;
 	}
 
+	/* get number of results */
 	nresults = ntohs(fst_packet_get_uint16 (msg_data));
-
-	FST_HEAVY_DBG_4 ("query result begin: %s:%d, fst_id = %d, nresults = %d",
-					 net_ip_str(ip), port, fst_id, nresults);
 
 	for(;nresults && fst_packet_remaining (msg_data) >= 32; nresults--)
 	{
-		ip = fst_packet_get_uint32 (msg_data);
-		port = ntohs(fst_packet_get_uint16 (msg_data));
-		/* bandwidth tag */
-		fst_packet_get_uint8 (msg_data);
+		FSTSearchResult *result;
 
-		/* user and network name
-		 * note: a compression is used here which refers back to previous
-		 * replies since we don't cache replies we just return "<unknown>"
-		 * as user name in that case
-		 */
+		if (! (result = fst_searchresult_create ()))
+		{
+			list_foreach_remove (results, (ListForeachFunc)result_free, NULL);			
+			return FALSE;
+		}
+
+		/* add new result to list */
+		results = list_prepend (results, (void*) result);
+		result->sip = sip;
+		result->sport = sport;
+
+		result->ip = fst_packet_get_uint32 (msg_data);
+		result->port = ntohs(fst_packet_get_uint16 (msg_data));
+		result->bandwidth = fst_packet_get_uint8 (msg_data);
+
+		/* user and network name */
 		if(*(msg_data->read_ptr) == 0x02)
 		{
-			/* compressed */
+			/* compressed, look up names based on ip and port */
 			msg_data->read_ptr++;
-			username = strdup("<unknown>");
-			netname = strdup("<unknown>");
+
+			/* start with results->next because results is us */
+			for (item=results->next; item; item = item->next)
+			{
+				FSTSearchResult *res = (FSTSearchResult*) item->data;
+				if (res->ip == result->ip && res->port == result->port)
+				{
+					result->username = strdup (res->username);
+					result->netname = strdup (res->netname);
+					FST_HEAVY_DBG_2 ("decompressed %s@%s",
+									 result->username, result->netname);
+					break;
+				}
+			}
+
+			if (!result->username)
+				result->username = strdup("<unknown>");
+			if (!result->netname)
+				result->netname = strdup("<unknown>");
 		}
 		else
 		{
 			/* user name */
 			if((i = fst_packet_strlen (msg_data, 0x01)) < 0)
+			{
+				list_foreach_remove (results, (ListForeachFunc)result_free, NULL);			
 				return FALSE;
+			}
 
-			username = fst_packet_get_ustr (msg_data, i+1);
-			username[i] = 0;
+			result->username = fst_packet_get_ustr (msg_data, i+1);
+			result->username[i] = 0;
 
 			/* network name */
 			if((i = fst_packet_strlen (msg_data, 0x00)) < 0)
 			{
-				free (username);
+				list_foreach_remove (results, (ListForeachFunc)result_free, NULL);			
 				return FALSE;
 			}
-			netname = fst_packet_get_ustr (msg_data, i+1);
-			netname[i] = 0;
+
+			result->netname = fst_packet_get_ustr (msg_data, i+1);
+			result->netname[i] = 0;
 		}
 
-		FST_HEAVY_DBG_5 ("result (%d): %s:%d \t%s@%s", nresults,
-						 net_ip_str(ip), port, username, netname);
-
-		hash = fst_packet_get_ustr (msg_data, 20);
-		/* checksum */
-		fst_packet_get_dynint (msg_data);
-		filesize = fst_packet_get_dynint (msg_data);
+		result->hash = fst_packet_get_ustr (msg_data, 20);
+		result->checksum = fst_packet_get_dynint (msg_data);
+		result->filesize = fst_packet_get_dynint (msg_data);
+		
 		ntags = fst_packet_get_dynint (msg_data);
 
-		FST_HEAVY_DBG_2 ("\tfilesize = %d, ntags = %d", filesize, ntags);
-
-		filename = NULL;
+#ifdef HEAVY_DEBUG
+		buf = fst_utils_base64_encode (result->hash, 20);
+		FST_HEAVY_DBG_2 ("result %d: %s", nresults, buf);
+		free (buf);
+		FST_HEAVY_DBG_2 ("\taddress: %s:%d", net_ip_str(result->ip), result->port);
+		FST_HEAVY_DBG_2 ("\tname: %s@%s", result->username, result->netname);
+		FST_HEAVY_DBG_2 ("\tfilesize: %d, ntags: %d", result->filesize, ntags);
+#endif
 
 		/* read tags */
 		for(;ntags && fst_packet_remaining (msg_data) >= 2; ntags--)
 		{
-			tag = fst_packet_get_dynint (msg_data);
-			taglen = fst_packet_get_dynint (msg_data);
-			tagdata = fst_packet_create_copy (msg_data, taglen);
-/*
-			{
-				char *data;
-				data = fst_packet_get_str (tagdata, taglen);
-				FST_HEAVY_DBG ("\t\ttag: type = 0x%02x, len = %02d, data = %s",
-							   tag, taglen, data);
-				free (data);
-				fst_packet_rewind (tagdata);
-			}
-*/
-			metatag = fst_metatag_create_from_filetag (tag, tagdata);
+			int	tag = fst_packet_get_dynint (msg_data);
+			int taglen = fst_packet_get_dynint (msg_data);
+			FSTPacket *tagdata;
+			FSTMetaTag *metatag;
 
-			if(metatag)
+			if (! (tagdata = fst_packet_create_copy (msg_data, taglen)))
 			{
+				list_foreach_remove (results, (ListForeachFunc)result_free, NULL);			
+				return FALSE;
+			}
+
+#ifdef LOG_TAGS
+			buf = fst_packet_get_str (tagdata, taglen);
+			FST_HEAVY_DBG_3 ("\t\ttag: 0x%02x, len: %02d, data: %s",
+							 tag, taglen, buf);
+			free (buf);
+			fst_packet_rewind (tagdata);
+#endif
+
+			if ((metatag = fst_metatag_create_from_filetag (tag, tagdata)))
+			{		
 				/* filename is special case */
-				if(strcmp(metatag->name, "filename") == 0)
+				if (!strcmp(metatag->name, "filename"))
 				{
-					filename = strdup (metatag->value);
+					result->filename = strdup (metatag->value);
 					fst_metatag_free (metatag);
 				}
 				else
 				{
-					metalist = list_prepend (metalist, metatag);
+					fst_searchresult_add_tag (result, metatag);
 				}
-			}
-			else
-			{
-				/* we sometimes get very weird tags with types like 0x40003
-				 * and strange content since i cannot find any problem with
-				 * the decryption i think they are sent that way
-				 */
-/*
-				char *data;
-				fst_packet_rewind (tagdata);
-				data = fst_packet_get_str (tagdata, taglen);
-				FST_DBG ("\tunhandled file tag: type = 0x%02x, len = %02d, data = %s",
-						 tag, taglen, data);
-				free (data);
-*/
 			}
 
 			fst_packet_free (tagdata);
 		}
+	}
 
-		/* create FileShare for giFT */
-		file = share_new_ex (FST_PROTO, NULL, 0, filename, mime_type (filename),
-							 filesize, 0);
-
-		/* add hash, hash is freed in share_free() */
-		share_set_hash (file, "FTH", hash, FST_HASH_LEN, FALSE);
-
-		/* add meta data */
-		for(; metalist; metalist = list_remove_link (metalist, metalist))
-		{
-			share_set_meta (file, ((FSTMetaTag*)metalist->data)->name,
-							((FSTMetaTag*)metalist->data)->value);
-			fst_metatag_free (((FSTMetaTag*)metalist->data));
-		}
-
-		/* create href for giFT */
-		{
-			char *hash_base64 = fst_utils_base64_encode (hash, FST_HASH_LEN);
-			char *href_main = stringf_dup ("FastTrack://%s:%d/=%s",
-										   net_ip_str (ip), port, hash_base64);
-
-
-			href = stringf_dup ("%s?shost=%s&sport=%d&uname=%s", href_main,
-								net_ip_str (super_ip), super_port, username);
-
-			free (href_main);
-			free (hash_base64);
-		}
+	/* we parsed the packet, send all results to gift now */
+	for (item=results; item; item = item->next)
+	{
+		FSTSearchResult *result = (FSTSearchResult*) item->data;
 
 		/* send result to giFT if the ip is not on ban list
 		 * and we are able to receive push replies for private ips 
 		 */
-		if (( fst_utils_ip_private (ip) || !port ) &&
+		if (( fst_utils_ip_private (result->ip) || !result->port ) &&
 			(
 			  !FST_PLUGIN->server ||
-			  !strcmp (username, "<unknown>") ||
 			  (FST_PLUGIN->external_ip != FST_PLUGIN->local_ip && !FST_PLUGIN->forwarding)
 			)
 		   )
@@ -550,34 +546,127 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			search->fw_replies++;
 		}
 		else if (search->banlist_filter &&
-				 fst_ipset_contains (FST_PLUGIN->banlist, ip))
+				 fst_ipset_contains (FST_PLUGIN->banlist, result->ip))
 		{
 			search->banlist_replies++;
 		}
 		else
 		{
-			/* create actual user name sent to giFT */
-			tmp = username;
-			username = stringf_dup ("%s@%s", username, net_ip_str(ip));
-			free (tmp);
-			/* notify giFT */
-			FST_PROTO->search_result (FST_PROTO, search->gift_event, username,
-									  netname, href, 1, file);
-		}
-
-		/* increment reply counter */
+			fst_searchresult_write_gift (result, search->gift_event);
+		}	
+			
 		search->replies++;
-
-		/* free remaining stuff */
-		share_free (file);
-		free (filename);
-		free (username);
-		free (netname);
-		free (href);
 	}
+
+	list_foreach_remove (results, (ListForeachFunc)result_free, NULL);			
 
 	return TRUE;
 }
 
 /*****************************************************************************/
 
+/* alloc and init result */
+FSTSearchResult *fst_searchresult_create ()
+{
+	FSTSearchResult *result;
+
+	if (! (result = malloc (sizeof (FSTSearchResult))))
+		return NULL;
+
+	memset (result, 0 , sizeof (FSTSearchResult));
+
+	return result;
+}
+
+/* remove tag */
+static int searchresult_free_tag (FSTMetaTag *tag, void *udata)
+{
+	fst_metatag_free (tag);
+	return TRUE;
+}
+
+/* free result */
+void fst_searchresult_free (FSTSearchResult *result)
+{
+	if (!result)
+		return;
+
+	free (result->username);
+	free (result->netname);
+	free (result->filename);
+	free (result->hash);
+
+	list_foreach_remove (result->metatags,
+						 (ListForeachFunc)searchresult_free_tag,
+						 NULL);
+
+	free (result);
+}
+
+/* add meta data tag to result */
+void fst_searchresult_add_tag (FSTSearchResult *result, FSTMetaTag *tag)
+{
+	if (!result || !tag)
+		return;
+
+	result->metatags = list_prepend (result->metatags, (void*) tag);
+}
+
+/* send result to gift */
+int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event)
+{
+	FileShare *share;
+	List *item;
+	char *href, *buf;
+
+	if (!result || !event)
+		return FALSE;
+
+	/* create FileShare for giFT */
+
+	if (! (share = share_new (NULL)))
+		return FALSE;
+
+	share->p = FST_PROTO;
+	share->size = result->filesize;
+
+	share_set_path (share, result->filename);
+	share_set_mime (share, mime_type (result->filename));
+	share_set_hash (share, "FTH", result->hash, FST_HASH_LEN, TRUE);
+
+	/* add meta data */
+	for(item=result->metatags; item; item=item->next)
+	{
+		FSTMetaTag *metatag = (FSTMetaTag*) item->data;
+		share_set_meta (share, metatag->name, metatag->value);
+	}
+
+	/* create href for giFT */
+	{
+		char *hash_base64 = fst_utils_base64_encode (result->hash, FST_HASH_LEN);
+		char *href_main = stringf_dup ("FastTrack://%s:%d/=%s",
+									   net_ip_str (result->ip), result->port,
+									   hash_base64);
+
+		href = stringf_dup ("%s?shost=%s&sport=%d&uname=%s",
+							href_main, net_ip_str (result->sip),
+							result->sport,result->username);
+
+		free (href_main);
+		free (hash_base64);
+	}
+
+	/* create actual user name sent to giFT */
+	buf = stringf_dup ("%s@%s", result->username, net_ip_str(result->ip));
+
+	/* notify giFT */
+	FST_PROTO->search_result (FST_PROTO, event, buf, result->netname,
+							  href, 1, share);
+
+	free (buf);
+	share_free (share);
+
+	return TRUE;
+}
+
+/*****************************************************************************/

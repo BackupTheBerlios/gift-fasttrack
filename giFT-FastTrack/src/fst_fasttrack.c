@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.26 2003/09/18 14:54:50 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.27 2003/09/18 19:50:02 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -70,6 +70,29 @@ static int fst_plugin_connect_next()
 
 /*****************************************************************************/
 
+/* temporarily until next gift release */
+static in_addr_t my_net_local_ip (int fd, in_port_t *port)
+{
+	struct sockaddr_in saddr;
+	in_addr_t ip = 0;
+	int       len = sizeof (saddr);
+
+	if (port)
+		*port = 0;
+
+	if (getsockname (fd, (struct sockaddr *)&saddr, &len) == 0)
+	{
+		ip = saddr.sin_addr.s_addr;
+		if (port)
+			*port = ntohs (saddr.sin_port);
+	}
+
+	return ip;
+}
+
+/*****************************************************************************/
+
+
 static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_type, FSTPacket *msg_data)
 {
 	switch (msg_type)
@@ -86,7 +109,7 @@ static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_t
 				   session->node->host, session->node->port, session->node->load);
 
 		/* determine local ip */
-		FST_PLUGIN->local_ip = net_local_ip (session->tcpcon->fd, NULL);
+		FST_PLUGIN->local_ip = my_net_local_ip (session->tcpcon->fd, NULL);
 		FST_DBG_1 ("local ip: %s", net_ip_str (FST_PLUGIN->local_ip));
 
 		/* resent queries for all running searches */
