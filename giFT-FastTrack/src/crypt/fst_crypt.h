@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.h,v 1.4 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_crypt.h,v 1.5 2003/06/28 20:17:34 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -38,26 +38,26 @@ typedef struct
 
 /*****************************************************************************/
 
-// allocate and init cipher
+/* allocate and init cipher */
 FSTCipher *fst_cipher_create();
 
-// free cipher
-void fst_cipher_free(FSTCipher *cipher);
+/* free cipher */
+void fst_cipher_free (FSTCipher *cipher);
 
-// initialize cipher state
-// returns FALSE if enc_type is not supported, TRUE otherwise
-int fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type);
+/* initialize cipher state */
+/* returns FALSE if enc_type is not supported, TRUE otherwise */
+int fst_cipher_init (FSTCipher *cipher, unsigned int seed, unsigned int enc_type);
 
-// encrypt / decrypt a block of data with cipher
-void fst_cipher_crypt(FSTCipher *cipher, unsigned char *data, int len);
+/* encrypt / decrypt a block of data with cipher */
+void fst_cipher_crypt (FSTCipher *cipher, unsigned char *data, int len);
 
 /*****************************************************************************/
 
-// returns encrypted enc_type
-unsigned int fst_cipher_encode_enc_type(unsigned int seed, unsigned int enc_type);
+/* returns encrypted enc_type */
+unsigned int fst_cipher_encode_enc_type (unsigned int seed, unsigned int enc_type);
 
-// returns decrypted enc_type
-unsigned int fst_cipher_decode_enc_type(unsigned int seed, unsigned int crypted_enc_type);
+/* returns decrypted enc_type */
+unsigned int fst_cipher_decode_enc_type (unsigned int seed, unsigned int crypted_enc_type);
 
 /*****************************************************************************/
 

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.13 2003/06/27 23:40:20 beren12 Exp $
+ * $Id: fst_fasttrack.c,v 1.14 2003/06/28 20:17:34 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -25,7 +25,7 @@ Protocol *fst_proto = NULL;
 
 /*****************************************************************************/
 
-static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_type, FSTPacket *msg_data);
+static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_type, FSTPacket *msg_data);
 
 /*****************************************************************************/
 
@@ -37,45 +37,44 @@ static int fst_plugin_connect_next()
 	{
 		if (FST_PLUGIN->session)
 		{
-			// remove old node from node cache
+			/* remove old node from node cache */
 			if (FST_PLUGIN->session->node)
 				fst_nodecache_remove (FST_PLUGIN->nodecache, FST_PLUGIN->session->node->host);
 
-			// free old session
+			/* free old session */
 			fst_session_free (FST_PLUGIN->session);
 			FST_PLUGIN->session = NULL;
 		}
 
-		// fetch next node
-		node = fst_nodecache_get_front(FST_PLUGIN->nodecache);
+		/* fetch next node */
+		node = fst_nodecache_get_front (FST_PLUGIN->nodecache);
 
 		if (node == NULL)
 		{
 			FST_WARN ("Ran out of nodes. Trying some static hosts");
 
-			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex,
-							   "fm2.imesh.com", 1214, 0, 0);
-			node = fst_nodecache_get_front(FST_PLUGIN->nodecache);
+			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex, "fm2.imesh.com", 1214, 0, 0);
+			node = fst_nodecache_get_front (FST_PLUGIN->nodecache);
 		}
 
-		// remove new node from cache so restarting can be used to force use of another node
+		/* remove new node from cache so restarting can be used to force use of another node */
 		fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
 
-		// create session
+		/* create session */
 		FST_PLUGIN->session = fst_session_create (fst_plugin_session_callback);
 
-	} while(!fst_session_connect (FST_PLUGIN->session, node));
+	} while (!fst_session_connect (FST_PLUGIN->session, node));
 
 	return TRUE;
 }
 
 /*****************************************************************************/
 
-static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_type, FSTPacket *msg_data)
+static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_type, FSTPacket *msg_data)
 {
-	switch(msg_type)
+	switch (msg_type)
 	{
-	// session management messages
+	/* session management messages */
 	case SessMsgConnected:
 	{
 		break;
@@ -85,17 +84,17 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 	{
 		FST_DBG_3 ("supernode connection established to %s:%d, load: %d%%",
 				   session->node->host, session->node->port, session->node->load);
-		// resent queries for all running searches
-		// TODO: greet supernode first!
+		/* resent queries for all running searches */
+		/* TODO: greet supernode first! */
 /*
-		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
+*		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
 */
 		break;
 	}
 
 	case SessMsgDisconnected:
 	{
-		// zero stats
+		/* zero stats */
 		FST_PLUGIN->stats->users = 0;
 		FST_PLUGIN->stats->files = 0;
 		FST_PLUGIN->stats->size = 0;
@@ -104,8 +103,8 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 		return FALSE;
 	}
 
-	// FastTrack messages
-	case SessMsgNodeList:	// supernode sent ip list
+	/* FastTrack messages */
+	case SessMsgNodeList:	/* supernode sent ip list */
 	{
 		int i;
 		time_t now = time (NULL); 
@@ -114,46 +113,45 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 		{
 			unsigned long ip		= fst_packet_get_uint32 (msg_data);			
 			unsigned short port		= ntohs (fst_packet_get_uint16 (msg_data));	
-			unsigned int last_seen	= fst_packet_get_uint8 (msg_data);			
+			unsigned int last_seen		= fst_packet_get_uint8 (msg_data);			
 			unsigned int load		= fst_packet_get_uint8 (msg_data);		
 
 //			FST_DBG_4 ("node: %s:%d   load: %d%% last_seen: %d mins ago", net_ip_str(ip), port, load, last_seen);
-			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
-							   net_ip_str (ip), port, load, now - last_seen * 60);
+			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper, net_ip_str (ip), port, load, now - last_seen * 60);
 		}
 		FST_DBG_1 ("added %d received supernode IPs to nodes list", i);
 
-		// if we got this from an index node disconnect now and use a supernode
+		/* if we got this from an index node disconnect now and use a supernode */
 		if (session->node->klass == NodeKlassIndex)
 		{
 			FST_DBG ("disconnecting from index node");
-			fst_session_disconnect (session); // this calls us back with SessMsgDisconnected
+			fst_session_disconnect (session);	/* this calls us back with SessMsgDisconnected */
 			return FALSE;
 		}
 		break;
 	}
 
-	case SessMsgNetworkStats:	// network statistics
+	case SessMsgNetworkStats:	/* network statistics */
 	{
 		unsigned int mantissa, exponent;
 
-		if (fst_packet_remaining(msg_data) < 12) // 97 bytes total now? was 60?
+		if (fst_packet_remaining (msg_data) < 12)	/* 97 bytes total now? was 60? */
 			break;
 
-		FST_PLUGIN->stats->users = ntohl(fst_packet_get_uint32 (msg_data));	// number of users
-		FST_PLUGIN->stats->files = ntohl(fst_packet_get_uint32 (msg_data));	// number of files
+		FST_PLUGIN->stats->users = ntohl (fst_packet_get_uint32 (msg_data));	/* number of users */
+		FST_PLUGIN->stats->files = ntohl(fst_packet_get_uint32 (msg_data));	/* number of files */
 
-		mantissa = ntohs(fst_packet_get_uint16 (msg_data));	// mantissa of size
-		exponent = ntohs(fst_packet_get_uint16 (msg_data));	// exponent of size
+		mantissa = ntohs(fst_packet_get_uint16 (msg_data));	/* mantissa of size */
+		exponent = ntohs(fst_packet_get_uint16 (msg_data));	/* exponent of size */
 
     	if (exponent >= 30)
-			FST_PLUGIN->stats->size = mantissa << (exponent-30);
+			FST_PLUGIN->stats->size = mantissa << (exponent - 30);
     	else
-			FST_PLUGIN->stats->size = mantissa >> (30-exponent);
+			FST_PLUGIN->stats->size = mantissa >> (30 - exponent);
 
-		// what follows in the packet is the number of files and their size per media type (6 times)
-		// we do not currently care for those
-		// something else with a size of 37 byte follows, dunno what it is
+		/* what follows in the packet is the number of files and their size per media type (6 times)
+		 * we do not currently care for those
+		 * something else with a size of 37 byte follows, dunno what it is */
 
 		FST_DBG_3 ("received network stats: %d users, %d files, %d GB",
 				   FST_PLUGIN->stats->users,
@@ -162,10 +160,10 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 		break;
 	}
 
-	case SessMsgNetworkName:	// remote network name
+	case SessMsgNetworkName:		/* remote network name */
 	{
 		FSTPacket *packet;
-		char *net_name = STRDUP_N(msg_data->data, fst_packet_size(msg_data));
+		char *net_name = STRDUP_N (msg_data->data, fst_packet_size(msg_data));
 
 		FST_DBG_2 ("received network name: \"%s\", sending ours: \"%s\"", net_name ,FST_NETWORK_NAME);
 		free (net_name);
@@ -194,9 +192,9 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 
 	default:
 /*
-		FST_DBG_2 ("unhandled message: type = 0x%02x, length = %d", msg_type, fst_packet_size(msg_data));
-		printf("\nunhandled message: type = 0x%02x, length = %d", msg_type, fst_packet_size(msg_data));
-		print_bin_data(msg_data->data, fst_packet_remaining(msg_data));
+*		FST_DBG_2 ("unhandled message: type = 0x%02x, length = %d", msg_type, fst_packet_size(msg_data));
+*		printf("\nunhandled message: type = 0x%02x, length = %d", msg_type, fst_packet_size(msg_data));
+*		print_bin_data(msg_data->data, fst_packet_remaining(msg_data));
 */
 		break;
 	}
@@ -206,19 +204,18 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 
 /*****************************************************************************/
 
-// alloc and init plugin
+/* allocate and init plugin */
 static int gift_cb_start (Protocol *p)
 {
-	FSTPlugin *plugin = malloc (sizeof(FSTPlugin));
+	FSTPlugin *plugin = malloc (sizeof (FSTPlugin));
 	int i;
 	char *nodesfile;
 	char *conf_path, *default_conf_path;
 
 	FST_DBG ("starting up");
 
-	// init config
-	// copy local config if missing
-	conf_path = gift_conf_path("FastTrack/FastTrack.conf");
+	/* init config and copy to local config if missing */
+	conf_path = gift_conf_path ("FastTrack/FastTrack.conf");
 
 	if (!file_exists (conf_path))
 	{
@@ -234,23 +231,23 @@ static int gift_cb_start (Protocol *p)
 		}
 	}
 
-	if (!(plugin->conf = gift_config_new ("FastTrack"))) // this only fails on low mem
+	if (!(plugin->conf = gift_config_new ("FastTrack")))	/* this only fails on low mem */
 	{
 		free (plugin);
 		FST_ERR ("Unable to open fasttrack configuration, exiting plugin.");
 		return FALSE;
 	}
 
-	// set protocol pointer
+	/* set protocol pointer */
 	p->udata = (void*)plugin;
 
-	// cache user name
-	FST_PLUGIN->username = strdup(config_get_str (FST_PLUGIN->conf, "main/alias=giFTed"));
+	/* cache user name */
+	FST_PLUGIN->username = strdup (config_get_str (FST_PLUGIN->conf, "main/alias=giFTed"));
 
-	// set session to NULL
+	/* set session to NULL */
 	FST_PLUGIN->session = NULL;
 
-	// init node cache
+	/* init node cache */
 	FST_PLUGIN->nodecache = fst_nodecache_create ();
 
 	/* Attempt to open the locally installed nodes file; if this fails we
@@ -276,23 +273,23 @@ static int gift_cb_start (Protocol *p)
 		FST_DBG_2 ("Loaded %d supernode addresses from local nodes file \"%s\"", i, nodesfile);
 	}
 
-	// init searches
+	/* init searches */
 	FST_PLUGIN->searches = fst_searchlist_create();
 
-	// init stats
+	/* init stats */
 	FST_PLUGIN->stats = fst_stats_create ();
 
-	// temporary, until we have a way to find usefull nodes faster
+	/* temporary, until we have a way to find usefull nodes faster */
 	FST_DBG ("adding fm2.imesh.com:1214 as temporary index node");
 	fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex, "fm2.imesh.com", 1214, 0, time(NULL));
 
-	// start first connection
+	/* start first connection */
 	fst_plugin_connect_next ();
 
 	return TRUE;
 }
 
-// destroy plugin
+/* destroy plugin */
 static void gift_cb_destroy (Protocol *p)
 {
 	char *nodesfile;
@@ -303,16 +300,16 @@ static void gift_cb_destroy (Protocol *p)
 	if (!FST_PLUGIN)
 		return;
 
-	// free stats
+	/* free stats */
 	fst_stats_free (FST_PLUGIN->stats);
 
-	// free searches
+	/* free searches */
 	fst_searchlist_free (FST_PLUGIN->searches);
 
-	// free session
+	/* free session */
 	fst_session_free (FST_PLUGIN->session);
 
-	// save and free nodes
+	/* save and free nodes */
 	nodesfile = gift_conf_path ("FastTrack/nodes");
 	i = fst_nodecache_save (FST_PLUGIN->nodecache, nodesfile);
 	if (i < 0)
@@ -321,10 +318,10 @@ static void gift_cb_destroy (Protocol *p)
 		FST_DBG_2 ("saved %d supernode addresses to nodes file \"%s\"", i, nodesfile);
 	fst_nodecache_free (FST_PLUGIN->nodecache);
 
-	// free cached user name
+	/* free cached user name */
 	free (FST_PLUGIN->username);
 
-	// free config
+	/* free config */
 	config_free (FST_PLUGIN->conf);
 
 	free (FST_PLUGIN);
@@ -334,9 +331,11 @@ static void gift_cb_destroy (Protocol *p)
 
 static void fst_plugin_setup_functbl (Protocol *p)
 {
-	/* communicate special properties of this protocol which will modify
+	/*
+	 * communicate special properties of this protocol which will modify
 	 * giFT's behaviour
- 	 * NOTE: most of these dont do anything yet */
+ 	 * NOTE: most of these dont do anything yet
+	 */
 
 	p->support (p, "range-get", TRUE);
 	p->support (p, "hash-unique", TRUE);
@@ -363,22 +362,22 @@ static void fst_plugin_setup_functbl (Protocol *p)
 	p->download_stop  = gift_cb_download_stop;
 	p->source_remove  = gift_cb_source_remove;
 /*
-	p->upload_stop    = openft_upload_stop;
-	p->upload_avail   = openft_upload_avail;
-	p->chunk_suspend  = openft_chunk_suspend;
-	p->chunk_resume   = openft_chunk_resume;
-	p->source_cmp     = openft_source_cmp;
-	p->user_cmp       = openft_user_cmp;
+*	p->upload_stop    = openft_upload_stop;
+*	p->upload_avail   = openft_upload_avail;
+*	p->chunk_suspend  = openft_chunk_suspend;
+*	p->chunk_resume   = openft_chunk_resume;
+*	p->source_cmp     = openft_source_cmp;
+*	p->user_cmp       = openft_user_cmp;
 */
 	/* fst_share.c: */
 /*
-	p->share_new      = openft_share_new;
-	p->share_free     = openft_share_free;
-	p->share_add      = openft_share_add;
-	p->share_remove   = openft_share_remove;
-	p->share_sync     = openft_share_sync;
-	p->share_hide     = openft_share_hide;
-	p->share_show     = openft_share_show;
+*	p->share_new      = openft_share_new;
+*	p->share_free     = openft_share_free;
+*	p->share_add      = openft_share_add;
+*	p->share_remove   = openft_share_remove;
+*	p->share_sync     = openft_share_sync;
+*	p->share_hide     = openft_share_hide;
+*	p->share_show     = openft_share_show;
 */
 	/* fst_stats.c: */
 	p->stats          = gift_cb_stats;
@@ -386,14 +385,14 @@ static void fst_plugin_setup_functbl (Protocol *p)
 
 int FastTrack_init (Protocol *p)
 {
-	// make sure we're loaded with the correct plugin interface version
+	/* make sure we're loaded with the correct plugin interface version */
 	if (protocol_compat (LIBGIFTPROTO_MKVERSION (0, 10, 1)) != 0)
 		return FALSE;
 	
-	// put protocol in global variable so we always have access to it
+	/* put protocol in global variable so we always have access to it */
 	fst_proto = p;
 
-	// setup giFT callbacks
+	/* setup giFT callbacks */
 	fst_plugin_setup_functbl (p);
 
 	return TRUE;

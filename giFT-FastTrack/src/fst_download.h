@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.h,v 1.3 2003/06/28 19:31:49 beren12 Exp $
+ * $Id: fst_download.h,v 1.4 2003/06/28 20:17:34 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -31,11 +31,11 @@ typedef struct
 	FSTDownloadState state;
 
 	TCPC *tcpcon;
-	FSTPacket *in_packet; // input buffer
+	FSTPacket *in_packet;		/* input buffer */
 
 	Chunk *chunk;
 
-	// parsed url
+	/* parsed url */
 	unsigned int ip;
 	unsigned short port;
 	char *uri;
@@ -44,27 +44,27 @@ typedef struct
 
 /*****************************************************************************/
 
-// called by gift to start downloading of a chunk
+/* called by gift to start downloading of a chunk */
 int gift_cb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk, Source *source);
 
-// called by gift to stop download
+/* called by gift to stop download */
 void gift_cb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk, Source *source, int complete);
 
-// called by gift to remove source
+/* called by gift to remove source */
 int gift_cb_source_remove (Protocol *p, Transfer *transfer, Source *source);
 
 /*****************************************************************************/
 
-// alloc and init download
+/* alloc and init download */
 FSTDownload *fst_download_create (Chunk *chunk);
 
-// free download, stop it if necessary
+/* free download, stop it if necessary */
 void fst_download_free (FSTDownload *download);
 
-// start download
+/* start download */
 int fst_download_start (FSTDownload *download);
 
-// stop download
+/* stop download */
 int fst_download_stop (FSTDownload *download);
 
 /*****************************************************************************/
