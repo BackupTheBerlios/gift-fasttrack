@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_20.c,v 1.8 2003/07/23 17:10:32 weinholt Exp $
+ * $Id: enc_type_20.c,v 1.9 2003/07/23 17:54:13 weinholt Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -61,3218 +61,3218 @@ int __attribute__ ((const)) my_sqrt (unsigned char i)
 /* the entry point of this mess */
 /* this all works on unsigned ints so endianess is not an issue */
 
-void mix (u32 *key, u32 seed);
+void mix (u32 *pad, u32 seed);
 
-void enc_type_20 (u32 *key, u32 seed)
+void enc_type_20 (u32 *pad, u32 seed)
 {
-	mix (key, seed);
+	mix (pad, seed);
 }
 
 /* major functions which make calls to other funcs */
 
-static void major_1 (u32 *key, u32 seed);
-static void major_2 (u32 *key, u32 seed);
-static void major_3 (u32 *key, u32 seed);
-static void major_4 (u32 *key, u32 seed);
-static void major_5 (u32 *key, u32 seed);
-static void major_6 (u32 *key, u32 seed);
-static void major_7 (u32 *key, u32 seed);
-static void major_8 (u32 *key, u32 seed);
-static void major_9 (u32 *key, u32 seed);
-static void major_10 (u32 *key, u32 seed);
-static void major_11 (u32 *key, u32 seed);
-static void major_12 (u32 *key, u32 seed);
-static void major_13 (u32 *key, u32 seed);
-static void major_14 (u32 *key, u32 seed);
-static void major_15 (u32 *key, u32 seed);
-static void major_16 (u32 *key, u32 seed);
-static void major_17 (u32 *key, u32 seed);
-static void major_18 (u32 *key, u32 seed);
-static void major_19 (u32 *key, u32 seed);
-static void major_21 (u32 *key, u32 seed);
-static void major_22 (u32 *key, u32 seed);
-static void major_23 (u32 *key, u32 seed);
-static void major_24 (u32 *key, u32 seed);
-static void major_25 (u32 *key, u32 seed);
+static void major_1 (u32 *pad, u32 seed);
+static void major_2 (u32 *pad, u32 seed);
+static void major_3 (u32 *pad, u32 seed);
+static void major_4 (u32 *pad, u32 seed);
+static void major_5 (u32 *pad, u32 seed);
+static void major_6 (u32 *pad, u32 seed);
+static void major_7 (u32 *pad, u32 seed);
+static void major_8 (u32 *pad, u32 seed);
+static void major_9 (u32 *pad, u32 seed);
+static void major_10 (u32 *pad, u32 seed);
+static void major_11 (u32 *pad, u32 seed);
+static void major_12 (u32 *pad, u32 seed);
+static void major_13 (u32 *pad, u32 seed);
+static void major_14 (u32 *pad, u32 seed);
+static void major_15 (u32 *pad, u32 seed);
+static void major_16 (u32 *pad, u32 seed);
+static void major_17 (u32 *pad, u32 seed);
+static void major_18 (u32 *pad, u32 seed);
+static void major_19 (u32 *pad, u32 seed);
+static void major_21 (u32 *pad, u32 seed);
+static void major_22 (u32 *pad, u32 seed);
+static void major_23 (u32 *pad, u32 seed);
+static void major_24 (u32 *pad, u32 seed);
+static void major_25 (u32 *pad, u32 seed);
 
-/* simple key manipulation functions */
+/* simple pad manipulation functions */
 
-static void minor_36 (u32 *key);
-static void minor_37 (u32 *key);
+static void minor_36 (u32 *pad);
+static void minor_37 (u32 *pad);
 
 
 /* minor_ implementation details below this line ;) */
 
-#define minor_1(x) key[8] += my_sin(x&255) ? 0x4f0cf8d : x
-#define minor_2(x) key[2] += key[2] < 0x36def3e1 ? key[2] : x
-#define minor_3 key[10] ^= ROL(key[1], 20)
-#define minor_4 key[16] -= key[6]
-#define minor_5 key[10] -= key[9] * 0x55
-#define minor_6 ROLEQ(key[0], key[19] ^ 0xc)
-#define minor_7 key[17] += key[8] * 0xf6084c92
-#define minor_8 key[12] ^= key[10] & 0x28acec82
-#define minor_9(x) key[12] *= key[12] < 0x12d7bed ? key[12] : x
-#define minor_10(x) key[18] += key[5] < 0xfd0aa3f ? key[5] : x
-#define minor_12(x) key[11] &= my_cos(key[18]) ? 0x146a49cc : x
-#define minor_13 key[2] &= my_cos(key[2]) ? 0x7ebbfde : key[11]
-#define minor_17 key[19] ^= key[7] * 0x3a
-#define minor_19 ROLEQ(key[6], ROR(key[8], 14))
-#define minor_20 key[0] &= ROR(key[18], 31)
-#define minor_22 ROREQ(key[3], key[11] ^ 0x7)
-#define minor_26 key[0] |= my_cos(key[1]) ? 0x56e0e99 : key[8]
-#define minor_27 key[18] += my_cos(key[15]) ? 0x10d11d00 : key[9]
-#define minor_28 key[10] -= my_cos(key[15]) ? 0x268cca84 : key[9]
-#define minor_29 key[3] -= my_cos(key[6]) ? 0x2031618a : key[8]
-#define minor_30 ROLEQ(key[1], my_sin(key[5]) ? 4 : key[6])
-#define minor_31(x) ROREQ(key[17], my_sin(key[6]) ? 29 : x)
-#define minor_32(x) key[15] ^= my_sin(key[14]) ? 0x40a33fd4 : x
-#define minor_34 key[7] ^= my_sqrt(key[11])
-#define minor_35 key[5] += my_sqrt(key[7])
+#define minor_1(x) pad[8] += my_sin(x&255) ? 0x4f0cf8d : x
+#define minor_2(x) pad[2] += pad[2] < 0x36def3e1 ? pad[2] : x
+#define minor_3 pad[10] ^= ROL(pad[1], 20)
+#define minor_4 pad[16] -= pad[6]
+#define minor_5 pad[10] -= pad[9] * 0x55
+#define minor_6 ROLEQ(pad[0], pad[19] ^ 0xc)
+#define minor_7 pad[17] += pad[8] * 0xf6084c92
+#define minor_8 pad[12] ^= pad[10] & 0x28acec82
+#define minor_9(x) pad[12] *= pad[12] < 0x12d7bed ? pad[12] : x
+#define minor_10(x) pad[18] += pad[5] < 0xfd0aa3f ? pad[5] : x
+#define minor_12(x) pad[11] &= my_cos(pad[18]) ? 0x146a49cc : x
+#define minor_13 pad[2] &= my_cos(pad[2]) ? 0x7ebbfde : pad[11]
+#define minor_17 pad[19] ^= pad[7] * 0x3a
+#define minor_19 ROLEQ(pad[6], ROR(pad[8], 14))
+#define minor_20 pad[0] &= ROR(pad[18], 31)
+#define minor_22 ROREQ(pad[3], pad[11] ^ 0x7)
+#define minor_26 pad[0] |= my_cos(pad[1]) ? 0x56e0e99 : pad[8]
+#define minor_27 pad[18] += my_cos(pad[15]) ? 0x10d11d00 : pad[9]
+#define minor_28 pad[10] -= my_cos(pad[15]) ? 0x268cca84 : pad[9]
+#define minor_29 pad[3] -= my_cos(pad[6]) ? 0x2031618a : pad[8]
+#define minor_30 ROLEQ(pad[1], my_sin(pad[5]) ? 4 : pad[6])
+#define minor_31(x) ROREQ(pad[17], my_sin(pad[6]) ? 29 : x)
+#define minor_32(x) pad[15] ^= my_sin(pad[14]) ? 0x40a33fd4 : x
+#define minor_34 pad[7] ^= my_sqrt(pad[11])
+#define minor_35 pad[5] += my_sqrt(pad[7])
 
-void minor_36 (u32 *key)
+void minor_36 (u32 *pad)
 {
-	key[3] ^= key[11] * 0xeef27425;
-	key[3] += my_sqrt (key[0]);
-	key[15] *= key[1] ^ 0xd89b4a;
-	ROREQ (key[16], key[16] & 0x11);
-	key[18] *= key[19] + 0xa0d8c0cf;
-	key[7] *= key[0] < 0x6765080e ? key[0] : key[18];
+	pad[3] ^= pad[11] * 0xeef27425;
+	pad[3] += my_sqrt (pad[0]);
+	pad[15] *= pad[1] ^ 0xd89b4a;
+	ROREQ (pad[16], pad[16] & 0x11);
+	pad[18] *= pad[19] + 0xa0d8c0cf;
+	pad[7] *= pad[0] < 0x6765080e ? pad[0] : pad[18];
 
-	if (key[5] < 0xe848f43c)
-		ROLEQ (key[9], key[5]);
+	if (pad[5] < 0xe848f43c)
+		ROLEQ (pad[9], pad[5]);
 
-	key[2] ^= key[5] < 0xa0d8c0cf ? key[5] : key[9] - 0xe848f43c;
-	ROLEQ (key[12], ROL (key[9] - 0xe848f43c, 11));
+	pad[2] ^= pad[5] < 0xa0d8c0cf ? pad[5] : pad[9] - 0xe848f43c;
+	ROLEQ (pad[12], ROL (pad[9] - 0xe848f43c, 11));
 }
 
-void minor_37 (u32 *key)
+void minor_37 (u32 *pad)
 {
-	ROLEQ (key[2], key[7] + 0x1b);
-	key[2] ^= key[9] * 0x7941955;
-	key[2] -= 0x796fa0af;
-	key[3] *= my_sin (key[19]) ? 0x5ea67f83 : key[5];
-	key[4] -= key[4] ^ 0x692c9ef9;
-	key[10] += key[1] ^ 0xc43baf0b;
-	key[12] *= key[7] - 0xc43baf0b;
-	key[13] ^= 0xd;
-	key[17] ^= key[17] - 0x1259dbb;
-	ROREQ (key[17], 10);
-	key[18] += key[0] ^ 0x3cf1856;
+	ROLEQ (pad[2], pad[7] + 0x1b);
+	pad[2] ^= pad[9] * 0x7941955;
+	pad[2] -= 0x796fa0af;
+	pad[3] *= my_sin (pad[19]) ? 0x5ea67f83 : pad[5];
+	pad[4] -= pad[4] ^ 0x692c9ef9;
+	pad[10] += pad[1] ^ 0xc43baf0b;
+	pad[12] *= pad[7] - 0xc43baf0b;
+	pad[13] ^= 0xd;
+	pad[17] ^= pad[17] - 0x1259dbb;
+	ROREQ (pad[17], 10);
+	pad[18] += pad[0] ^ 0x3cf1856;
 }
 
-void major_1 (u32 *key, u32 seed)
+void major_1 (u32 *pad, u32 seed)
 {
-	int type = (key[17] ^ key[4] ^ key[13]) % 13;
+	int branch = (pad[17] ^ pad[4] ^ pad[13]) % 13;
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[7] |= 0x3e73450d;
+		pad[7] |= 0x3e73450d;
 		minor_31 (0x9);
-		minor_36 (key);
+		minor_36 (pad);
 	}
 
-	key[11] &= key[19] & 0x170b54ed;
+	pad[11] &= pad[19] & 0x170b54ed;
 
-	if (type == 10)
+	if (branch == 10)
 	{
-		key[12] ^= key[15] - 0xf5cfde0;
+		pad[12] ^= pad[15] - 0xf5cfde0;
 		minor_27;
-		major_23 (key, key[8]);
+		major_23 (pad, pad[8]);
 	}
 
-	ROREQ (key[1], key[14] < 0x164d8d96 ? key[14] : key[4]);
+	ROREQ (pad[1], pad[14] < 0x164d8d96 ? pad[14] : pad[4]);
 
-	if (type == 12)
+	if (branch == 12)
 	{
 		TRY (minor_1 (0xc0948cf0));
 		minor_28;
-		major_24 (key, key[18]);
+		major_24 (pad, pad[18]);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[12] ^= key[15] - 0xf5cfde0;
+		pad[12] ^= pad[15] - 0xf5cfde0;
 		minor_31 (0x15);
-		major_19 (key, key[12]);
+		major_19 (pad, pad[12]);
 	}
 
-	ROLEQ (key[6], key[13] ^ 0x2);
+	ROLEQ (pad[6], pad[13] ^ 0x2);
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		TRY (ROREQ (key[1], 0x4));
-		key[9] ^= key[7] * 0x44;
-		major_25 (key, seed);
+		TRY (ROREQ (pad[1], 0x4));
+		pad[9] ^= pad[7] * 0x44;
+		major_25 (pad, seed);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
-		key[13] *= ROR (key[3], 5);
-		major_17 (key, key[15]);
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
+		pad[13] *= ROR (pad[3], 5);
+		major_17 (pad, pad[15]);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		minor_19;
-		key[13] *= ROR (key[3], 5);
-		major_4 (key, key[8]);
+		pad[13] *= ROR (pad[3], 5);
+		major_4 (pad, pad[8]);
 	}
 
 	seed += my_sin (seed) ? 0x160df35d : seed;
-	seed &= key[19] | 0xe00682c6;
+	seed &= pad[19] | 0xe00682c6;
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[7] &= key[13] ^ 0x21aaf758;
-		key[9] |= key[7] ^ 0x2a19119f;
-		major_18 (key, key[12]);
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		major_18 (pad, pad[12]);
 	}
 
-	key[16] += my_sin (seed) ? 0xe00682c6 : key[7];
+	pad[16] += my_sin (seed) ? 0xe00682c6 : pad[7];
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
-		major_15 (key, seed);
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
+		major_15 (pad, seed);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[4] -= key[17] ^ 0x2217cf47;
-		key[13] *= ROR (key[3], 5);
-		major_3 (key, key[14]);
+		pad[4] -= pad[17] ^ 0x2217cf47;
+		pad[13] *= ROR (pad[3], 5);
+		major_3 (pad, pad[14]);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
 		minor_34;
-		major_21 (key, key[18]);
+		major_21 (pad, pad[18]);
 	}
 
-	key[5] *= my_sqrt (key[9]);
+	pad[5] *= my_sqrt (pad[9]);
 
-	if (type == 11)
+	if (branch == 11)
 	{
-		ROREQ (key[4], 0x2);
+		ROREQ (pad[4], 0x2);
 		minor_32 (0x8517ae30);
-		major_16 (key, key[4]);
+		major_16 (pad, pad[4]);
 	}
 
-	key[13] &= key[18] - 0xeb6dee4;
+	pad[13] &= pad[18] - 0xeb6dee4;
 
-	if (type == 5)
+	if (branch == 5)
 	{
 		minor_30;
 		TRY (minor_3);
-		minor_36 (key);
+		minor_36 (pad);
 	}
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[7] |= 0x7de964ed;
+		pad[7] |= 0x7de964ed;
 		TRY (minor_4);
-		major_23 (key, key[3]);
+		major_23 (pad, pad[3]);
 	}
 }
 
-void major_2 (u32 *key, u32 seed)
+void major_2 (u32 *pad, u32 seed)
 {
-	int type = key[10] & 15;
+	int branch = pad[10] & 15;
 
-	if (type == 5)
+	if (branch == 5)
 	{
 		minor_27;
-		key[7] &= key[13] ^ 0x21aaf758;
-		major_25 (key, key[0]);
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		major_25 (pad, pad[0]);
 	}
 
-	key[0] -= seed * 0x36;
+	pad[0] -= seed * 0x36;
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		key[2] *= key[3] + 0xd6863a6;
-		key[6] += 0xfe07af0e - key[3];
-		major_17 (key, seed);
+		pad[2] *= pad[3] + 0xd6863a6;
+		pad[6] += 0xfe07af0e - pad[3];
+		major_17 (pad, seed);
 	}
 
-	if (type == 12)
+	if (branch == 12)
 	{
-		key[6] ^= 0x9374c368;
-		key[7] &= 0xc45b99ee;
-		major_4 (key, key[14]);
+		pad[6] ^= 0x9374c368;
+		pad[7] &= 0xc45b99ee;
+		major_4 (pad, pad[14]);
 	}
 
-	key[7] -= key[8] | 0x1a1a9407;
+	pad[7] -= pad[8] | 0x1a1a9407;
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		ROREQ (key[9], 12);
-		key[3] -= key[0] ^ 0x185f3b0d;
-		major_18 (key, key[14]);
+		ROREQ (pad[9], 12);
+		pad[3] -= pad[0] ^ 0x185f3b0d;
+		major_18 (pad, pad[14]);
 	}
 
-	key[2] += key[0] + 0x19259d5;
+	pad[2] += pad[0] + 0x19259d5;
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[9] ^= key[7] * 0x44;
-		key[2] ^= key[15] << 5;
-		major_15 (key, seed);
+		pad[9] ^= pad[7] * 0x44;
+		pad[2] ^= pad[15] << 5;
+		major_15 (pad, seed);
 	}
 
-	if (type == 11)
+	if (branch == 11)
 	{
 		minor_34;
-		key[3] -= key[0] ^ 0x185f3b0d;
-		major_3 (key, key[15]);
+		pad[3] -= pad[0] ^ 0x185f3b0d;
+		major_3 (pad, pad[15]);
 	}
 
-	key[16] &= seed - 0x1badcb5;
+	pad[16] &= seed - 0x1badcb5;
 
-	if (type == 15)
+	if (branch == 15)
 	{
-		key[14] |= key[3] ^ 0x4345732;
-		ROREQ (key[4], 0x1);
-		major_21 (key, key[3]);
+		pad[14] |= pad[3] ^ 0x4345732;
+		ROREQ (pad[4], 0x1);
+		major_21 (pad, pad[3]);
 	}
 
-	key[5] -= my_cos (key[4]) ? 0xffcdb92f : key[14];
+	pad[5] -= my_cos (pad[4]) ? 0xffcdb92f : pad[14];
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[13] -= key[1];
-		key[7] |= 0x45e184c5;
-		major_16 (key, key[9]);
+		pad[13] -= pad[1];
+		pad[7] |= 0x45e184c5;
+		major_16 (pad, pad[9]);
 		TRY (minor_1 (0x149a97a0));
 		TRY (minor_10 (0xd87d888e));
-		major_1 (key, key[9]);
+		major_1 (pad, pad[9]);
 	}
 
-	key[5] *= key[8] + 0xffcdb92f;
+	pad[5] *= pad[8] + 0xffcdb92f;
 
-	if (type == 4)
+	if (branch == 4)
 	{
 		TRY (minor_10 (0x130aa218));
-		key[13] *= ROR (key[3], 5);
-		major_14 (key, key[6]);
+		pad[13] *= ROR (pad[3], 5);
+		major_14 (pad, pad[6]);
 	}
 
-	ROLEQ (key[1], key[15] < 0xbdc3f45b ? key[15] : key[9]);
+	ROLEQ (pad[1], pad[15] < 0xbdc3f45b ? pad[15] : pad[9]);
 
-	if (type == 14)
+	if (branch == 14)
 	{
 		minor_30;
-		key[13] *= 0x7f0d5ead;
-		major_6 (key, key[5]);
+		pad[13] *= 0x7f0d5ead;
+		major_6 (pad, pad[5]);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[6] += key[19] - 0x3f5675d6;
+		pad[6] += pad[19] - 0x3f5675d6;
 		TRY (minor_5);
-		major_9 (key, seed);
+		major_9 (pad, seed);
 	}
 
-	key[6] += key[3] * 0x79;
+	pad[6] += pad[3] * 0x79;
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[9] &= 0x3eb4ed97;
+		pad[9] &= 0x3eb4ed97;
 		minor_30;
-		major_25 (key, key[6]);
+		major_25 (pad, pad[6]);
 	}
 
-	key[16] ^= my_cos (key[7]) ? 0x2d36f243 : key[13];
+	pad[16] ^= my_cos (pad[7]) ? 0x2d36f243 : pad[13];
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[0] += key[18] ^ 0x4ac16b8d;
+		pad[0] += pad[18] ^ 0x4ac16b8d;
 		minor_28;
-		major_17 (key, key[2]);
+		major_17 (pad, pad[2]);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[10] += 0x8958821;
+		pad[10] += 0x8958821;
 		TRY (minor_1 (0x115e64d4));
-		major_4 (key, key[19]);
+		major_4 (pad, pad[19]);
 	}
 
-	key[14] &= key[3] ^ 0xb8eb772d;
+	pad[14] &= pad[3] ^ 0xb8eb772d;
 
-	if (type == 10)
+	if (branch == 10)
 	{
-		key[13] -= key[1];
-		key[2] ^= key[15] << 5;
-		major_18 (key, key[8]);
+		pad[13] -= pad[1];
+		pad[2] ^= pad[15] << 5;
+		major_18 (pad, pad[8]);
 	}
 
-	ROREQ (key[1], key[12] * 0x5);
+	ROREQ (pad[1], pad[12] * 0x5);
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
-		major_15 (key, key[15]);
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
+		major_15 (pad, pad[15]);
 	}
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[7] &= 0x5cf54b9a;
-		key[13] *= 0xa02fe00;
-		major_3 (key, key[14]);
+		pad[7] &= 0x5cf54b9a;
+		pad[13] *= 0xa02fe00;
+		major_3 (pad, pad[14]);
 	}
 
-	key[12] ^= my_sin (key[0]) ? 0x96d5a5a4 : key[5];
+	pad[12] ^= my_sin (pad[0]) ? 0x96d5a5a4 : pad[5];
 }
 
-void major_3 (u32 *key, u32 seed)
+void major_3 (u32 *pad, u32 seed)
 {
-	int type = (key[5] ^ seed ^ key[12]) % 10;
+	int branch = (pad[5] ^ seed ^ pad[12]) % 10;
 
-	seed *= key[6] | 0x4723b25;
+	seed *= pad[6] | 0x4723b25;
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		minor_22;
 		TRY (minor_5);
-		minor_37 (key);
+		minor_37 (pad);
 	}
 
-	key[2] -= key[4] * 0xd;
+	pad[2] -= pad[4] * 0xd;
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[7] ^= 0x414517ea;
+		pad[7] ^= 0x414517ea;
 		minor_29;
-		minor_36 (key);
+		minor_36 (pad);
 	}
 
-	seed += key[12] * 0x19;
+	seed += pad[12] * 0x19;
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
 		minor_19;
-		major_23 (key, seed);
+		major_23 (pad, seed);
 	}
 
-	seed += key[7] + 0xbd42ff0;
+	seed += pad[7] + 0xbd42ff0;
 
-	if (type == 2)
+	if (branch == 2)
 	{
 		minor_29;
-		key[16] += 0x1f5b0c59;
-		major_24 (key, seed);
+		pad[16] += 0x1f5b0c59;
+		major_24 (pad, seed);
 	}
 
-	key[15] -= key[0] ^ 0x16bee8c4;
+	pad[15] -= pad[0] ^ 0x16bee8c4;
 
-	if (type == 4)
+	if (branch == 4)
 	{
 		TRY (minor_7);
 		minor_28;
-		major_19 (key, seed);
+		major_19 (pad, seed);
 	}
 
-	key[18] ^= key[11] + 0x9fd1847f;
+	pad[18] ^= pad[11] + 0x9fd1847f;
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[6] += key[19] - 0x3f5675d6;
-		key[6] += key[19] - 0x3f5675d6;
-		major_25 (key, seed);
+		pad[6] += pad[19] - 0x3f5675d6;
+		pad[6] += pad[19] - 0x3f5675d6;
+		major_25 (pad, seed);
 	}
 
-	ROLEQ (key[14], key[19]);
+	ROLEQ (pad[14], pad[19]);
 
-	if (type == 8)
+	if (branch == 8)
 	{
 		minor_30;
-		key[12] += key[6] + 0x21d7bf61;
-		major_17 (key, seed);
+		pad[12] += pad[6] + 0x21d7bf61;
+		major_17 (pad, seed);
 	}
 
-	ROREQ (key[0], key[13] * 0x13);
+	ROREQ (pad[0], pad[13] * 0x13);
 
-	if (type == 9)
+	if (branch == 9)
 	{
 		TRY (minor_2 (0x70da1d6f));
 		minor_29;
-		major_4 (key, seed);
+		major_4 (pad, seed);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
 		minor_22;
 		TRY (minor_3);
-		major_18 (key, key[5]);
+		major_18 (pad, pad[5]);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		minor_17;
-		key[2] ^= key[15] << 5;
-		major_15 (key, key[19]);
+		pad[2] ^= pad[15] << 5;
+		major_15 (pad, pad[19]);
 	}
 }
 
-void major_4 (u32 *key, u32 seed)
+void major_4 (u32 *pad, u32 seed)
 {
-	int type = key[6] % 7;
+	int branch = pad[6] % 7;
 
-	seed ^= ROL (key[3], 18);
+	seed ^= ROL (pad[3], 18);
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[6] += key[19] - 0x3f5675d6;
+		pad[6] += pad[19] - 0x3f5675d6;
 		TRY (minor_5);
-		minor_37 (key);
+		minor_37 (pad);
 	}
 
-	key[15] += seed * 0x32;
-	key[5] += 0xc93495e4 - key[14];
+	pad[15] += seed * 0x32;
+	pad[5] += 0xc93495e4 - pad[14];
 
-	if (type == 2)
+	if (branch == 2)
 	{
 		TRY (minor_10 (0x10db4a9d));
-		key[6] += 0xfe07af0e - key[3];
-		minor_36 (key);
+		pad[6] += 0xfe07af0e - pad[3];
+		minor_36 (pad);
 	}
 
-	key[12] *= my_cos (key[14]) ? 0xf5a79f2a : key[17];
+	pad[12] *= my_cos (pad[14]) ? 0xf5a79f2a : pad[17];
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		minor_17;
-		key[9] |= key[7] ^ 0x2a19119f;
-		major_23 (key, key[8]);
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		major_23 (pad, pad[8]);
 	}
 
-	key[6] &= key[7] | 0xe02b5b1a;
-	key[11] ^= my_cos (key[0]) ? 0x3a2c762b : seed;
+	pad[6] &= pad[7] | 0xe02b5b1a;
+	pad[11] ^= my_cos (pad[0]) ? 0x3a2c762b : seed;
 
-	if (type == 4)
+	if (branch == 4)
 	{
 		TRY (minor_3);
-		TRY (ROREQ (key[1], 0x1c));
-		major_24 (key, seed);
+		TRY (ROREQ (pad[1], 0x1c));
+		major_24 (pad, seed);
 	}
 
-	key[3] -= my_sqrt (key[9]);
+	pad[3] -= my_sqrt (pad[9]);
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[6] ^= 0x47a791f;
-		key[0] += key[18] ^ 0x4ac16b8d;
-		major_19 (key, key[18]);
+		pad[6] ^= 0x47a791f;
+		pad[0] += pad[18] ^ 0x4ac16b8d;
+		major_19 (pad, pad[18]);
 	}
 
-	seed &= my_cos (key[7]) ? 0xcdef2bf0 : key[3];
-	key[0] -= key[15] * 0x43;
+	seed &= my_cos (pad[7]) ? 0xcdef2bf0 : pad[3];
+	pad[0] -= pad[15] * 0x43;
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		minor_19;
-		key[6] ^= 0x424d4b7d;
-		major_25 (key, key[3]);
+		pad[6] ^= 0x424d4b7d;
+		major_25 (pad, pad[3]);
 	}
 
-	key[1] -= ROR (key[18], 19);
-	key[17] ^= my_sin (key[14]) ? 0x69eaf2fd : key[16];
+	pad[1] -= ROR (pad[18], 19);
+	pad[17] ^= my_sin (pad[14]) ? 0x69eaf2fd : pad[16];
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[3] -= key[0] ^ 0x185f3b0d;
-		key[2] *= key[3] + 0xd6863a6;
-		major_17 (key, key[14]);
+		pad[3] -= pad[0] ^ 0x185f3b0d;
+		pad[2] *= pad[3] + 0xd6863a6;
+		major_17 (pad, pad[14]);
 	}
 }
 
-void major_5 (u32 *key, u32 seed)
+void major_5 (u32 *pad, u32 seed)
 {
-	int type = (key[13] ^ key[6] ^ key[16]) & 15;
+	int branch = (pad[13] ^ pad[6] ^ pad[16]) & 15;
 
-	if (type == 7)
+	if (branch == 7)
 	{
 		minor_20;
-		key[9] += ROL (key[4], 9);
-		major_17 (key, key[15]);
+		pad[9] += ROL (pad[4], 9);
+		major_17 (pad, pad[15]);
 	}
 
-	key[2] ^= key[15] - 0xe09f62af;
+	pad[2] ^= pad[15] - 0xe09f62af;
 
-	if (type == 15)
+	if (branch == 15)
 	{
 		minor_31 (0x7);
-		key[9] |= key[7] ^ 0x2a19119f;
-		major_4 (key, key[10]);
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		major_4 (pad, pad[10]);
 	}
 
-	if (type == 14)
+	if (branch == 14)
 	{
-		key[9] ^= 0x19b844e;
-		key[5] -= key[15];
-		major_18 (key, seed);
+		pad[9] ^= 0x19b844e;
+		pad[5] -= pad[15];
+		major_18 (pad, seed);
 	}
 
-	key[5] += key[8] * 0x49;
+	pad[5] += pad[8] * 0x49;
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[14] |= key[3] ^ 0x4345732;
+		pad[14] |= pad[3] ^ 0x4345732;
 		TRY (minor_8);
-		major_15 (key, key[19]);
+		major_15 (pad, pad[19]);
 	}
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		minor_27;
 		minor_17;
-		major_3 (key, key[4]);
+		major_3 (pad, pad[4]);
 	}
 
-	seed += key[16] < 0x4dfe57f8 ? key[16] : key[17];
+	seed += pad[16] < 0x4dfe57f8 ? pad[16] : pad[17];
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[13] *= 0x7ae310dc;
-		key[12] ^= key[15] - 0xf5cfde0;
-		major_21 (key, key[11]);
-		key[13] *= ROR (key[3], 5);
+		pad[13] *= 0x7ae310dc;
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		major_21 (pad, pad[11]);
+		pad[13] *= ROR (pad[3], 5);
 		minor_20;
-		major_16 (key, key[10]);
+		major_16 (pad, pad[10]);
 	}
 
-	key[5] += key[6] + 0xd5c1b299;
+	pad[5] += pad[6] + 0xd5c1b299;
 
-	if (type == 10)
+	if (branch == 10)
 	{
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
-		key[9] |= key[7] ^ 0x2a19119f;
-		major_1 (key, key[10]);
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		major_1 (pad, pad[10]);
 	}
 
-	if (type == 12)
+	if (branch == 12)
 	{
-		key[16] += 0x203fdf50;
+		pad[16] += 0x203fdf50;
 		minor_20;
-		major_14 (key, key[8]);
+		major_14 (pad, pad[8]);
 	}
 
-	key[1] += my_sin (seed) ? 0xbabd3794 : seed;
+	pad[1] += my_sin (seed) ? 0xbabd3794 : seed;
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[4] ^= 0xca8e79ab;
-		key[13] -= key[1];
-		major_6 (key, key[14]);
+		pad[4] ^= 0xca8e79ab;
+		pad[13] -= pad[1];
+		major_6 (pad, pad[14]);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
-		key[2] ^= key[15] << 5;
-		major_9 (key, seed);
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
+		pad[2] ^= pad[15] << 5;
+		major_9 (pad, seed);
 	}
 
-	key[3] |= my_cos (key[3]) ? 0xbabd3794 : key[17];
+	pad[3] |= my_cos (pad[3]) ? 0xbabd3794 : pad[17];
 
-	if (type == 9)
+	if (branch == 9)
 	{
 		minor_17;
-		key[5] -= key[15];
-		major_2 (key, seed);
+		pad[5] -= pad[15];
+		major_2 (pad, seed);
 	}
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		ROREQ (key[4], 0x2);
-		key[4] -= key[17] ^ 0x2217cf47;
-		major_17 (key, seed);
+		ROREQ (pad[4], 0x2);
+		pad[4] -= pad[17] ^ 0x2217cf47;
+		major_17 (pad, seed);
 	}
 
-	seed ^= key[2] * 0xb25bcc4d;
+	seed ^= pad[2] * 0xb25bcc4d;
 
-	if (type == 11)
+	if (branch == 11)
 	{
-		key[19] += 0x12b9e29d - key[12];
-		key[7] &= key[13] ^ 0x21aaf758;
-		major_4 (key, key[17]);
+		pad[19] += 0x12b9e29d - pad[12];
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		major_4 (pad, pad[17]);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[12] ^= key[15] - 0xf5cfde0;
+		pad[12] ^= pad[15] - 0xf5cfde0;
 		minor_31 (0x7);
-		major_18 (key, seed);
+		major_18 (pad, seed);
 	}
 
-	key[8] += 0xf1030e9c - key[12];
+	pad[8] += 0xf1030e9c - pad[12];
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[6] ^= 0xea99e155;
-		key[19] += 0x12b9e29d - key[12];
-		major_15 (key, seed);
+		pad[6] ^= 0xea99e155;
+		pad[19] += 0x12b9e29d - pad[12];
+		major_15 (pad, seed);
 	}
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[7] &= 0x710c48e8;
-		key[2] *= key[3] + 0xd6863a6;
-		major_3 (key, key[17]);
+		pad[7] &= 0x710c48e8;
+		pad[2] *= pad[3] + 0xd6863a6;
+		major_3 (pad, pad[17]);
 	}
 
-	key[15] += 0xa8f341c7 - key[1];
+	pad[15] += 0xa8f341c7 - pad[1];
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[2] *= key[3] + 0xd6863a6;
-		key[3] -= key[0] ^ 0x185f3b0d;
-		major_21 (key, seed);
+		pad[2] *= pad[3] + 0xd6863a6;
+		pad[3] -= pad[0] ^ 0x185f3b0d;
+		major_21 (pad, seed);
 	}
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		TRY (minor_3);
-		key[12] *= key[12];
-		major_16 (key, key[12]);
+		pad[12] *= pad[12];
+		major_16 (pad, pad[12]);
 	}
 
-	key[6] *= key[5] * 0x1d;
+	pad[6] *= pad[5] * 0x1d;
 }
 
-void major_6 (u32 *key, u32 seed)
+void major_6 (u32 *pad, u32 seed)
 {
-	int type = key[17] % 15;
+	int branch = pad[17] % 15;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
-		key[13] *= 0x22dd951f;
-		major_24 (key, key[8]);
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
+		pad[13] *= 0x22dd951f;
+		major_24 (pad, pad[8]);
 	}
 
-	key[11] -= my_sin (key[9]) ? 0xe205322c : key[7];
+	pad[11] -= my_sin (pad[9]) ? 0xe205322c : pad[7];
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		TRY (ROREQ (key[1], 0x4));
-		key[12] ^= key[15] - 0xf5cfde0;
-		major_19 (key, key[0]);
+		TRY (ROREQ (pad[1], 0x4));
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		major_19 (pad, pad[0]);
 	}
 
-	key[10] -= key[6] ^ 0x1289de2;
+	pad[10] -= pad[6] ^ 0x1289de2;
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		ROREQ (key[9], 10);
+		ROREQ (pad[9], 10);
 		TRY (minor_13);
-		major_25 (key, key[4]);
+		major_25 (pad, pad[4]);
 	}
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[13] *= 0x6a94c749;
-		key[18] -= key[13] ^ 0x154abcdf;
-		major_17 (key, seed);
+		pad[13] *= 0x6a94c749;
+		pad[18] -= pad[13] ^ 0x154abcdf;
+		major_17 (pad, seed);
 	}
 
-	ROLEQ (key[16], my_sqrt (key[17]));
+	ROLEQ (pad[16], my_sqrt (pad[17]));
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[16] += 0x3f147441;
-		major_4 (key, key[16]);
+		pad[16] += 0x3f147441;
+		major_4 (pad, pad[16]);
 	}
 
-	key[9] += my_sqrt (key[3]);
+	pad[9] += my_sqrt (pad[3]);
 
-	if (type == 14)
+	if (branch == 14)
 	{
-		ROREQ (key[9], 15);
-		key[13] -= key[1];
-		major_18 (key, seed);
+		ROREQ (pad[9], 15);
+		pad[13] -= pad[1];
+		major_18 (pad, seed);
 	}
 
-	seed = key[6] ^ seed ^ 0x202ab323;
+	seed = pad[6] ^ seed ^ 0x202ab323;
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[5] += key[0] ^ 0x3e17add3;
-		key[4] -= key[17] ^ 0x2217cf47;
-		major_15 (key, key[8]);
+		pad[5] += pad[0] ^ 0x3e17add3;
+		pad[4] -= pad[17] ^ 0x2217cf47;
+		major_15 (pad, pad[8]);
 	}
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[2] *= key[3] + 0xd6863a6;
-		key[6] += key[19] - 0x3f5675d6;
-		major_3 (key, key[16]);
+		pad[2] *= pad[3] + 0xd6863a6;
+		pad[6] += pad[19] - 0x3f5675d6;
+		major_3 (pad, pad[16]);
 	}
 
-	key[15] ^= my_sqrt (key[10]);
+	pad[15] ^= my_sqrt (pad[10]);
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		TRY (minor_2 (0xb30d40d0));
-		key[10] *= key[10] - 0x5eae6bf;
-		major_21 (key, key[13]);
+		pad[10] *= pad[10] - 0x5eae6bf;
+		major_21 (pad, pad[13]);
 	}
 
-	key[0] -= key[11] ^ 0x1284af29;
+	pad[0] -= pad[11] ^ 0x1284af29;
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[5] += key[0] ^ 0x3e17add3;
+		pad[5] += pad[0] ^ 0x3e17add3;
 		minor_29;
-		major_16 (key, key[17]);
+		major_16 (pad, pad[17]);
 	}
 
-	ROLEQ (seed, key[11] * 0x10);
+	ROLEQ (seed, pad[11] * 0x10);
 
-	if (type == 11)
+	if (branch == 11)
 	{
-		key[9] ^= 0x1d8f33a6;
+		pad[9] ^= 0x1d8f33a6;
 		TRY (minor_9 (0x13ee15c3));
-		major_1 (key, key[19]);
+		major_1 (pad, pad[19]);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		TRY (minor_3);
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
-		major_14 (key, key[16]);
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
+		major_14 (pad, pad[16]);
 	}
 
-	key[9] |= key[9] ^ 0x2ad7629;
+	pad[9] |= pad[9] ^ 0x2ad7629;
 
-	if (type == 10)
+	if (branch == 10)
 	{
-		TRY (ROREQ (key[1], 0xc));
+		TRY (ROREQ (pad[1], 0xc));
 		TRY (minor_9 (0xe8869877));
-		major_24 (key, seed);
+		major_24 (pad, seed);
 	}
 
-	key[4] *= key[12] * 0x4a237369;
+	pad[4] *= pad[12] * 0x4a237369;
 
-	if (type == 12)
+	if (branch == 12)
 	{
-		key[9] += ROL (key[4], 9);
+		pad[9] += ROL (pad[4], 9);
 		TRY (minor_7);
-		major_19 (key, key[5]);
+		major_19 (pad, pad[5]);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[14] |= key[3] ^ 0x4345732;
+		pad[14] |= pad[3] ^ 0x4345732;
 		TRY (minor_9 (0xdd1ca541));
-		major_25 (key, key[1]);
+		major_25 (pad, pad[1]);
 	}
 
-	seed *= key[4] + 0x76e5a087;
+	seed *= pad[4] + 0x76e5a087;
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		TRY (minor_5);
 		TRY (minor_1 (0x62f4d3c4));
-		major_17 (key, seed);
+		major_17 (pad, seed);
 	}
 }
 
-void major_7 (u32 *key, u32 seed)
+void major_7 (u32 *pad, u32 seed)
 {
-	int type = (key[10] ^ key[11] ^ key[18]) & 15;
+	int branch = (pad[10] ^ pad[11] ^ pad[18]) & 15;
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		minor_27;
 		TRY (minor_2 (0x54bcde17));
-		major_1 (key, key[14]);
+		major_1 (pad, pad[14]);
 	}
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[7] &= key[13] ^ 0x21aaf758;
-		key[13] -= key[1];
-		major_14 (key, key[12]);
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		pad[13] -= pad[1];
+		major_14 (pad, pad[12]);
 	}
 
-	key[8] |= 0xc6ef5e80 + key[1];
+	pad[8] |= 0xc6ef5e80 + pad[1];
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[6] += key[19] - 0x3f5675d6;
-		key[6] += 0xfe07af0e - key[3];
-		major_6 (key, key[16]);
+		pad[6] += pad[19] - 0x3f5675d6;
+		pad[6] += 0xfe07af0e - pad[3];
+		major_6 (pad, pad[16]);
 	}
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[5] -= key[15];
-		key[16] += 0x3fa3dc2f;
-		major_9 (key, key[5]);
+		pad[5] -= pad[15];
+		pad[16] += 0x3fa3dc2f;
+		major_9 (pad, pad[5]);
 	}
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
-		key[14] |= key[3] ^ 0x4345732;
-		major_2 (key, key[3]);
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
+		pad[14] |= pad[3] ^ 0x4345732;
+		major_2 (pad, pad[3]);
 	}
 
-	key[15] -= 0xc6ef5e80 + key[19];
+	pad[15] -= 0xc6ef5e80 + pad[19];
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[2] ^= key[15] << 5;
+		pad[2] ^= pad[15] << 5;
 		minor_28;
-		major_5 (key, key[7]);
+		major_5 (pad, pad[7]);
 	}
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[0] += key[6] * 0x3c;
+		pad[0] += pad[6] * 0x3c;
 		minor_31 (0x15);
-		major_12 (key, key[16]);
+		major_12 (pad, pad[16]);
 	}
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[5] += key[0] ^ 0x3e17add3;
-		key[9] &= 0x4bd89b02;
-		major_11 (key, key[19]);
+		pad[5] += pad[0] ^ 0x3e17add3;
+		pad[9] &= 0x4bd89b02;
+		major_11 (pad, pad[19]);
 	}
 
-	seed -= key[0] ^ 0x3b61016b;
+	seed -= pad[0] ^ 0x3b61016b;
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[5] -= key[15];
+		pad[5] -= pad[15];
 		TRY (minor_9 (0x1984a749));
-		major_13 (key, key[3]);
+		major_13 (pad, pad[3]);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[9] += ROL (key[4], 9);
+		pad[9] += ROL (pad[4], 9);
 		minor_28;
-		major_22 (key, key[4]);
+		major_22 (pad, pad[4]);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
 		TRY (minor_3);
 		minor_31 (0xd);
-		major_8 (key, key[5]);
+		major_8 (pad, pad[5]);
 	}
 
-	ROLEQ (key[11], key[10] ^ 0x1a);
+	ROLEQ (pad[11], pad[10] ^ 0x1a);
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[18] -= key[13] ^ 0x154abcdf;
-		key[19] += 0x12b9e29d - key[12];
-		major_10 (key, seed);
+		pad[18] -= pad[13] ^ 0x154abcdf;
+		pad[19] += 0x12b9e29d - pad[12];
+		major_10 (pad, seed);
 	}
 
-	if (type == 14)
+	if (branch == 14)
 	{
-		key[19] += 0x12b9e29d - key[12];
-		ROREQ (key[9], 3);
-		major_1 (key, seed);
+		pad[19] += 0x12b9e29d - pad[12];
+		ROREQ (pad[9], 3);
+		major_1 (pad, seed);
 	}
 
-	seed -= key[14] * 0xc02e189f;
+	seed -= pad[14] * 0xc02e189f;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[6] ^= 0x94eaa20d;
+		pad[6] ^= 0x94eaa20d;
 		minor_27;
-		major_14 (key, key[6]);
+		major_14 (pad, pad[6]);
 	}
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		key[12] += 0x2ac57dfa;
-		key[2] ^= key[15] << 5;
-		major_6 (key, key[4]);
+		pad[12] += 0x2ac57dfa;
+		pad[2] ^= pad[15] << 5;
+		major_6 (pad, pad[4]);
 	}
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[18] *= key[10] + 0x466e09cf;
-		key[13] -= key[1];
-		major_9 (key, seed);
+		pad[18] *= pad[10] + 0x466e09cf;
+		pad[13] -= pad[1];
+		major_9 (pad, seed);
 	}
 
-	key[4] += 0xa207344d - seed;
+	pad[4] += 0xa207344d - seed;
 
-	if (type == 12)
+	if (branch == 12)
 	{
 		TRY (minor_2 (0x80a1da17));
-		key[13] *= 0xa02fe00;
-		major_2 (key, key[3]);
+		pad[13] *= 0xa02fe00;
+		major_2 (pad, pad[3]);
 	}
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[13] *= 0x6aa5cc8c;
-		key[6] ^= 0xaefb322;
-		major_5 (key, key[9]);
+		pad[13] *= 0x6aa5cc8c;
+		pad[6] ^= 0xaefb322;
+		major_5 (pad, pad[9]);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		minor_31 (0xb);
-		key[5] += key[0] ^ 0x3e17add3;
-		major_12 (key, key[5]);
+		pad[5] += pad[0] ^ 0x3e17add3;
+		major_12 (pad, pad[5]);
 	}
 
-	seed ^= key[18] ^ 0xe6830c9;
+	seed ^= pad[18] ^ 0xe6830c9;
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[9] |= key[7] ^ 0x2a19119f;
-		key[7] &= key[13] ^ 0x21aaf758;
-		major_11 (key, seed);
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		major_11 (pad, seed);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[3] -= key[0] ^ 0x185f3b0d;
+		pad[3] -= pad[0] ^ 0x185f3b0d;
 		TRY (minor_2 (0xb11da063));
-		major_13 (key, key[3]);
+		major_13 (pad, pad[3]);
 	}
 
-	if (type == 15)
+	if (branch == 15)
 	{
 		minor_34;
-		key[4] ^= 0x41e634f6;
-		major_22 (key, key[17]);
+		pad[4] ^= 0x41e634f6;
+		major_22 (pad, pad[17]);
 	}
 
-	key[0] ^= my_sin (seed) ? 0x8b50cd51 : key[8];
+	pad[0] ^= my_sin (seed) ? 0x8b50cd51 : pad[8];
 
-	if (type == 11)
+	if (branch == 11)
 	{
 		minor_28;
-		key[2] ^= key[15] << 5;
-		major_8 (key, seed);
+		pad[2] ^= pad[15] << 5;
+		major_8 (pad, seed);
 	}
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[9] += ROL (key[4], 9);
-		key[7] &= key[13] ^ 0x21aaf758;
-		major_10 (key, key[16]);
+		pad[9] += ROL (pad[4], 9);
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		major_10 (pad, pad[16]);
 	}
 
-	seed += key[1] * 0x3e;
+	seed += pad[1] * 0x3e;
 
-	if (type == 6)
+	if (branch == 6)
 	{
 		minor_34;
-		ROREQ (key[4], 0x9);
-		major_1 (key, key[12]);
+		ROREQ (pad[4], 0x9);
+		major_1 (pad, pad[12]);
 	}
 
-	if (type == 10)
+	if (branch == 10)
 	{
 		minor_22;
-		key[12] ^= key[15] - 0xf5cfde0;
-		major_14 (key, seed);
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		major_14 (pad, seed);
 	}
 
-	key[1] ^= key[2] & 0x3b627777;
+	pad[1] ^= pad[2] & 0x3b627777;
 }
 
-void major_8 (u32 *key, u32 seed)
+void major_8 (u32 *pad, u32 seed)
 {
-	int type = (key[2] ^ seed ^ key[17]) & 15;
+	int branch = (pad[2] ^ seed ^ pad[17]) & 15;
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[13] -= key[1];
+		pad[13] -= pad[1];
 		minor_26;
-		major_21 (key, seed);
+		major_21 (pad, seed);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		minor_35;
 		TRY (minor_2 (0xe0b52e33));
-		major_16 (key, key[15]);
+		major_16 (pad, pad[15]);
 	}
 
-	seed -= ROR (key[2], 6);
+	seed -= ROR (pad[2], 6);
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[4] ^= 0x9aa940f;
-		key[5] += key[0] ^ 0x3e17add3;
-		major_1 (key, key[12]);
+		pad[4] ^= 0x9aa940f;
+		pad[5] += pad[0] ^ 0x3e17add3;
+		major_1 (pad, pad[12]);
 	}
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		minor_22;
 		minor_17;
-		major_14 (key, key[1]);
+		major_14 (pad, pad[1]);
 	}
 
-	key[12] -= key[17] * 0x74;
+	pad[12] -= pad[17] * 0x74;
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[12] += key[6] + 0x21d7bf61;
-		key[13] *= ROR (key[3], 5);
-		major_6 (key, key[5]);
+		pad[12] += pad[6] + 0x21d7bf61;
+		pad[13] *= ROR (pad[3], 5);
+		major_6 (pad, pad[5]);
 	}
 
-	if (type == 14)
+	if (branch == 14)
 	{
-		key[4] ^= 0x91ac407e;
+		pad[4] ^= 0x91ac407e;
 		TRY (minor_7);
-		major_9 (key, seed);
+		major_9 (pad, seed);
 	}
 
-	key[3] ^= key[7] + 0x137c9f7d;
+	pad[3] ^= pad[7] + 0x137c9f7d;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[7] &= key[13] ^ 0x21aaf758;
-		key[2] ^= key[15] << 5;
-		major_2 (key, key[5]);
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		pad[2] ^= pad[15] << 5;
+		major_2 (pad, pad[5]);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[10] += 0x8958821;
-		key[16] += 0x3d2948e4;
-		major_5 (key, key[4]);
+		pad[10] += 0x8958821;
+		pad[16] += 0x3d2948e4;
+		major_5 (pad, pad[4]);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[3] -= key[0] ^ 0x185f3b0d;
-		key[9] |= key[7] ^ 0x2a19119f;
-		major_12 (key, key[12]);
+		pad[3] -= pad[0] ^ 0x185f3b0d;
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		major_12 (pad, pad[12]);
 	}
 
-	key[11] += key[17] < 0xc9a31cd6 ? key[17] : key[4];
+	pad[11] += pad[17] < 0xc9a31cd6 ? pad[17] : pad[4];
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[9] ^= 0x1c686298;
-		key[12] ^= key[15] - 0xf5cfde0;
-		major_11 (key, key[9]);
+		pad[9] ^= 0x1c686298;
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		major_11 (pad, pad[9]);
 	}
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		key[7] |= 0x378d3869;
+		pad[7] |= 0x378d3869;
 		TRY (minor_13);
-		major_13 (key, key[13]);
+		major_13 (pad, pad[13]);
 	}
 
-	seed *= key[12] + 0xbd99f684;
+	seed *= pad[12] + 0xbd99f684;
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[6] += key[19] - 0x3f5675d6;
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
-		major_22 (key, seed);
+		pad[6] += pad[19] - 0x3f5675d6;
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
+		major_22 (pad, seed);
 	}
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[13] *= 0x1dcee48b;
+		pad[13] *= 0x1dcee48b;
 		minor_30;
-		major_21 (key, seed);
+		major_21 (pad, seed);
 	}
 
-	key[10] += 0xaa3373fc - key[6];
+	pad[10] += 0xaa3373fc - pad[6];
 
-	if (type == 5)
+	if (branch == 5)
 	{
 		minor_31 (0xe);
 		TRY (minor_1 (0xbc90d50));
-		major_16 (key, seed);
+		major_16 (pad, seed);
 	}
 
-	if (type == 15)
+	if (branch == 15)
 	{
-		key[9] |= key[7] ^ 0x2a19119f;
-		key[0] += key[18] ^ 0x4ac16b8d;
-		major_1 (key, seed);
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		pad[0] += pad[18] ^ 0x4ac16b8d;
+		major_1 (pad, seed);
 	}
 
-	if (type == 6)
+	if (branch == 6)
 	{
 		minor_34;
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
-		major_14 (key, seed);
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
+		major_14 (pad, seed);
 	}
 
-	seed ^= key[11] < 0xa4dda95a ? key[11] : key[2];
+	seed ^= pad[11] < 0xa4dda95a ? pad[11] : pad[2];
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[16] += 0x1a36972b;
+		pad[16] += 0x1a36972b;
 		minor_17;
-		major_6 (key, key[5]);
+		major_6 (pad, pad[5]);
 	}
 
-	if (type == 12)
+	if (branch == 12)
 	{
 		TRY (minor_12 (0xb6571d3f));
-		key[0] += key[6] * 0x3c;
-		major_9 (key, key[9]);
+		pad[0] += pad[6] * 0x3c;
+		major_9 (pad, pad[9]);
 	}
 
-	seed *= key[14] + 0x9baa8db;
+	seed *= pad[14] + 0x9baa8db;
 
-	if (type == 9)
+	if (branch == 9)
 	{
 		TRY (minor_9 (0xe378a0ed));
-		key[5] += key[0] ^ 0x3e17add3;
-		major_2 (key, key[8]);
+		pad[5] += pad[0] ^ 0x3e17add3;
+		major_2 (pad, pad[8]);
 	}
 
-	if (type == 11)
+	if (branch == 11)
 	{
 		TRY (minor_10 (0xbd149bd9));
 		minor_32 (0x6476f303);
-		major_5 (key, seed);
+		major_5 (pad, seed);
 	}
 
-	key[17] += my_sqrt (key[12]);
+	pad[17] += my_sqrt (pad[12]);
 
-	if (type == 10)
+	if (branch == 10)
 	{
-		key[13] *= 0xa02fe00;
-		key[12] += key[6] + 0x21d7bf61;
-		major_12 (key, key[19]);
+		pad[13] *= 0xa02fe00;
+		pad[12] += pad[6] + 0x21d7bf61;
+		major_12 (pad, pad[19]);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[13] *= 0x111b84cd;
+		pad[13] *= 0x111b84cd;
 		minor_30;
-		major_11 (key, key[2]);
+		major_11 (pad, pad[2]);
 	}
 
-	key[7] ^= key[9] * 0x27219096;
+	pad[7] ^= pad[9] * 0x27219096;
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[6] += key[19] - 0x3f5675d6;
-		key[16] += 0xfe49a900;
-		major_13 (key, key[15]);
+		pad[6] += pad[19] - 0x3f5675d6;
+		pad[16] += 0xfe49a900;
+		major_13 (pad, pad[15]);
 		TRY (minor_6);
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
-		major_22 (key, key[19]);
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
+		major_22 (pad, pad[19]);
 	}
 
-	ROLEQ (key[2], 0x6c0798b3 ^ seed);
+	ROLEQ (pad[2], 0x6c0798b3 ^ seed);
 }
 
-void major_9 (u32 *key, u32 seed)
+void major_9 (u32 *pad, u32 seed)
 {
-	int type = key[8] & 15;
+	int branch = pad[8] & 15;
 
-	if (type == 10)
+	if (branch == 10)
 	{
 		minor_29;
-		key[7] &= key[13] ^ 0x21aaf758;
-		major_19 (key, key[0]);
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		major_19 (pad, pad[0]);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[16] += 0x45e88961;
+		pad[16] += 0x45e88961;
 		TRY (minor_8);
-		major_25 (key, key[15]);
+		major_25 (pad, pad[15]);
 	}
 
-	if (type == 8)
+	if (branch == 8)
 	{
 		TRY (minor_6);
 		minor_22;
-		major_17 (key, key[2]);
+		major_17 (pad, pad[2]);
 	}
 
-	key[8] |= key[9] * 0x6a;
+	pad[8] |= pad[9] * 0x6a;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[7] &= 0x30004a24;
-		key[9] ^= key[7] * 0x44;
-		major_4 (key, key[11]);
+		pad[7] &= 0x30004a24;
+		pad[9] ^= pad[7] * 0x44;
+		major_4 (pad, pad[11]);
 	}
 
-	if (type == 14)
+	if (branch == 14)
 	{
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
 		TRY (minor_7);
-		major_18 (key, key[13]);
+		major_18 (pad, pad[13]);
 	}
 
-	key[10] &= key[6] - 0x1286a10;
+	pad[10] &= pad[6] - 0x1286a10;
 
-	if (type == 12)
+	if (branch == 12)
 	{
-		key[9] += ROL (key[4], 9);
+		pad[9] += ROL (pad[4], 9);
 		TRY (minor_4);
-		major_15 (key, key[17]);
+		major_15 (pad, pad[17]);
 	}
 
-	if (type == 2)
+	if (branch == 2)
 	{
 		TRY (minor_8);
 		minor_20;
-		major_3 (key, key[13]);
+		major_3 (pad, pad[13]);
 	}
 
 	seed |= seed + 0x20029bc7;
-	ROREQ (key[14], ROL (seed, 8));
+	ROREQ (pad[14], ROL (seed, 8));
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[7] &= key[13] ^ 0x21aaf758;
+		pad[7] &= pad[13] ^ 0x21aaf758;
 		minor_26;
-		major_21 (key, key[5]);
+		major_21 (pad, pad[5]);
 	}
 
-	seed += 0x176cf052 - key[12];
+	seed += 0x176cf052 - pad[12];
 
-	if (type == 15)
+	if (branch == 15)
 	{
-		key[12] ^= key[15] - 0xf5cfde0;
-		key[13] *= 0xa02fe00;
-		major_16 (key, seed);
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		pad[13] *= 0xa02fe00;
+		major_16 (pad, seed);
 	}
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[13] *= ROR (key[3], 5);
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
-		major_1 (key, key[17]);
+		pad[13] *= ROR (pad[3], 5);
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
+		major_1 (pad, pad[17]);
 	}
 
-	ROLEQ (key[8], key[4] | 0xf);
+	ROLEQ (pad[8], pad[4] | 0xf);
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[9] ^= key[7] * 0x44;
-		key[7] &= 0x1df23f52;
-		major_14 (key, key[6]);
+		pad[9] ^= pad[7] * 0x44;
+		pad[7] &= 0x1df23f52;
+		major_14 (pad, pad[6]);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[5] -= key[15];
-		key[6] ^= 0x851242df;
-		major_6 (key, seed);
+		pad[5] -= pad[15];
+		pad[6] ^= 0x851242df;
+		major_6 (pad, seed);
 	}
 
-	key[13] *= key[2] * 0x65;
+	pad[13] *= pad[2] * 0x65;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[14] |= key[3] ^ 0x4345732;
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
-		major_19 (key, key[10]);
+		pad[14] |= pad[3] ^ 0x4345732;
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
+		major_19 (pad, pad[10]);
 	}
 
-	if (type == 6)
+	if (branch == 6)
 	{
 		minor_29;
 		minor_22;
-		major_25 (key, seed);
+		major_25 (pad, seed);
 	}
 
-	key[11] |= ROR (key[17], 29);
+	pad[11] |= ROR (pad[17], 29);
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		key[10] *= key[10] - 0x5eae6bf;
-		key[16] += 0x5e01d54b;
-		major_17 (key, key[18]);
+		pad[10] *= pad[10] - 0x5eae6bf;
+		pad[16] += 0x5e01d54b;
+		major_17 (pad, pad[18]);
 	}
 
-	key[17] &= seed * 0x30;
+	pad[17] &= seed * 0x30;
 
-	if (type == 7)
+	if (branch == 7)
 	{
 		minor_27;
 		TRY (minor_12 (0x65ec261));
-		major_4 (key, key[0]);
+		major_4 (pad, pad[0]);
 	}
 
-	if (type == 11)
+	if (branch == 11)
 	{
-		key[14] |= key[3] ^ 0x4345732;
-		key[0] += key[18] ^ 0x4ac16b8d;
-		major_18 (key, key[16]);
+		pad[14] |= pad[3] ^ 0x4345732;
+		pad[0] += pad[18] ^ 0x4ac16b8d;
+		major_18 (pad, pad[16]);
 	}
 
-	key[13] |= key[3] * 0x3e;
+	pad[13] |= pad[3] * 0x3e;
 }
 
-void major_10 (u32 *key, u32 seed)
+void major_10 (u32 *pad, u32 seed)
 {
-	int type = (key[4] ^ key[12] ^ key[17]) & 15;
+	int branch = (pad[4] ^ pad[12] ^ pad[17]) & 15;
 
-	if (type == 9)
+	if (branch == 9)
 	{
 		TRY (minor_12 (0x9febcd24));
-		key[7] &= 0x259cf308;
-		major_16 (key, key[14]);
+		pad[7] &= 0x259cf308;
+		major_16 (pad, pad[14]);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[6] ^= 0xa7e6f9b9;
-		key[10] *= key[10] - 0x5eae6bf;
-		major_1 (key, key[2]);
+		pad[6] ^= 0xa7e6f9b9;
+		pad[10] *= pad[10] - 0x5eae6bf;
+		major_1 (pad, pad[2]);
 	}
 
-	key[9] += key[11] < 0x3d7f80c ? key[11] : key[9];
+	pad[9] += pad[11] < 0x3d7f80c ? pad[11] : pad[9];
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[12] += key[6] + 0x21d7bf61;
-		key[14] |= key[3] ^ 0x4345732;
-		major_9 (key, key[1]);
+		pad[12] += pad[6] + 0x21d7bf61;
+		pad[14] |= pad[3] ^ 0x4345732;
+		major_9 (pad, pad[1]);
 	}
 
-	if (type == 6)
+	if (branch == 6)
 	{
 		TRY (minor_10 (0xece6bfa0));
-		key[14] |= key[3] ^ 0x4345732;
-		major_14 (key, seed);
+		pad[14] |= pad[3] ^ 0x4345732;
+		major_14 (pad, seed);
 	}
 
-	if (type == 8)
+	if (branch == 8)
 	{
 		TRY (minor_7);
-		key[18] *= key[10] + 0x466e09cf;
-		major_6 (key, key[12]);
+		pad[18] *= pad[10] + 0x466e09cf;
+		major_6 (pad, pad[12]);
 	}
 
-	key[10] *= my_cos (seed) ? 0x16b578ee : key[2];
+	pad[10] *= my_cos (seed) ? 0x16b578ee : pad[2];
 
-	if (type == 6)
+	if (branch == 6)
 	{
 		minor_19;
 		minor_29;
-		major_2 (key, key[10]);
+		major_2 (pad, pad[10]);
 	}
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		key[9] ^= key[7] * 0x44;
+		pad[9] ^= pad[7] * 0x44;
 		minor_35;
-		major_5 (key, key[10]);
+		major_5 (pad, pad[10]);
 	}
 
-	key[17] += seed * 0x4d;
+	pad[17] += seed * 0x4d;
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		minor_26;
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
-		major_12 (key, seed);
-		key[19] ^= key[15] ^ 0x3574ed3;
-		key[10] += 0x9f2550bd;
-		major_13 (key, seed);
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
+		major_12 (pad, seed);
+		pad[19] ^= pad[15] ^ 0x3574ed3;
+		pad[10] += 0x9f2550bd;
+		major_13 (pad, seed);
 	}
 
-	if (type == 14)
+	if (branch == 14)
 	{
 		TRY (minor_8);
 		minor_31 (0x7);
-		major_11 (key, key[19]);
+		major_11 (pad, pad[19]);
 	}
 
-	ROLEQ (seed, key[7] * 0xd);
+	ROLEQ (seed, pad[7] * 0xd);
 
-	if (type == 12)
+	if (branch == 12)
 	{
-		key[9] &= 0x2f23cdc6;
-		key[10] *= key[10] - 0x5eae6bf;
-		major_22 (key, key[2]);
+		pad[9] &= 0x2f23cdc6;
+		pad[10] *= pad[10] - 0x5eae6bf;
+		major_22 (pad, pad[2]);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		minor_28;
 		minor_26;
-		major_8 (key, key[4]);
-		key[12] *= key[12];
+		major_8 (pad, pad[4]);
+		pad[12] *= pad[12];
 		TRY (minor_6);
-		major_16 (key, key[18]);
+		major_16 (pad, pad[18]);
 	}
 
-	key[4] += my_sin (key[0]) ? 0x1873296 : key[1];
+	pad[4] += my_sin (pad[0]) ? 0x1873296 : pad[1];
 
-	if (type == 10)
+	if (branch == 10)
 	{
 		minor_26;
 		TRY (minor_13);
-		major_1 (key, key[8]);
+		major_1 (pad, pad[8]);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[12] *= 0xf44cb55;
-		key[16] += 0x75a864cf;
-		major_14 (key, key[4]);
+		pad[12] *= 0xf44cb55;
+		pad[16] += 0x75a864cf;
+		major_14 (pad, pad[4]);
 	}
 
-	key[12] += 0x1c0bd6db - key[11];
+	pad[12] += 0x1c0bd6db - pad[11];
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[13] *= 0x17b441db;
+		pad[13] *= 0x17b441db;
 		TRY (minor_12 (0x8951503f));
-		major_9 (key, key[19]);
+		major_9 (pad, pad[19]);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
 		TRY (minor_7);
 		minor_26;
-		major_6 (key, key[14]);
+		major_6 (pad, pad[14]);
 	}
 
-	if (type == 11)
+	if (branch == 11)
 	{
-		key[0] += key[6] * 0x3c;
-		key[4] -= key[17] ^ 0x2217cf47;
-		major_2 (key, key[8]);
+		pad[0] += pad[6] * 0x3c;
+		pad[4] -= pad[17] ^ 0x2217cf47;
+		major_2 (pad, pad[8]);
 	}
 
-	key[18] -= key[6] * 0x2c;
+	pad[18] -= pad[6] * 0x2c;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[13] *= 0x1855aabc;
+		pad[13] *= 0x1855aabc;
 		TRY (minor_3);
-		major_12 (key, seed);
+		major_12 (pad, seed);
 	}
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[18] *= key[10] + 0x466e09cf;
-		key[9] ^= key[7] * 0x44;
-		major_11 (key, key[10]);
+		pad[18] *= pad[10] + 0x466e09cf;
+		pad[9] ^= pad[7] * 0x44;
+		major_11 (pad, pad[10]);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[18] *= key[10] + 0x466e09cf;
+		pad[18] *= pad[10] + 0x466e09cf;
 		minor_29;
-		major_5 (key, key[15]);
+		major_5 (pad, pad[15]);
 	}
 
-	key[6] ^= key[16] ^ 0x354e354d;
+	pad[6] ^= pad[16] ^ 0x354e354d;
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		TRY (minor_8);
 		minor_22;
-		major_8 (key, key[8]);
+		major_8 (pad, pad[8]);
 	}
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[6] += 0xfe07af0e - key[3];
-		key[13] *= 0xa02fe00;
-		major_16 (key, key[10]);
+		pad[6] += 0xfe07af0e - pad[3];
+		pad[13] *= 0xa02fe00;
+		major_16 (pad, pad[10]);
 	}
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[14] |= key[3] ^ 0x4345732;
+		pad[14] |= pad[3] ^ 0x4345732;
 		minor_32 (0x8a0e1ad7);
-		major_22 (key, key[8]);
+		major_22 (pad, pad[8]);
 	}
 
-	if (type == 15)
+	if (branch == 15)
 	{
-		key[9] |= key[7] ^ 0x2a19119f;
+		pad[9] |= pad[7] ^ 0x2a19119f;
 		minor_28;
-		major_13 (key, seed);
+		major_13 (pad, seed);
 	}
 
-	key[3] += key[13] + 0x3ba9c809;
+	pad[3] += pad[13] + 0x3ba9c809;
 }
 
-void major_11 (u32 *key, u32 seed)
+void major_11 (u32 *pad, u32 seed)
 {
-	int type = (key[6] ^ seed ^ key[14]) & 15;
+	int branch = (pad[6] ^ seed ^ pad[14]) & 15;
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[19] ^= key[15] ^ 0x3574ed3;
-		key[13] -= key[1];
-		major_18 (key, key[0]);
+		pad[19] ^= pad[15] ^ 0x3574ed3;
+		pad[13] -= pad[1];
+		major_18 (pad, pad[0]);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[7] ^= 0x414517ea;
+		pad[7] ^= 0x414517ea;
 		TRY (minor_4);
-		major_15 (key, key[13]);
+		major_15 (pad, pad[13]);
 	}
 
-	key[14] &= seed * 0x3f;
+	pad[14] &= seed * 0x3f;
 
-	if (type == 10)
+	if (branch == 10)
 	{
 		minor_19;
-		key[9] &= 0x38063558;
-		major_3 (key, key[10]);
+		pad[9] &= 0x38063558;
+		major_3 (pad, pad[10]);
 	}
 
-	if (type == 15)
+	if (branch == 15)
 	{
 		minor_34;
-		key[12] += 0x5c1481dd;
-		major_21 (key, key[11]);
+		pad[12] += 0x5c1481dd;
+		major_21 (pad, pad[11]);
 	}
 
-	ROREQ (key[10], key[14] * 0x13);
+	ROREQ (pad[10], pad[14] * 0x13);
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
-		key[12] ^= key[15] - 0xf5cfde0;
-		major_16 (key, seed);
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		major_16 (pad, seed);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[3] -= key[0] ^ 0x185f3b0d;
-		key[6] ^= 0xa8115127;
-		major_1 (key, key[5]);
+		pad[3] -= pad[0] ^ 0x185f3b0d;
+		pad[6] ^= 0xa8115127;
+		major_1 (pad, pad[5]);
 	}
 
-	key[11] ^= seed - 0x3c17609c;
+	pad[11] ^= seed - 0x3c17609c;
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[12] += key[6] ^ 0x211f5e40;
+		pad[12] += pad[6] ^ 0x211f5e40;
 		minor_29;
-		major_14 (key, seed);
+		major_14 (pad, seed);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		ROREQ (key[9], 11);
+		ROREQ (pad[9], 11);
 		TRY (minor_3);
-		major_6 (key, key[11]);
+		major_6 (pad, pad[11]);
 	}
 
-	key[14] += my_sin (key[9]) ? 0x2d3f1771 : key[11];
+	pad[14] += my_sin (pad[9]) ? 0x2d3f1771 : pad[11];
 
-	if (type == 5)
+	if (branch == 5)
 	{
 		TRY (minor_8);
-		key[0] += key[18] ^ 0x4ac16b8d;
-		major_9 (key, key[9]);
+		pad[0] += pad[18] ^ 0x4ac16b8d;
+		major_9 (pad, pad[9]);
 	}
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[12] *= 0xf44cb55;
+		pad[12] *= 0xf44cb55;
 		minor_31 (0x1f);
-		major_2 (key, key[13]);
+		major_2 (pad, pad[13]);
 	}
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[9] &= 0x3f34e168;
-		key[18] *= key[10] + 0x466e09cf;
-		major_5 (key, seed);
+		pad[9] &= 0x3f34e168;
+		pad[18] *= pad[10] + 0x466e09cf;
+		major_5 (pad, seed);
 	}
 
-	key[18] &= key[17] + 0x21012257;
+	pad[18] &= pad[17] + 0x21012257;
 
-	if (type == 14)
+	if (branch == 14)
 	{
-		key[6] += 0xfe07af0e - key[3];
+		pad[6] += 0xfe07af0e - pad[3];
 		TRY (minor_2 (0x51f9a91a));
-		major_12 (key, key[14]);
+		major_12 (pad, pad[14]);
 	}
 
-	if (type == 12)
+	if (branch == 12)
 	{
-		key[14] |= key[3] ^ 0x4345732;
-		key[16] += 0x485c892b;
-		major_18 (key, key[12]);
+		pad[14] |= pad[3] ^ 0x4345732;
+		pad[16] += 0x485c892b;
+		major_18 (pad, pad[12]);
 	}
 
-	key[19] &= key[10] ^ 0x6fc516d5;
+	pad[19] &= pad[10] ^ 0x6fc516d5;
 
-	if (type == 6)
+	if (branch == 6)
 	{
 		TRY (minor_5);
-		key[12] += key[6] ^ 0x211f5e40;
-		major_15 (key, key[13]);
+		pad[12] += pad[6] ^ 0x211f5e40;
+		major_15 (pad, pad[13]);
 	}
 
-	if (type == 11)
+	if (branch == 11)
 	{
 		TRY (minor_6);
 		minor_28;
-		major_3 (key, seed);
+		major_3 (pad, seed);
 	}
 
-	key[8] ^= key[11] * 0x7b;
+	pad[8] ^= pad[11] * 0x7b;
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[2] *= key[3] + 0xd6863a6;
+		pad[2] *= pad[3] + 0xd6863a6;
 		minor_26;
-		major_21 (key, key[4]);
+		major_21 (pad, pad[4]);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[19] ^= key[15] ^ 0x3574ed3;
+		pad[19] ^= pad[15] ^ 0x3574ed3;
 		minor_17;
-		major_16 (key, key[9]);
+		major_16 (pad, pad[9]);
 	}
 
-	key[0] += key[13] + 0x88a77a94;
+	pad[0] += pad[13] + 0x88a77a94;
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		TRY (minor_2 (0xf10f9d87));
-		key[12] ^= key[15] - 0xf5cfde0;
-		major_1 (key, key[15]);
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		major_1 (pad, pad[15]);
 	}
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[13] -= key[1];
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
-		major_14 (key, key[18]);
+		pad[13] -= pad[1];
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
+		major_14 (pad, pad[18]);
 	}
 
-	seed *= key[8] - 0x44260e37;
+	seed *= pad[8] - 0x44260e37;
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		minor_26;
-		key[10] += 0x8958821;
-		major_6 (key, key[8]);
+		pad[10] += 0x8958821;
+		major_6 (pad, pad[8]);
 	}
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		key[0] += key[18] ^ 0x4ac16b8d;
-		key[7] ^= 0x129d6c5e;
-		major_9 (key, seed);
+		pad[0] += pad[18] ^ 0x4ac16b8d;
+		pad[7] ^= 0x129d6c5e;
+		major_9 (pad, seed);
 	}
 
-	key[2] &= ROL (key[19], 14);
+	pad[2] &= ROL (pad[19], 14);
 }
 
-void major_12 (u32 *key, u32 seed)
+void major_12 (u32 *pad, u32 seed)
 {
-	int type = (key[7] ^ seed ^ key[18]) & 15;
+	int branch = (pad[7] ^ seed ^ pad[18]) & 15;
 
-	if (type == 15)
+	if (branch == 15)
 	{
 		TRY (minor_7);
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
-		major_4 (key, key[17]);
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
+		major_4 (pad, pad[17]);
 	}
 
-	key[8] |= seed + 0xe43fc6b;
+	pad[8] |= seed + 0xe43fc6b;
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		minor_32 (0x979304f6);
 		minor_26;
-		major_18 (key, key[6]);
+		major_18 (pad, pad[6]);
 	}
 
-	if (type == 8)
+	if (branch == 8)
 	{
 		minor_20;
 		TRY (minor_12 (0xf7131053));
-		major_15 (key, key[13]);
+		major_15 (pad, pad[13]);
 	}
 
-	key[19] ^= seed * 0x4b;
+	pad[19] ^= seed * 0x4b;
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[13] *= 0x85695585;
-		key[13] *= 0x2c9514d7;
-		major_3 (key, key[17]);
+		pad[13] *= 0x85695585;
+		pad[13] *= 0x2c9514d7;
+		major_3 (pad, pad[17]);
 	}
 
-	if (type == 10)
+	if (branch == 10)
 	{
-		key[9] |= key[7] ^ 0x2a19119f;
+		pad[9] |= pad[7] ^ 0x2a19119f;
 		TRY (minor_1 (0x433a0094));
-		major_21 (key, key[8]);
+		major_21 (pad, pad[8]);
 	}
 
-	key[1] ^= key[14] * 0x16;
+	pad[1] ^= pad[14] * 0x16;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[13] *= 0x136644be;
+		pad[13] *= 0x136644be;
 		TRY (minor_6);
-		major_16 (key, key[14]);
+		major_16 (pad, pad[14]);
 	}
 
-	key[7] |= seed ^ 0xe857063;
+	pad[7] |= seed ^ 0xe857063;
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[18] -= key[13] ^ 0x154abcdf;
-		key[12] += 0xf894616a;
-		major_1 (key, key[6]);
+		pad[18] -= pad[13] ^ 0x154abcdf;
+		pad[12] += 0xf894616a;
+		major_1 (pad, pad[6]);
 	}
 
-	if (type == 9)
+	if (branch == 9)
 	{
 		TRY (minor_3);
-		key[7] &= 0x3b887f26;
-		major_14 (key, key[7]);
+		pad[7] &= 0x3b887f26;
+		major_14 (pad, pad[7]);
 	}
 
-	ROREQ (key[6], key[9] * 0x8413f1b6);
+	ROREQ (pad[6], pad[9] * 0x8413f1b6);
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		TRY (minor_9 (0xcd88ea76));
 		TRY (minor_8);
-		major_6 (key, key[19]);
+		major_6 (pad, pad[19]);
 	}
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		ROREQ (key[9], 5);
-		TRY (ROREQ (key[1], 0x8));
-		major_9 (key, key[1]);
+		ROREQ (pad[9], 5);
+		TRY (ROREQ (pad[1], 0x8));
+		major_9 (pad, pad[1]);
 	}
 
-	key[6] -= key[17] < 0x417e2f7b ? key[17] : key[19];
+	pad[6] -= pad[17] < 0x417e2f7b ? pad[17] : pad[19];
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[9] |= key[7] ^ 0x2a19119f;
+		pad[9] |= pad[7] ^ 0x2a19119f;
 		minor_19;
-		major_2 (key, key[1]);
+		major_2 (pad, pad[1]);
 	}
 
-	if (type == 12)
+	if (branch == 12)
 	{
-		key[13] -= key[1];
-		key[0] += key[6] * 0x3c;
-		major_5 (key, key[7]);
+		pad[13] -= pad[1];
+		pad[0] += pad[6] * 0x3c;
+		major_5 (pad, pad[7]);
 	}
 
-	key[6] |= my_sqrt (seed);
+	pad[6] |= my_sqrt (seed);
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[2] ^= key[15] << 5;
-		key[7] &= key[13] ^ 0x21aaf758;
-		major_4 (key, seed);
+		pad[2] ^= pad[15] << 5;
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		major_4 (pad, seed);
 	}
 
-	key[2] ^= key[8] + 0x3e85747b;
+	pad[2] ^= pad[8] + 0x3e85747b;
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		minor_20;
-		key[9] &= 0x5a61aa8d;
-		major_18 (key, key[14]);
+		pad[9] &= 0x5a61aa8d;
+		major_18 (pad, pad[14]);
 	}
 
-	if (type == 11)
+	if (branch == 11)
 	{
-		key[6] += 0xfe07af0e - key[3];
+		pad[6] += 0xfe07af0e - pad[3];
 		minor_32 (0xbf47f027);
-		major_15 (key, key[3]);
+		major_15 (pad, pad[3]);
 	}
 
-	key[2] &= seed;
+	pad[2] &= seed;
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[13] *= 0xc9cf079;
-		key[18] -= key[13] ^ 0x154abcdf;
-		major_3 (key, key[4]);
+		pad[13] *= 0xc9cf079;
+		pad[18] -= pad[13] ^ 0x154abcdf;
+		major_3 (pad, pad[4]);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[12] ^= key[15] - 0xf5cfde0;
+		pad[12] ^= pad[15] - 0xf5cfde0;
 		TRY (minor_4);
-		major_21 (key, key[14]);
+		major_21 (pad, pad[14]);
 	}
 
-	seed += key[9] - 0xbc1b5d9;
+	seed += pad[9] - 0xbc1b5d9;
 
-	if (type == 14)
+	if (branch == 14)
 	{
 		TRY (minor_8);
-		key[9] ^= key[7] * 0x44;
-		major_16 (key, seed);
+		pad[9] ^= pad[7] * 0x44;
+		major_16 (pad, seed);
 	}
 
-	key[18] += key[11] * 0x5b;
+	pad[18] += pad[11] * 0x5b;
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[7] &= key[13] ^ 0x21aaf758;
+		pad[7] &= pad[13] ^ 0x21aaf758;
 		minor_17;
-		major_1 (key, key[1]);
+		major_1 (pad, pad[1]);
 	}
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[2] ^= key[15] << 5;
-		key[18] -= key[13] ^ 0x154abcdf;
-		major_14 (key, seed);
+		pad[2] ^= pad[15] << 5;
+		pad[18] -= pad[13] ^ 0x154abcdf;
+		major_14 (pad, seed);
 	}
 
-	key[4] ^= key[4] - 0xe87fd622;
+	pad[4] ^= pad[4] - 0xe87fd622;
 }
 
-void major_13 (u32 *key, u32 seed)
+void major_13 (u32 *pad, u32 seed)
 {
-	int type = (key[4] ^ seed ^ key[18]) & 15;
+	int branch = (pad[4] ^ seed ^ pad[18]) & 15;
 
-	if (type == 12)
+	if (branch == 12)
 	{
 		minor_29;
-		key[9] |= key[7] ^ 0x2a19119f;
-		major_15 (key, key[11]);
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		major_15 (pad, pad[11]);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		ROREQ (key[9], 10);
-		key[12] ^= key[15] - 0xf5cfde0;
-		major_3 (key, seed);
+		ROREQ (pad[9], 10);
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		major_3 (pad, seed);
 	}
 
-	seed ^= key[1] * 0x6c;
+	seed ^= pad[1] * 0x6c;
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		TRY (minor_12 (0xad86172c));
-		key[12] ^= key[15] - 0xf5cfde0;
-		major_21 (key, key[7]);
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		major_21 (pad, pad[7]);
 	}
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[0] += key[6] * 0x3c;
-		key[9] &= 0xa2cc0e51;
-		major_16 (key, key[10]);
+		pad[0] += pad[6] * 0x3c;
+		pad[9] &= 0xa2cc0e51;
+		major_16 (pad, pad[10]);
 	}
 
-	key[11] += key[8] - 0xef3b680;
+	pad[11] += pad[8] - 0xef3b680;
 
-	if (type == 5)
+	if (branch == 5)
 	{
 		minor_20;
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
-		major_1 (key, seed);
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
+		major_1 (pad, seed);
 	}
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[12] += 0x1f3bc7f4;
-		key[9] += ROL (key[4], 9);
-		major_14 (key, key[3]);
+		pad[12] += 0x1f3bc7f4;
+		pad[9] += ROL (pad[4], 9);
+		major_14 (pad, pad[3]);
 	}
 
-	key[19] -= seed ^ 0x42b04005;
+	pad[19] -= seed ^ 0x42b04005;
 
-	if (type == 8)
+	if (branch == 8)
 	{
 		TRY (minor_13);
-		key[0] += key[18] ^ 0x4ac16b8d;
-		major_6 (key, key[2]);
+		pad[0] += pad[18] ^ 0x4ac16b8d;
+		major_6 (pad, pad[2]);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		TRY (minor_13);
 		minor_17;
-		major_9 (key, seed);
+		major_9 (pad, seed);
 	}
 
-	key[0] += my_sqrt (key[16]);
+	pad[0] += my_sqrt (pad[16]);
 
-	if (type == 11)
+	if (branch == 11)
 	{
-		key[12] ^= key[15] - 0xf5cfde0;
-		ROREQ (key[4], 0x19);
-		major_2 (key, key[19]);
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		ROREQ (pad[4], 0x19);
+		major_2 (pad, pad[19]);
 	}
 
-	if (type == 13)
+	if (branch == 13)
 	{
 		TRY (minor_4);
 		minor_26;
-		major_5 (key, key[7]);
+		major_5 (pad, pad[7]);
 	}
 
-	seed += key[17] | 0xead7ac4a;
+	seed += pad[17] | 0xead7ac4a;
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		TRY (minor_1 (0xd3280a0));
-		key[7] ^= 0x3eb9d37;
-		major_12 (key, key[12]);
+		pad[7] ^= 0x3eb9d37;
+		major_12 (pad, pad[12]);
 	}
 
-	if (type == 14)
+	if (branch == 14)
 	{
 		minor_28;
 		minor_31 (0x1f);
-		major_11 (key, seed);
+		major_11 (pad, seed);
 	}
 
-	ROREQ (key[2], key[15] < 0x3f2998c ? key[15] : seed);
+	ROREQ (pad[2], pad[15] < 0x3f2998c ? pad[15] : seed);
 
-	if (type == 5)
+	if (branch == 5)
 	{
 		TRY (minor_12 (0x2dd0e73));
 		minor_26;
-		major_15 (key, seed);
+		major_15 (pad, seed);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		TRY (minor_9 (0x21602b81));
-		key[13] *= 0x52fa4a96;
-		major_3 (key, seed);
+		pad[13] *= 0x52fa4a96;
+		major_3 (pad, seed);
 	}
 
-	key[4] += key[2] ^ 0x1579499;
+	pad[4] += pad[2] ^ 0x1579499;
 
-	if (type == 10)
+	if (branch == 10)
 	{
 		TRY (minor_7);
-		key[5] += key[0] ^ 0x3e17add3;
-		major_21 (key, key[5]);
+		pad[5] += pad[0] ^ 0x3e17add3;
+		major_21 (pad, pad[5]);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		TRY (minor_5);
-		key[0] += key[6] * 0x3c;
-		major_16 (key, key[8]);
+		pad[0] += pad[6] * 0x3c;
+		major_16 (pad, pad[8]);
 	}
 
-	seed -= key[2] * 0x74;
+	seed -= pad[2] * 0x74;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[13] -= key[1];
-		key[19] ^= key[15] ^ 0x3574ed3;
-		major_1 (key, seed);
+		pad[13] -= pad[1];
+		pad[19] ^= pad[15] ^ 0x3574ed3;
+		major_1 (pad, seed);
 	}
 
-	if (type == 15)
+	if (branch == 15)
 	{
-		key[9] &= 0x334ce7cf;
+		pad[9] &= 0x334ce7cf;
 		TRY (minor_10 (0xbcbc7bb));
-		major_14 (key, seed);
+		major_14 (pad, seed);
 	}
 
-	key[10] -= key[10] | 0xae9eedbf;
+	pad[10] -= pad[10] | 0xae9eedbf;
 
-	if (type == 6)
+	if (branch == 6)
 	{
 		TRY (minor_3);
 		TRY (minor_6);
-		major_6 (key, key[11]);
+		major_6 (pad, pad[11]);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
-		key[13] *= 0x9f7e2a0;
-		major_9 (key, key[19]);
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
+		pad[13] *= 0x9f7e2a0;
+		major_9 (pad, pad[19]);
 	}
 
-	seed += key[17] ^ 0xae9eedbf;
+	seed += pad[17] ^ 0xae9eedbf;
 
-	if (type == 7)
+	if (branch == 7)
 	{
 		TRY (minor_8);
-		key[18] *= key[10] + 0x466e09cf;
-		major_2 (key, key[8]);
+		pad[18] *= pad[10] + 0x466e09cf;
+		major_2 (pad, pad[8]);
 	}
 
-	if (type == 2)
+	if (branch == 2)
 	{
 		TRY (minor_3);
-		key[9] |= key[7] ^ 0x2a19119f;
-		major_5 (key, key[18]);
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		major_5 (pad, pad[18]);
 	}
 
-	key[16] -= key[11] < 0x1e7d86ee ? key[11] : seed;
+	pad[16] -= pad[11] < 0x1e7d86ee ? pad[11] : seed;
 }
 
-void major_14 (u32 *key, u32 seed)
+void major_14 (u32 *pad, u32 seed)
 {
-	int type = (key[8] ^ seed ^ key[11]) % 14;
+	int branch = (pad[8] ^ seed ^ pad[11]) % 14;
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		TRY (minor_1 (0xe32bdca0));
 		minor_30;
-		major_23 (key, key[19]);
+		major_23 (pad, pad[19]);
 	}
 
 	seed -= seed ^ 0xf74450ff;
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		minor_32 (0x788c78a4);
-		key[13] -= key[1];
-		major_24 (key, seed);
+		pad[13] -= pad[1];
+		major_24 (pad, seed);
 	}
 
-	key[13] -= my_cos (key[3]) ? 0xf74450ff : key[4];
+	pad[13] -= my_cos (pad[3]) ? 0xf74450ff : pad[4];
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[9] |= key[7] ^ 0x2a19119f;
-		ROREQ (key[9], 11);
-		major_19 (key, seed);
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		ROREQ (pad[9], 11);
+		major_19 (pad, seed);
 	}
 
-	key[9] ^= key[6] * 0x59;
+	pad[9] ^= pad[6] * 0x59;
 
-	if (type == 7)
+	if (branch == 7)
 	{
 		minor_26;
-		key[6] += 0xfe07af0e - key[3];
-		major_25 (key, key[11]);
+		pad[6] += 0xfe07af0e - pad[3];
+		major_25 (pad, pad[11]);
 	}
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[13] -= key[1];
-		key[4] ^= 0xb949718c;
-		major_17 (key, key[7]);
+		pad[13] -= pad[1];
+		pad[4] ^= 0xb949718c;
+		major_17 (pad, pad[7]);
 	}
 
-	key[1] ^= my_sin (seed) ? 0xc90f1504 : key[17];
+	pad[1] ^= my_sin (seed) ? 0xc90f1504 : pad[17];
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		key[9] &= 0x59d432be;
-		key[18] -= key[13] ^ 0x154abcdf;
-		major_4 (key, key[4]);
+		pad[9] &= 0x59d432be;
+		pad[18] -= pad[13] ^ 0x154abcdf;
+		major_4 (pad, pad[4]);
 	}
 
-	key[17] += key[13] < 0xac24eb8 ? key[13] : key[9];
+	pad[17] += pad[13] < 0xac24eb8 ? pad[13] : pad[9];
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[4] ^= 0x3bcc51a7;
-		key[12] += 0x4ec6cf36;
-		major_18 (key, key[1]);
+		pad[4] ^= 0x3bcc51a7;
+		pad[12] += 0x4ec6cf36;
+		major_18 (pad, pad[1]);
 	}
 
-	seed |= ROR (key[18], 11);
+	seed |= ROR (pad[18], 11);
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		minor_20;
-		key[5] -= key[15];
-		major_15 (key, key[0]);
+		pad[5] -= pad[15];
+		major_15 (pad, pad[0]);
 	}
 
-	key[4] += seed + 0xf65efbd;
+	pad[4] += seed + 0xf65efbd;
 
-	if (type == 10)
+	if (branch == 10)
 	{
 		TRY (minor_5);
-		key[2] *= key[3] + 0xd6863a6;
-		major_3 (key, key[5]);
+		pad[2] *= pad[3] + 0xd6863a6;
+		major_3 (pad, pad[5]);
 	}
 
-	if (type == 11)
+	if (branch == 11)
 	{
-		key[7] &= 0xdf76eba8;
+		pad[7] &= 0xdf76eba8;
 		TRY (minor_6);
-		major_21 (key, seed);
+		major_21 (pad, seed);
 	}
 
-	key[4] ^= ROL (key[8], 22);
+	pad[4] ^= ROL (pad[8], 22);
 
-	if (type == 6)
+	if (branch == 6)
 	{
 		TRY (minor_10 (0xec30bd82));
-		key[2] *= key[3] + 0xd6863a6;
-		major_16 (key, key[13]);
+		pad[2] *= pad[3] + 0xd6863a6;
+		major_16 (pad, pad[13]);
 	}
 
-	seed *= key[6] + 0x6bbeb974;
+	seed *= pad[6] + 0x6bbeb974;
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[18] *= key[10] + 0x466e09cf;
-		key[2] *= key[3] + 0xd6863a6;
-		major_1 (key, key[6]);
+		pad[18] *= pad[10] + 0x466e09cf;
+		pad[2] *= pad[3] + 0xd6863a6;
+		major_1 (pad, pad[6]);
 	}
 
-	key[16] -= key[2] * 0x65a10fa8;
+	pad[16] -= pad[2] * 0x65a10fa8;
 
-	if (type == 12)
+	if (branch == 12)
 	{
-		key[19] ^= key[15] ^ 0x3574ed3;
-		ROREQ (key[9], 15);
-		major_23 (key, key[14]);
+		pad[19] ^= pad[15] ^ 0x3574ed3;
+		ROREQ (pad[9], 15);
+		major_23 (pad, pad[14]);
 	}
 
-	ROREQ (key[13], my_sqrt (seed));
+	ROREQ (pad[13], my_sqrt (seed));
 
-	if (type == 4)
+	if (branch == 4)
 	{
 		minor_19;
 		minor_17;
-		major_24 (key, key[0]);
+		major_24 (pad, pad[0]);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[7] ^= 0xc9d1f4a2;
+		pad[7] ^= 0xc9d1f4a2;
 		minor_26;
-		major_19 (key, seed);
+		major_19 (pad, seed);
 	}
 
-	key[12] -= my_sin (key[10]) ? 0x2818ae3c : seed;
+	pad[12] -= my_sin (pad[10]) ? 0x2818ae3c : seed;
 }
 
-void major_15 (u32 *key, u32 seed)
+void major_15 (u32 *pad, u32 seed)
 {
-	int type = (key[17] ^ seed ^ key[19]) % 9;
+	int branch = (pad[17] ^ seed ^ pad[19]) % 9;
 
-	ROREQ (key[19], key[19] + 0xa);
+	ROREQ (pad[19], pad[19] + 0xa);
 
-	if (type == 4)
+	if (branch == 4)
 	{
 		minor_19;
-		key[6] ^= 0xf4c1a1c8;
-		minor_37 (key);
+		pad[6] ^= 0xf4c1a1c8;
+		minor_37 (pad);
 	}
 
-	key[5] ^= seed + 0x1ff8749d;
+	pad[5] ^= seed + 0x1ff8749d;
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		ROREQ (key[4], 0x19);
-		key[9] += ROL (key[4], 9);
-		minor_36 (key);
+		ROREQ (pad[4], 0x19);
+		pad[9] += ROL (pad[4], 9);
+		minor_36 (pad);
 	}
 
-	key[13] ^= key[15] + 0x19ad9d3;
+	pad[13] ^= pad[15] + 0x19ad9d3;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[14] |= key[3] ^ 0x4345732;
+		pad[14] |= pad[3] ^ 0x4345732;
 		minor_26;
-		major_23 (key, key[13]);
+		major_23 (pad, pad[13]);
 	}
 
-	ROREQ (key[3], my_sqrt (key[9]));
+	ROREQ (pad[3], my_sqrt (pad[9]));
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[16] += 0x188ae78f;
-		key[2] ^= key[15] << 5;
-		major_24 (key, key[12]);
+		pad[16] += 0x188ae78f;
+		pad[2] ^= pad[15] << 5;
+		major_24 (pad, pad[12]);
 	}
 
-	seed ^= key[12] ^ 0x82494ea7;
+	seed ^= pad[12] ^ 0x82494ea7;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[14] |= key[3] ^ 0x4345732;
-		key[7] &= 0x97ea531;
-		major_19 (key, key[6]);
+		pad[14] |= pad[3] ^ 0x4345732;
+		pad[7] &= 0x97ea531;
+		major_19 (pad, pad[6]);
 	}
 
-	ROLEQ (key[0], 0x82494ea7 & seed);
+	ROLEQ (pad[0], 0x82494ea7 & seed);
 
-	if (type == 7)
+	if (branch == 7)
 	{
 		minor_20;
 		TRY (minor_9 (0xd3d79cb4));
-		major_25 (key, key[6]);
+		major_25 (pad, pad[6]);
 	}
 
-	key[18] ^= key[9] - 0x5606038;
+	pad[18] ^= pad[9] - 0x5606038;
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
-		key[16] += 0x6a07a3d0;
-		major_17 (key, key[8]);
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
+		pad[16] += 0x6a07a3d0;
+		major_17 (pad, pad[8]);
 	}
 
-	key[9] |= my_sin (key[7]) ? 0x3ec62d23 : key[6];
+	pad[9] |= my_sin (pad[7]) ? 0x3ec62d23 : pad[6];
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[18] *= key[10] + 0x466e09cf;
+		pad[18] *= pad[10] + 0x466e09cf;
 		TRY (minor_6);
-		major_4 (key, key[1]);
+		major_4 (pad, pad[1]);
 	}
 
-	if (type == 6)
+	if (branch == 6)
 	{
 		minor_27;
 		minor_22;
-		major_18 (key, key[0]);
+		major_18 (pad, pad[0]);
 	}
 }
 
-void major_16 (u32 *key, u32 seed)
+void major_16 (u32 *pad, u32 seed)
 {
-	int type = (key[11] ^ seed ^ key[5]) % 12;
+	int branch = (pad[11] ^ seed ^ pad[5]) % 12;
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[2] *= key[3] + 0xd6863a6;
+		pad[2] *= pad[3] + 0xd6863a6;
 		minor_22;
-		minor_37 (key);
+		minor_37 (pad);
 	}
 
-	key[4] ^= seed - 0xafd4eac;
+	pad[4] ^= seed - 0xafd4eac;
 
-	if (type == 2)
+	if (branch == 2)
 	{
 		TRY (minor_5);
-		key[0] += key[18] ^ 0x4ac16b8d;
-		minor_36 (key);
+		pad[0] += pad[18] ^ 0x4ac16b8d;
+		minor_36 (pad);
 	}
 
-	key[15] -= 0xafd4eac ^ seed;
+	pad[15] -= 0xafd4eac ^ seed;
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		TRY (minor_2 (0x80e3e69e));
-		ROREQ (key[9], 12);
-		major_23 (key, key[4]);
+		ROREQ (pad[9], 12);
+		major_23 (pad, pad[4]);
 	}
 
-	key[8] ^= my_sqrt (key[16]);
+	pad[8] ^= my_sqrt (pad[16]);
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[9] ^= 0x8e61a4f;
-		key[13] -= key[1];
-		major_24 (key, seed);
+		pad[9] ^= 0x8e61a4f;
+		pad[13] -= pad[1];
+		major_24 (pad, seed);
 	}
 
-	if (type == 10)
+	if (branch == 10)
 	{
-		key[6] += key[19] - 0x3f5675d6;
-		key[13] *= 0xa02fe00;
-		major_19 (key, key[6]);
+		pad[6] += pad[19] - 0x3f5675d6;
+		pad[13] *= 0xa02fe00;
+		major_19 (pad, pad[6]);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
 		TRY (minor_8);
 		TRY (minor_5);
-		major_25 (key, key[0]);
+		major_25 (pad, pad[0]);
 	}
 
-	key[8] ^= key[15] * 0x5f;
+	pad[8] ^= pad[15] * 0x5f;
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		minor_32 (0x6191efec);
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
-		major_17 (key, key[9]);
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
+		major_17 (pad, pad[9]);
 	}
 
 	seed -= seed & 0x179da692;
-	key[6] &= my_sin (seed) ? 0xcc35b823 : key[14];
+	pad[6] &= my_sin (seed) ? 0xcc35b823 : pad[14];
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[6] += 0xfe07af0e - key[3];
-		key[0] += key[18] ^ 0x4ac16b8d;
-		major_4 (key, key[0]);
+		pad[6] += 0xfe07af0e - pad[3];
+		pad[0] += pad[18] ^ 0x4ac16b8d;
+		major_4 (pad, pad[0]);
 	}
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[7] |= 0xa885099;
-		key[9] ^= 0xdd34e6b;
-		major_18 (key, seed);
+		pad[7] |= 0xa885099;
+		pad[9] ^= 0xdd34e6b;
+		major_18 (pad, seed);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[12] += 0x5e6f4861;
-		key[18] -= key[13] ^ 0x154abcdf;
-		major_15 (key, key[14]);
+		pad[12] += 0x5e6f4861;
+		pad[18] -= pad[13] ^ 0x154abcdf;
+		major_15 (pad, pad[14]);
 	}
 
-	key[10] += key[1] + 0x217f7a00;
+	pad[10] += pad[1] + 0x217f7a00;
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[0] += key[18] ^ 0x4ac16b8d;
+		pad[0] += pad[18] ^ 0x4ac16b8d;
 		minor_27;
-		major_3 (key, key[17]);
+		major_3 (pad, pad[17]);
 	}
 
-	key[5] &= ROR (key[0], 14);
+	pad[5] &= ROR (pad[0], 14);
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[2] *= key[3] + 0xd6863a6;
-		key[9] ^= key[7] * 0x44;
-		major_21 (key, key[13]);
+		pad[2] *= pad[3] + 0xd6863a6;
+		pad[9] ^= pad[7] * 0x44;
+		major_21 (pad, pad[13]);
 	}
 
-	if (type == 11)
+	if (branch == 11)
 	{
 		minor_30;
-		key[13] += key[15] < 0x137bffeb ? key[15] : key[11];
-		minor_37 (key);
+		pad[13] += pad[15] < 0x137bffeb ? pad[15] : pad[11];
+		minor_37 (pad);
 	}
 
-	key[12] |= ROL (key[7], 14);
+	pad[12] |= ROL (pad[7], 14);
 }
 
-void major_17 (u32 *key, u32 seed)
+void major_17 (u32 *pad, u32 seed)
 {
-	int type = (key[8] ^ key[7] ^ key[12]) % 6;
+	int branch = (pad[8] ^ pad[7] ^ pad[12]) % 6;
 
-	key[1] |= key[4] ^ 0x10104d4;
+	pad[1] |= pad[4] ^ 0x10104d4;
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		minor_20;
-		ROREQ (key[9], 12);
-		minor_37 (key);
+		ROREQ (pad[9], 12);
+		minor_37 (pad);
 	}
 
-	seed = ((seed ^ 0x1ea9da8) + seed) * key[18] * 0xd;
+	seed = ((seed ^ 0x1ea9da8) + seed) * pad[18] * 0xd;
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		TRY (minor_1 (0x10381ff0));
-		key[2] *= key[3] + 0xd6863a6;
-		minor_36 (key);
+		pad[2] *= pad[3] + 0xd6863a6;
+		minor_36 (pad);
 	}
 
-	key[14] += key[12] * 0x19;
-	key[2] -= my_sqrt (key[5]);
+	pad[14] += pad[12] * 0x19;
+	pad[2] -= my_sqrt (pad[5]);
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[16] += 0x81063b22;
-		key[9] ^= key[7] * 0x44;
-		major_23 (key, seed);
+		pad[16] += 0x81063b22;
+		pad[9] ^= pad[7] * 0x44;
+		major_23 (pad, seed);
 	}
 
-	key[6] &= key[4] - 0x679dca37;
-	key[1] ^= key[16] + 0x988db31;
+	pad[6] &= pad[4] - 0x679dca37;
+	pad[1] ^= pad[16] + 0x988db31;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[7] ^= 0xa98896dd;
+		pad[7] ^= 0xa98896dd;
 		TRY (minor_3);
-		major_24 (key, key[6]);
+		major_24 (pad, pad[6]);
 	}
 
-	key[6] += ROR (seed, 10);
-	seed -= key[0] < 0x29ea2cb6 ? key[0] : key[3];
+	pad[6] += ROR (seed, 10);
+	seed -= pad[0] < 0x29ea2cb6 ? pad[0] : pad[3];
 
-	if (type == 2)
+	if (branch == 2)
 	{
 		minor_35;
-		key[12] ^= key[15] - 0xf5cfde0;
-		major_19 (key, seed);
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		major_19 (pad, seed);
 	}
 
 	seed *= my_sqrt (seed);
-	key[5] *= my_cos (seed) ? 0x211af3c8 : key[19];
+	pad[5] *= my_cos (seed) ? 0x211af3c8 : pad[19];
 
-	if (type == 5)
+	if (branch == 5)
 	{
 		minor_28;
-		key[13] *= 0xa02fe00;
-		major_25 (key, key[13]);
+		pad[13] *= 0xa02fe00;
+		major_25 (pad, pad[13]);
 	}
 }
 
-void major_18 (u32 *key, u32 seed)
+void major_18 (u32 *pad, u32 seed)
 {
-	int type = (key[14] ^ key[11] ^ key[17]) & 7;
+	int branch = (pad[14] ^ pad[11] ^ pad[17]) & 7;
 
-	key[11] ^= ROR (key[13], 21);
+	pad[11] ^= ROR (pad[13], 21);
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[6] += key[19] - 0x3f5675d6;
-		key[9] ^= 0x94d017f;
-		minor_37 (key);
+		pad[6] += pad[19] - 0x3f5675d6;
+		pad[9] ^= 0x94d017f;
+		minor_37 (pad);
 	}
 
-	ROREQ (key[3], key[16] * 0xf);
+	ROREQ (pad[3], pad[16] * 0xf);
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[5] += key[0] ^ 0x3e17add3;
+		pad[5] += pad[0] ^ 0x3e17add3;
 		minor_34;
-		minor_36 (key);
+		minor_36 (pad);
 	}
 
-	key[11] -= my_sqrt (key[9]);
-	key[12] += 0x17267c5b - key[11];
+	pad[11] -= my_sqrt (pad[9]);
+	pad[12] += 0x17267c5b - pad[11];
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		minor_31 (0xb);
-		key[7] &= key[13] ^ 0x21aaf758;
-		major_23 (key, key[0]);
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		major_23 (pad, pad[0]);
 	}
 
-	key[17] ^= seed ^ 0x35eddea4;
+	pad[17] ^= seed ^ 0x35eddea4;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[10] += 0x3409139c;
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
-		major_24 (key, key[6]);
+		pad[10] += 0x3409139c;
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
+		major_24 (pad, pad[6]);
 	}
 
-	key[6] *= key[17] + 0xb89b51c;
+	pad[6] *= pad[17] + 0xb89b51c;
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[6] += 0xfe07af0e - key[3];
+		pad[6] += 0xfe07af0e - pad[3];
 		TRY (minor_2 (0x90254266));
-		major_19 (key, key[6]);
+		major_19 (pad, pad[6]);
 	}
 
-	key[19] ^= key[3] < 0x5755f00e ? key[3] : key[1];
-	key[15] ^= key[12] * 0x17;
+	pad[19] ^= pad[3] < 0x5755f00e ? pad[3] : pad[1];
+	pad[15] ^= pad[12] * 0x17;
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[13] *= ROR (key[3], 5);
-		key[13] *= ROR (key[3], 5);
-		major_25 (key, key[9]);
+		pad[13] *= ROR (pad[3], 5);
+		pad[13] *= ROR (pad[3], 5);
+		major_25 (pad, pad[9]);
 	}
 
-	key[10] += 0x395f1d29 - seed;
+	pad[10] += 0x395f1d29 - seed;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[12] += 0x2272516f;
-		key[13] *= 0x48e3e7ac;
-		major_17 (key, key[16]);
+		pad[12] += 0x2272516f;
+		pad[13] *= 0x48e3e7ac;
+		major_17 (pad, pad[16]);
 	}
 
-	ROLEQ (key[1], ROL (key[8], 20));
-	seed -= key[9] ^ 0xc9c0bd95;
+	ROLEQ (pad[1], ROL (pad[8], 20));
+	seed -= pad[9] ^ 0xc9c0bd95;
 
-	if (type == 6)
+	if (branch == 6)
 	{
 		TRY (minor_2 (0x10b4eaef));
-		key[12] += 0x222fe8f5;
-		major_4 (key, seed);
+		pad[12] += 0x222fe8f5;
+		major_4 (pad, seed);
 	}
 
-	ROLEQ (key[18], key[7] & 0x11);
+	ROLEQ (pad[18], pad[7] & 0x11);
 }
 
-void major_19 (u32 *key, u32 seed)
+void major_19 (u32 *pad, u32 seed)
 {
-	int type = (key[18] ^ key[6] ^ key[15]) & 3;
+	int branch = (pad[18] ^ pad[6] ^ pad[15]) & 3;
 
-	seed *= key[15] * 0x3c02927;
+	seed *= pad[15] * 0x3c02927;
 	ROREQ (seed, seed * 0x7);
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[12] += key[6] ^ 0x211f5e40;
-		key[9] ^= 0x6b4bfbe3;
-		minor_37 (key);
+		pad[12] += pad[6] ^ 0x211f5e40;
+		pad[9] ^= 0x6b4bfbe3;
+		minor_37 (pad);
 	}
 
-	seed ^= key[6] ^ 0xc1fcda0;
-	key[5] -= my_cos (key[6]) ? 0xb9269bb0 : key[10];
+	seed ^= pad[6] ^ 0xc1fcda0;
+	pad[5] -= my_cos (pad[6]) ? 0xb9269bb0 : pad[10];
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[9] ^= 0x703e6c86;
-		key[16] += 0xbb78136d;
-		minor_36 (key);
+		pad[9] ^= 0x703e6c86;
+		pad[16] += 0xbb78136d;
+		minor_36 (pad);
 	}
 
-	seed *= key[19] + 0x11500e47;
-	key[3] ^= ROL (key[4], 20);
+	seed *= pad[19] + 0x11500e47;
+	pad[3] ^= ROL (pad[4], 20);
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[2] ^= key[15] << 5;
-		key[19] ^= key[15] ^ 0x3574ed3;
-		major_23 (key, key[15]);
+		pad[2] ^= pad[15] << 5;
+		pad[19] ^= pad[15] ^ 0x3574ed3;
+		major_23 (pad, pad[15]);
 	}
 
-	key[13] -= my_sqrt (seed);
-	ROREQ (seed, my_cos (seed) ? 7 : key[10]);
-	key[16] = key[15] * key[16] * 0x4a;
+	pad[13] -= my_sqrt (seed);
+	ROREQ (seed, my_cos (seed) ? 7 : pad[10]);
+	pad[16] = pad[15] * pad[16] * 0x4a;
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[7] ^= 0xb3bb63f;
-		key[4] -= key[17] ^ 0x2217cf47;
-		major_24 (key, seed);
+		pad[7] ^= 0xb3bb63f;
+		pad[4] -= pad[17] ^ 0x2217cf47;
+		major_24 (pad, seed);
 	}
 }
 
-void major_21 (u32 *key, u32 seed)
+void major_21 (u32 *pad, u32 seed)
 {
-	int type = (key[1] ^ key[0] ^ key[16]) % 11;
+	int branch = (pad[1] ^ pad[0] ^ pad[16]) % 11;
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[2] *= key[3] + 0xd6863a6;
-		key[12] ^= key[15] - 0xf5cfde0;
-		minor_37 (key);
+		pad[2] *= pad[3] + 0xd6863a6;
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		minor_37 (pad);
 	}
 
-	key[5] -= seed;
+	pad[5] -= seed;
 
-	if (type == 8)
+	if (branch == 8)
 	{
-		key[16] += 0x2b058ae8;
-		key[6] += 0xfe07af0e - key[3];
-		minor_36 (key);
+		pad[16] += 0x2b058ae8;
+		pad[6] += 0xfe07af0e - pad[3];
+		minor_36 (pad);
 	}
 
-	key[17] ^= ROL (key[18], 28);
+	pad[17] ^= ROL (pad[18], 28);
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[2] *= key[3] + 0xd6863a6;
+		pad[2] *= pad[3] + 0xd6863a6;
 		minor_32 (0x79fb5201);
-		major_23 (key, key[7]);
+		major_23 (pad, pad[7]);
 	}
 
-	key[0] ^= my_sqrt (key[12]);
+	pad[0] ^= my_sqrt (pad[12]);
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[19] ^= key[15] ^ 0x3574ed3;
+		pad[19] ^= pad[15] ^ 0x3574ed3;
 		TRY (minor_5);
-		major_24 (key, key[2]);
+		major_24 (pad, pad[2]);
 	}
 
-	key[10] ^= seed * 0x6c;
+	pad[10] ^= seed * 0x6c;
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
 		minor_32 (0x6ddf8c10);
-		major_19 (key, key[10]);
+		major_19 (pad, pad[10]);
 	}
 
-	key[8] -= my_cos (key[12]) ? 0x8759908e : seed;
+	pad[8] -= my_cos (pad[12]) ? 0x8759908e : seed;
 
-	if (type == 7)
+	if (branch == 7)
 	{
 		minor_19;
 		minor_29;
-		major_25 (key, key[1]);
+		major_25 (pad, pad[1]);
 	}
 
-	seed ^= my_sin (seed) ? 0x2c99fade : key[14];
+	seed ^= my_sin (seed) ? 0x2c99fade : pad[14];
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		TRY (minor_12 (0x3fcf3163));
-		key[9] ^= key[7] * 0x44;
-		major_17 (key, seed);
+		pad[9] ^= pad[7] * 0x44;
+		major_17 (pad, seed);
 	}
 
-	key[15] += my_cos (key[11]) ? 0x1bec01f : seed;
+	pad[15] += my_cos (pad[11]) ? 0x1bec01f : seed;
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[13] *= 0x1bd5157f;
-		key[6] += key[19] - 0x3f5675d6;
-		major_4 (key, key[15]);
+		pad[13] *= 0x1bd5157f;
+		pad[6] += pad[19] - 0x3f5675d6;
+		major_4 (pad, pad[15]);
 	}
 
-	ROREQ (key[1], 0x80d9edac * key[16]);
+	ROREQ (pad[1], 0x80d9edac * pad[16]);
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		TRY (minor_10 (0xfde30e03));
-		key[9] |= key[7] ^ 0x2a19119f;
-		major_18 (key, seed);
+		pad[9] |= pad[7] ^ 0x2a19119f;
+		major_18 (pad, seed);
 	}
 
-	key[7] &= key[15] * 0xa8f285;
+	pad[7] &= pad[15] * 0xa8f285;
 
-	if (type == 10)
+	if (branch == 10)
 	{
-		key[7] ^= 0xef011757;
-		ROREQ (key[9], 9);
-		major_15 (key, key[13]);
+		pad[7] ^= 0xef011757;
+		ROREQ (pad[9], 9);
+		major_15 (pad, pad[13]);
 	}
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[12] += key[6] + 0x21d7bf61;
-		key[6] += key[19] - 0x3f5675d6;
-		major_3 (key, key[10]);
+		pad[12] += pad[6] + 0x21d7bf61;
+		pad[6] += pad[19] - 0x3f5675d6;
+		major_3 (pad, pad[10]);
 	}
 
-	key[3] *= my_sin (key[8]) ? 0x5b51fb19 : key[2];
+	pad[3] *= my_sin (pad[8]) ? 0x5b51fb19 : pad[2];
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[9] += ROL (key[4], 9);
+		pad[9] += ROL (pad[4], 9);
 		minor_22;
-		minor_37 (key);
+		minor_37 (pad);
 	}
 
-	key[11] ^= key[17] * 0x44;
+	pad[11] ^= pad[17] * 0x44;
 }
 
-void major_22 (u32 *key, u32 seed)
+void major_22 (u32 *pad, u32 seed)
 {
-	int type = (key[5] ^ key[0] ^ seed) & 15;
+	int branch = (pad[5] ^ pad[0] ^ seed) & 15;
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		TRY (minor_6);
 		minor_31 (0x13);
-		major_3 (key, seed);
+		major_3 (pad, seed);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[6] ^= 0x6066818c;
-		key[13] -= key[1];
-		major_21 (key, key[2]);
+		pad[6] ^= 0x6066818c;
+		pad[13] -= pad[1];
+		major_21 (pad, pad[2]);
 	}
 
-	key[14] ^= ROL (key[16], 22);
+	pad[14] ^= ROL (pad[16], 22);
 
-	if (type == 12)
+	if (branch == 12)
 	{
-		key[10] += 0x830ba927;
+		pad[10] += 0x830ba927;
 		minor_32 (0x6f3a3876);
-		major_16 (key, key[8]);
+		major_16 (pad, pad[8]);
 	}
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		minor_34;
-		key[16] += 0x1bc7b861;
-		major_1 (key, key[6]);
+		pad[16] += 0x1bc7b861;
+		major_1 (pad, pad[6]);
 	}
 
-	key[12] ^= key[11] < 0x521b2180 ? key[11] : key[9];
+	pad[12] ^= pad[11] < 0x521b2180 ? pad[11] : pad[9];
 
-	if (type == 1)
+	if (branch == 1)
 	{
 		minor_31 (0x12);
-		key[0] += key[6] * 0x3c;
-		major_14 (key, key[15]);
+		pad[0] += pad[6] * 0x3c;
+		major_14 (pad, pad[15]);
 	}
 
-	if (type == 8)
+	if (branch == 8)
 	{
 		TRY (minor_5);
-		key[18] *= key[10] + 0x466e09cf;
-		major_6 (key, key[13]);
+		pad[18] *= pad[10] + 0x466e09cf;
+		major_6 (pad, pad[13]);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[9] += ROL (key[4], 9);
-		key[2] *= key[3] + 0xd6863a6;
-		major_9 (key, key[16]);
+		pad[9] += ROL (pad[4], 9);
+		pad[2] *= pad[3] + 0xd6863a6;
+		major_9 (pad, pad[16]);
 	}
 
-	key[18] &= my_sqrt (key[9]);
+	pad[18] &= my_sqrt (pad[9]);
 
-	if (type == 5)
+	if (branch == 5)
 	{
 		TRY (minor_4);
-		key[2] ^= key[15] << 5;
-		major_2 (key, key[2]);
+		pad[2] ^= pad[15] << 5;
+		major_2 (pad, pad[2]);
 	}
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[2] *= key[3] + 0xd6863a6;
-		key[6] += 0xfe07af0e - key[3];
-		major_5 (key, key[14]);
+		pad[2] *= pad[3] + 0xd6863a6;
+		pad[6] += 0xfe07af0e - pad[3];
+		major_5 (pad, pad[14]);
 	}
 
-	key[18] -= key[16] * 0x77;
+	pad[18] -= pad[16] * 0x77;
 
-	if (type == 9)
+	if (branch == 9)
 	{
-		key[4] ^= 0xa09619f7;
-		ROREQ (key[4], 0x19);
-		major_12 (key, key[10]);
+		pad[4] ^= 0xa09619f7;
+		ROREQ (pad[4], 0x19);
+		major_12 (pad, pad[10]);
 	}
 
-	if (type == 10)
+	if (branch == 10)
 	{
-		key[12] ^= key[15] - 0xf5cfde0;
-		key[13] *= 0x6cd0251e;
-		major_11 (key, key[0]);
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		pad[13] *= 0x6cd0251e;
+		major_11 (pad, pad[0]);
 	}
 
-	if (type == 6)
+	if (branch == 6)
 	{
-		key[2] *= key[3] + 0xd6863a6;
-		ROREQ (key[4], 0x1a);
-		major_13 (key, seed);
+		pad[2] *= pad[3] + 0xd6863a6;
+		ROREQ (pad[4], 0x1a);
+		major_13 (pad, seed);
 	}
 
-	key[13] ^= 0x4930de03 ^ seed;
+	pad[13] ^= 0x4930de03 ^ seed;
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[10] += 0x6467451;
-		key[4] -= key[17] ^ 0x2217cf47;
-		major_3 (key, key[2]);
+		pad[10] += 0x6467451;
+		pad[4] -= pad[17] ^ 0x2217cf47;
+		major_3 (pad, pad[2]);
 	}
 
-	if (type == 7)
+	if (branch == 7)
 	{
-		key[4] -= key[17] ^ 0x2217cf47;
-		key[0] += key[18] ^ 0x4ac16b8d;
-		major_21 (key, key[0]);
+		pad[4] -= pad[17] ^ 0x2217cf47;
+		pad[0] += pad[18] ^ 0x4ac16b8d;
+		major_21 (pad, pad[0]);
 	}
 
-	key[6] -= my_sqrt (key[10]);
+	pad[6] -= my_sqrt (pad[10]);
 
-	if (type == 3)
+	if (branch == 3)
 	{
 		TRY (minor_9 (0x5b9d1f9));
-		key[10] += 0x8958821;
-		major_16 (key, key[8]);
+		pad[10] += 0x8958821;
+		major_16 (pad, pad[8]);
 	}
 
-	if (type == 4)
+	if (branch == 4)
 	{
-		key[13] -= key[1];
-		key[13] *= 0x72494c9c;
-		major_1 (key, seed);
+		pad[13] -= pad[1];
+		pad[13] *= 0x72494c9c;
+		major_1 (pad, seed);
 	}
 
-	if (type == 13)
+	if (branch == 13)
 	{
-		key[12] += key[6] + 0x21d7bf61;
-		key[13] *= ROR (key[3], 5);
-		major_14 (key, key[2]);
+		pad[12] += pad[6] + 0x21d7bf61;
+		pad[13] *= ROR (pad[3], 5);
+		major_14 (pad, pad[2]);
 	}
 
-	seed -= ROR (key[8], 17);
+	seed -= ROR (pad[8], 17);
 
-	if (type == 15)
+	if (branch == 15)
 	{
-		key[19] += 0x12b9e29d - key[12];
-		key[0] += key[6] * 0x3c;
-		major_6 (key, key[4]);
+		pad[19] += 0x12b9e29d - pad[12];
+		pad[0] += pad[6] * 0x3c;
+		major_6 (pad, pad[4]);
 	}
 
-	if (type == 2)
+	if (branch == 2)
 	{
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
 		minor_20;
-		major_9 (key, key[16]);
+		major_9 (pad, pad[16]);
 	}
 
-	ROREQ (key[14], seed - 0x3b46a63f);
+	ROREQ (pad[14], seed - 0x3b46a63f);
 
-	if (type == 11)
+	if (branch == 11)
 	{
-		key[19] ^= my_cos (key[9]) ? 0x57337b8 : key[14];
-		key[9] += ROL (key[4], 9);
-		major_2 (key, key[9]);
+		pad[19] ^= my_cos (pad[9]) ? 0x57337b8 : pad[14];
+		pad[9] += ROL (pad[4], 9);
+		major_2 (pad, pad[9]);
 	}
 
-	if (type == 5)
+	if (branch == 5)
 	{
-		key[19] += 0x12b9e29d - key[12];
+		pad[19] += 0x12b9e29d - pad[12];
 		TRY (minor_4);
-		major_5 (key, key[6]);
+		major_5 (pad, pad[6]);
 	}
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		minor_20;
-		key[6] ^= 0xa9c74969;
-		major_12 (key, key[14]);
+		pad[6] ^= 0xa9c74969;
+		major_12 (pad, pad[14]);
 	}
 
-	key[8] ^= ROR (seed, 6);
+	pad[8] ^= ROR (seed, 6);
 
-	if (type == 14)
+	if (branch == 14)
 	{
-		key[12] += 0x49fc5980;
-		key[3] -= key[0] ^ 0x185f3b0d;
-		major_11 (key, seed);
+		pad[12] += 0x49fc5980;
+		pad[3] -= pad[0] ^ 0x185f3b0d;
+		major_11 (pad, seed);
 	}
 
-	key[0] += my_sin (key[0]) ? 0x9bcd446 : key[14];
+	pad[0] += my_sin (pad[0]) ? 0x9bcd446 : pad[14];
 }
 
-void major_23 (u32 *key, u32 seed)
+void major_23 (u32 *pad, u32 seed)
 {
-	int type = seed & 1;
+	int branch = seed & 1;
 
-	key[4] += key[8] - 0x16f911e4;
-	key[9] ^= key[2] * 11;
-	key[10] ^= key[7] < 0x402226f ? key[7] : key[2];
-	seed |= key[17] - 0x1e97aeb;
-	seed |= key[14] < 0xf3b1e0b3 ? key[14] : key[5];
+	pad[4] += pad[8] - 0x16f911e4;
+	pad[9] ^= pad[2] * 11;
+	pad[10] ^= pad[7] < 0x402226f ? pad[7] : pad[2];
+	seed |= pad[17] - 0x1e97aeb;
+	seed |= pad[14] < 0xf3b1e0b3 ? pad[14] : pad[5];
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[7] &= key[13] ^ 0x21aaf758;
+		pad[7] &= pad[13] ^ 0x21aaf758;
 		minor_32 (0x640f077d);
-		minor_37 (key);
+		minor_37 (pad);
 	}
 
-	key[1] -= key[19] * 0x64;
-	key[1] += seed - 0x18d1b90;
-	key[7] -= key[3] ^ 0x44de1958;
-	key[11] ^= ROL (key[2], 9);
-	key[17] += ROL (key[12], 27);
+	pad[1] -= pad[19] * 0x64;
+	pad[1] += seed - 0x18d1b90;
+	pad[7] -= pad[3] ^ 0x44de1958;
+	pad[11] ^= ROL (pad[2], 9);
+	pad[17] += ROL (pad[12], 27);
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		TRY (minor_9 (0xdc306f47));
-		key[9] ^= key[7] * 0x44;
-		minor_36 (key);
+		pad[9] ^= pad[7] * 0x44;
+		minor_36 (pad);
 	}
 
-	ROREQ (key[7], key[13]);
+	ROREQ (pad[7], pad[13]);
 }
 
-void major_24 (u32 *key, u32 seed)
+void major_24 (u32 *pad, u32 seed)
 {
-	int type = (key[2] ^ seed ^ key[7]) % 3;
+	int branch = (pad[2] ^ seed ^ pad[7]) % 3;
 
 	seed *= my_cos (seed) ? 0x6be8f94 : seed;
-	key[2] ^= key[2] + 0x3786364b;
-	ROLEQ (key[17], seed - 0x10);
+	pad[2] ^= pad[2] + 0x3786364b;
+	ROLEQ (pad[17], seed - 0x10);
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		minor_35;
 		minor_27;
-		minor_37 (key);
+		minor_37 (pad);
 	}
 
-	key[5] += my_sin (key[16]) ? 0x3af2a8e2 : key[16];
+	pad[5] += my_sin (pad[16]) ? 0x3af2a8e2 : pad[16];
 
-	if (type == 0)
+	if (branch == 0)
 	{
 		TRY (minor_5);
-		key[2] *= key[3] + 0xd6863a6;
-		minor_36 (key);
+		pad[2] *= pad[3] + 0xd6863a6;
+		minor_36 (pad);
 	}
 
-	key[13] ^= my_cos (key[16]) ? 0xf6951daa : key[1];
-	key[18] |= key[17] & 0x6361a322;
+	pad[13] ^= my_cos (pad[16]) ? 0xf6951daa : pad[1];
+	pad[18] |= pad[17] & 0x6361a322;
 
-	if (type == 1)
+	if (branch == 1)
 	{
-		key[13] *= ROR (key[3], 5) * 0xb25cb20f;
-		major_23 (key, key[15]);
+		pad[13] *= ROR (pad[3], 5) * 0xb25cb20f;
+		major_23 (pad, pad[15]);
 	}
 }
 
-void major_25 (u32 *key, u32 seed)
+void major_25 (u32 *pad, u32 seed)
 {
-	int type = (key[7] ^ key[2] ^ seed) % 5;
+	int branch = (pad[7] ^ pad[2] ^ seed) % 5;
 
-	key[2] -= 0x31b8a51 & seed;
+	pad[2] -= 0x31b8a51 & seed;
 
-	if (type == 3)
+	if (branch == 3)
 	{
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
-		key[9] &= 0x49a7e0c7;
-		minor_37 (key);
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
+		pad[9] &= 0x49a7e0c7;
+		minor_37 (pad);
 	}
 
-	key[1] &= ROR (seed, 29);
-	ROLEQ (key[12], my_cos (key[1]) ? 27 : key[5]);
+	pad[1] &= ROR (seed, 29);
+	ROLEQ (pad[12], my_cos (pad[1]) ? 27 : pad[5]);
 
-	if (type == 2)
+	if (branch == 2)
 	{
 		TRY (minor_4);
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
-		minor_36 (key);
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
+		minor_36 (pad);
 	}
 
 	ROREQ (seed, my_sqrt (seed));
 	seed ^= 0xc63d7671 * seed;
-	key[17] += key[19] * 0x7a;
+	pad[17] += pad[19] * 0x7a;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[10] += 0x8958821;
-		key[18] *= key[10] + 0x466e09cf;
-		major_23 (key, key[10]);
+		pad[10] += 0x8958821;
+		pad[18] *= pad[10] + 0x466e09cf;
+		major_23 (pad, pad[10]);
 	}
 
-	ROREQ (key[18], my_cos (key[6]) ? 0x11 : key[1]);
+	ROREQ (pad[18], my_cos (pad[6]) ? 0x11 : pad[1]);
 
-	if (type == 4)
+	if (branch == 4)
 	{
 		TRY (minor_7);
-		key[9] ^= 0x3480eee;
-		major_24 (key, seed);
+		pad[9] ^= 0x3480eee;
+		major_24 (pad, seed);
 	}
 
-	key[10] -= my_sqrt (seed);
-	key[11] &= seed * 0x3f;
+	pad[10] -= my_sqrt (seed);
+	pad[11] &= seed * 0x3f;
 
-	if (type == 0)
+	if (branch == 0)
 	{
-		key[18] *= key[10] + 0x466e09cf;
-		key[13] *= 0x6ff7af6a;
-		major_19 (key, key[17]);
+		pad[18] *= pad[10] + 0x466e09cf;
+		pad[13] *= 0x6ff7af6a;
+		major_19 (pad, pad[17]);
 	}
 
-	ROLEQ (key[1], key[15] + 0x19);
+	ROLEQ (pad[1], pad[15] + 0x19);
 }
 
-void mix (u32 *key, u32 seed)
+void mix (u32 *pad, u32 seed)
 {
-	int type = (key[5] ^ key[9] ^ key[19]) & 15;
+	int branch = (pad[5] ^ pad[9] ^ pad[19]) & 15;
 
-	switch (type)
+	switch (branch)
 	{
 	case 0:
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
 		TRY (minor_5);
-		major_5 (key, 0x45835eb3);
+		major_5 (pad, 0x45835eb3);
 		break;
 	case 5:
 		TRY (minor_8);
-		key[12] += 0x33bd47dd;
-		major_6 (key, key[9]);
+		pad[12] += 0x33bd47dd;
+		major_6 (pad, pad[9]);
 		break;
 	case 8:
 		minor_28;
-		key[6] += key[19] - 0x3f5675d6;
-		major_9 (key, key[10]);
+		pad[6] += pad[19] - 0x3f5675d6;
+		major_9 (pad, pad[10]);
 		break;
 	case 9:
 		TRY (minor_7);
 		TRY (minor_13);
-		major_14 (key, seed);
+		major_14 (pad, seed);
 		break;
 	case 10:
 		TRY (minor_5);
-		key[6] ^= 0x33b5c9ac;
-		major_2 (key, key[0]);
+		pad[6] ^= 0x33b5c9ac;
+		major_2 (pad, pad[0]);
 		break;
 	}
 
-	key[2] ^= key[6] + 0x1847de17;
+	pad[2] ^= pad[6] + 0x1847de17;
 
-	switch (type)
+	switch (branch)
 	{
 	case 1:
-		key[9] ^= 0x1df05ea2;
-		key[19] += 0x12b9e29d - key[12];
-		major_12 (key, 0x45835eb3);
+		pad[9] ^= 0x1df05ea2;
+		pad[19] += 0x12b9e29d - pad[12];
+		major_12 (pad, 0x45835eb3);
 		break;
 	case 10:
 		minor_28;
-		key[12] *= key[12];
-		major_11 (key, key[6]);
+		pad[12] *= pad[12];
+		major_11 (pad, pad[6]);
 		break;
 	}
 
-	key[19] += key[12] * 0x68;
+	pad[19] += pad[12] * 0x68;
 
-	switch (type)
+	switch (branch)
 	{
 	case 2:
 		minor_28;
-		key[12] ^= key[15] - 0xf5cfde0;
-		major_13 (key, key[19]);
-		key[6] += key[19] - 0x3f5675d6;
-		key[12] += 0x602283af;
-		major_22 (key, key[0]);
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		major_13 (pad, pad[19]);
+		pad[6] += pad[19] - 0x3f5675d6;
+		pad[12] += 0x602283af;
+		major_22 (pad, pad[0]);
 		break;
 	case 6:
 		TRY (minor_1 (0x706a6bc));
 		TRY (minor_2 (0x82b598a1));
-		major_8 (key, 0x45835eb3);
+		major_8 (pad, 0x45835eb3);
 		break;
 	}
 
-	key[7] -= key[14] & 0x1ada7fa;
+	pad[7] -= pad[14] & 0x1ada7fa;
 
-	switch (type)
+	switch (branch)
 	{
 	case 4:
 		minor_20;
-		key[12] += key[6] + 0x21d7bf61;
-		major_10 (key, key[16]);
+		pad[12] += pad[6] + 0x21d7bf61;
+		major_10 (pad, pad[16]);
 		break;
 	case 6:
 		TRY (minor_7);
 		TRY (minor_2 (0xd2950f8c));
-		major_7 (key, 0x45835eb3);
+		major_7 (pad, 0x45835eb3);
 		break;
 	}
 
-	seed = (key[0] + 0xd092d1bb) & 0x45835eb3;
+	seed = (pad[0] + 0xd092d1bb) & 0x45835eb3;
 
-	switch (type)
+	switch (branch)
 	{
 	case 3:
 		TRY (minor_5);
-		key[7] &= key[13] ^ 0x21aaf758;
-		major_9 (key, key[17]);
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		major_9 (pad, pad[17]);
 		break;
 	case 4:
-		key[13] -= key[1];
-		key[18] *= key[10] + 0x466e09cf;
-		major_14 (key, key[5]);
+		pad[13] -= pad[1];
+		pad[18] *= pad[10] + 0x466e09cf;
+		major_14 (pad, pad[5]);
 		break;
 	case 7:
 		TRY (minor_9 (0x6d32760));
-		key[9] ^= key[7] * 0x44;
-		major_6 (key, key[8]);
+		pad[9] ^= pad[7] * 0x44;
+		major_6 (pad, pad[8]);
 		break;
 	}
 
-	ROLEQ (key[8], key[3] ^ 0x6);
+	ROLEQ (pad[8], pad[3] ^ 0x6);
 
-	switch (type)
+	switch (branch)
 	{
 	case 0:
-		key[7] &= key[13] ^ 0x21aaf758;
-		key[14] |= key[3] ^ 0x4345732;
-		major_12 (key, key[9]);
+		pad[7] &= pad[13] ^ 0x21aaf758;
+		pad[14] |= pad[3] ^ 0x4345732;
+		major_12 (pad, pad[9]);
 		break;
 	case 5:
 		minor_22;
 		minor_29;
-		major_2 (key, key[1]);
+		major_2 (pad, pad[1]);
 		break;
 	case 9:
-		key[13] -= key[1];
+		pad[13] -= pad[1];
 		TRY (minor_7);
-		major_5 (key, key[2]);
+		major_5 (pad, pad[2]);
 		break;
 	}
 
-	key[9] *= key[14] | 0xbbf1fbef;
+	pad[9] *= pad[14] | 0xbbf1fbef;
 
-	switch (type)
+	switch (branch)
 	{
 	case 15:
-		key[12] += key[6] ^ 0x211f5e40;
-		key[5] += key[0] ^ 0x3e17add3;
-		major_11 (key, key[8]);
+		pad[12] += pad[6] ^ 0x211f5e40;
+		pad[5] += pad[0] ^ 0x3e17add3;
+		major_11 (pad, pad[8]);
 		break;
 	case 12:
-		key[19] ^= key[15] ^ 0x3574ed3;
+		pad[19] ^= pad[15] ^ 0x3574ed3;
 		minor_30;
-		major_13 (key, key[16]);
+		major_13 (pad, pad[16]);
 		break;
 	}
 
-	seed *= my_sqrt (key[1]);
+	seed *= my_sqrt (pad[1]);
 
-	switch (type)
+	switch (branch)
 	{
 	case 11:
 		minor_32 (0x678aae2c);
 		minor_22;
-		major_22 (key, key[11]);
+		major_22 (pad, pad[11]);
 		break;
 	case 14:
-		key[13] *= ROR (key[3], 5);
+		pad[13] *= ROR (pad[3], 5);
 		minor_35;
-		major_8 (key, key[18]);
+		major_8 (pad, pad[18]);
 		break;
 	case 7:
-		ROREQ (key[4], 0x2);
-		ROREQ (key[9], 4);
-		major_10 (key, key[0]);
+		ROREQ (pad[4], 0x2);
+		ROREQ (pad[9], 4);
+		major_10 (pad, pad[0]);
 		break;
 	}
 
-	key[3] -= key[7] ^ 0x4e46f05d;
+	pad[3] -= pad[7] ^ 0x4e46f05d;
 
-	switch (type)
+	switch (branch)
 	{
 	case 3:
-		key[7] ^= 0xeda01e71;
-		key[13] -= key[1];
-		major_7 (key, key[11]);
+		pad[7] ^= 0xeda01e71;
+		pad[13] -= pad[1];
+		major_7 (pad, pad[11]);
 		break;
 	case 8:
-		key[2] ^= my_sin (key[13]) ? 0xfd08092 : key[10];
-		key[9] += ROL (key[4], 9);
-		major_14 (key, key[2]);
+		pad[2] ^= my_sin (pad[13]) ? 0xfd08092 : pad[10];
+		pad[9] += ROL (pad[4], 9);
+		major_14 (pad, pad[2]);
 		break;
 	}
 
-	key[19] ^= 0xb1bdd560 ^ seed;
+	pad[19] ^= 0xb1bdd560 ^ seed;
 
-	switch (type)
+	switch (branch)
 	{
 	case 1:
-		key[12] ^= key[15] - 0xf5cfde0;
-		key[12] *= key[12];
-		major_9 (key, key[5]);
+		pad[12] ^= pad[15] - 0xf5cfde0;
+		pad[12] *= pad[12];
+		major_9 (pad, pad[5]);
 		break;
 	case 13:
-		key[18] *= key[10] + 0x466e09cf;
-		key[2] ^= key[15] << 5;
-		major_6 (key, key[15]);
+		pad[18] *= pad[10] + 0x466e09cf;
+		pad[2] ^= pad[15] << 5;
+		major_6 (pad, pad[15]);
 		break;
 	}
 
-	key[6] ^= my_sqrt (key[5]);
+	pad[6] ^= my_sqrt (pad[5]);
 }
