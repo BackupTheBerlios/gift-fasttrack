@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.27 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.28 2003/11/29 13:33:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -24,7 +24,9 @@
 #  include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-
+#ifndef GIFT_PLUGIN
+# error "GIFT_PLUGIN not defined. Your build environment seems broken."
+#endif
 
 #define FILE_LINE_FUNC __FILE__,__LINE__,__PRETTY_FUNCTION__
 
@@ -75,7 +77,6 @@
 #define FST_ERR_3(fmt,a,b,c)	FST_PROTO->err(FST_PROTO,fmt,a,b,c)
 #define FST_ERR_4(fmt,a,b,c,d)	FST_PROTO->err(FST_PROTO,fmt,a,b,c,d)
 
-#define GIFT_PLUGIN
 #include <libgift/libgift.h>
 #include <libgift/proto/protocol.h>
 #include <libgift/proto/share.h>

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_upload.c,v 1.4 2003/11/29 12:37:06 mkern Exp $
+ * $Id: fst_upload.c,v 1.5 2003/11/29 13:33:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack

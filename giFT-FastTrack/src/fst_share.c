@@ -1,5 +1,5 @@
 /*
- * $Id: fst_share.c,v 1.3 2003/11/29 03:09:41 hex Exp $
+ * $Id: fst_share.c,v 1.4 2003/11/29 13:33:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -238,7 +238,7 @@ typedef struct
 	int ntags;
 } ShareAddTagParam;
 
-/* adds meta tag to http header */
+/* adds meta tag to packet */
 static void share_add_meta_tag (ds_data_t *key, ds_data_t *value,
                                 ShareAddTagParam *tag_param)
 {
@@ -259,7 +259,7 @@ static void share_add_meta_tag (ds_data_t *key, ds_data_t *value,
 static void share_add_filename (Share *share, ShareAddTagParam *tag_param)
 {
 	FSTPacket *data = tag_param->data;
-	const char *filename;
+	char *filename;
 	int len;
 	
 	filename = file_basename (share->path);
@@ -270,7 +270,7 @@ static void share_add_filename (Share *share, ShareAddTagParam *tag_param)
 	len = strlen (filename);
 	fst_packet_put_uint8 (data, FILE_TAG_FILENAME);
 	fst_packet_put_dynint (data, len);
-	fst_packet_put_ustr (data, filename, len);
+	fst_packet_put_ustr (data, (unsigned char*)filename, len);
 	tag_param->ntags++;
 }
 
