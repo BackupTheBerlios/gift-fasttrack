@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.c,v 1.8 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_utils.c,v 1.9 2004/01/02 18:25:35 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -362,12 +362,15 @@ unsigned char *fst_utils_hex_decode (const char *data, int *dst_len)
 /*****************************************************************************/
 
 /* returns TRUE if ip in reserved private space, ip is big endian */
-int fst_utils_ip_private (unsigned int ip)
+int fst_utils_ip_private (in_addr_t ip)
 {
-	if (((ip & 0x000000ff) == 0x0000007f) || /* 127.0.0.0 */
-	    ((ip & 0x0000ffff) == 0x0000a8c0) || /* 192.168.0.0 */
-	    ((ip & 0x00000fff) == 0x000010ac) || /* 172.16-31.0.0 */
-	    ((ip & 0x000000ff) == 0x0000000a))   /* 10.0.0.0 */
+
+	ip = ntohl (ip);
+
+	if (((ip & 0xff000000) == 0x7f000000) || /* 127.0.0.0 */
+	    ((ip & 0xffff0000) == 0xc0a80000) || /* 192.168.0.0 */
+	    ((ip & 0xfff00000) == 0xac100000) || /* 172.16-31.0.0 */
+	    ((ip & 0xff000000) == 0x0a000000))   /* 10.0.0.0 */
 	{
 		return TRUE;
 	}

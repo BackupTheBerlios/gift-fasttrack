@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.h,v 1.6 2003/09/11 17:23:48 mkern Exp $
+ * $Id: fst_utils.h,v 1.7 2004/01/02 18:25:35 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -49,8 +49,8 @@ unsigned char *fst_utils_hex_decode (const char *data, int *dst_len);
 
 /*****************************************************************************/
 
-// returns TRUE if ip in reserved private space, ip is big endian
-int fst_utils_ip_private (unsigned int ip);
+/* returns TRUE if ip in reserved private space, ip is big endian */
+int fst_utils_ip_private (in_addr_t ip);
 
 /*****************************************************************************/
 
