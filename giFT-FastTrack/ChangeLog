@@ -1,4 +1,8 @@
- $Id: ChangeLog,v 1.7 2003/09/11 17:23:47 mkern Exp $
+ $Id: ChangeLog,v 1.8 2003/09/12 21:12:53 mkern Exp $
+
+2003-08-12  Markus Kern <mkern@users.berlios.de>
+
+	* Added filtering of bogus search results based on banlist
 
 2003-08-11  Markus Kern <mkern@users.berlios.de>
 

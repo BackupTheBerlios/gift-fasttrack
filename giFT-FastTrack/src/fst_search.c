@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.7 2003/09/11 17:23:48 mkern Exp $
+ * $Id: fst_search.c,v 1.8 2003/09/12 21:12:53 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -94,6 +94,7 @@ FSTSearch *fst_search_create (IFEvent *event, FSTSearchType type, char *query,
 	search->sent = 0;
 	search->replies = 0;
 	search->fw_replies = 0;
+	search->banlist_replies = 0;
 
 	search->query = query ? strdup (query) : NULL;
 	search->exclude = exclude ? strdup (exclude) : NULL;
@@ -362,8 +363,8 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			return FALSE;
 		}
 
-		FST_DBG_3 ("received query end for search with fst_id = %d, got %d replies of which %d are firewalled",
-				   fst_id, search->replies, search->fw_replies);
+		FST_DBG_4 ("received end of search for fst_id = %d, %d replies, %d firewalled, %d banned",
+				   fst_id, search->replies, search->fw_replies, search->banlist_replies);
 
 		/* remove search from list */
 		fst_searchlist_remove (searchlist, search);
@@ -536,15 +537,19 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			free (hash_base64);
 		}
 
-		/* send result to giFT if the ip is not private and port != 0 */
-		if (!fst_utils_ip_private (ip) && port != 0)
+		/* send result to giFT if the ip is not private and not on ban list */
+		if (fst_utils_ip_private (ip) || !port)
 		{
-			FST_PROTO->search_result (FST_PROTO, search->gift_event, username,
-									  netname, href, 1, file);
+			search->fw_replies++;
+		}
+		else if (fst_ipset_contains (FST_PLUGIN->banlist, ip))
+		{
+			search->banlist_replies++;
 		}
 		else
 		{
-			search->fw_replies++;
+			FST_PROTO->search_result (FST_PROTO, search->gift_event, username,
+									  netname, href, 1, file);
 		}
 
 		/* increment reply counter */

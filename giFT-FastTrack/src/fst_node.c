@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.5 2003/07/04 03:54:45 beren12 Exp $
+ * $Id: fst_node.c,v 1.6 2003/09/12 21:12:53 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -197,7 +197,6 @@ int fst_nodecache_load (FSTNodeCache *cache, const char *filename)
 {
 	FILE	*f;
 	char	*buf = NULL;
-	char	*ptr;
 
 	if ( (f = fopen (filename, "r")) == NULL)
 		return -1;
@@ -208,10 +207,12 @@ int fst_nodecache_load (FSTNodeCache *cache, const char *filename)
 		unsigned short	port;
 		FSTNodeKlass	klass;
 		unsigned int	load, last_seen;
+		char			*ptr = buf;
 
-		ptr = buf;
+		string_trim (ptr);
 
-		if (strchr (ptr,'#')) /* ingore comments */
+		/* ingore comments */
+		if (*ptr == '#')
 			continue;
 
 		/* format: <host> <port> <klass> <load> <last_seen> */

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.22 2003/09/10 11:10:25 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.23 2003/09/12 21:12:53 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -209,7 +209,7 @@ static int fst_giftcb_start (Protocol *p)
 {
 	FSTPlugin *plugin = malloc (sizeof (FSTPlugin));
 	int i;
-	char *nodesfile;
+	char *filepath;
 	char *conf_path, *default_conf_path;
 
 	FST_DBG ("starting up");
@@ -253,24 +253,35 @@ static int fst_giftcb_start (Protocol *p)
 	/* Attempt to open the locally installed nodes file; if this fails we
 	 * should try the global cache. */
 
-	nodesfile = gift_conf_path ("FastTrack/nodes");
-	i = fst_nodecache_load (plugin->nodecache, nodesfile);
+	filepath = gift_conf_path ("FastTrack/nodes");
+	i = fst_nodecache_load (plugin->nodecache, filepath);
 
 	if (i < 0)
 	{
-		FST_WARN_1 ("Couldn't find any nodes in local \"%s\". Trying global list", nodesfile);
+		FST_WARN_1 ("Couldn't find any nodes in local \"%s\". Trying global list", filepath);
 
-		nodesfile = stringf ("%s/FastTrack/nodes", platform_data_dir());
-		i = fst_nodecache_load (plugin->nodecache, nodesfile);
+		filepath = stringf ("%s/FastTrack/nodes", platform_data_dir());
+		i = fst_nodecache_load (plugin->nodecache, filepath);
 
 		if (i < 0)
-			FST_WARN_1 ("Couldn't find any nodes in global \"%s\".", nodesfile);
+			FST_WARN_1 ("Couldn't find any nodes in global \"%s\".", filepath);
 		else
-			FST_DBG_2 ("Loaded %d supernode addresses from global nodes file \"%s\"", i, nodesfile);
+			FST_DBG_2 ("Loaded %d supernode addresses from global nodes file \"%s\"", i, filepath);
 	}
 	else
 	{
-		FST_DBG_2 ("Loaded %d supernode addresses from local nodes file \"%s\"", i, nodesfile);
+		FST_DBG_2 ("Loaded %d supernode addresses from local nodes file \"%s\"", i, filepath);
+	}
+
+	/* try to load list of banned ips */
+	FST_PLUGIN->banlist = fst_ipset_create ();
+
+	filepath = gift_conf_path ("FastTrack/banlist");
+	i = fst_ipset_load (FST_PLUGIN->banlist, filepath);
+
+	if(i > 0)
+	{
+		FST_DBG_2 ("Loaded %d banned ip ranges from \"%s\"", i, filepath);
 	}
 
 	/* init searches */
@@ -279,7 +290,7 @@ static int fst_giftcb_start (Protocol *p)
 	/* init stats */
 	FST_PLUGIN->stats = fst_stats_create ();
 
-	/* temporary, until we have a way to find usefull nodes faster */
+	/* temporary, until we have a way to find useful nodes faster */
 	FST_DBG ("adding fm2.imesh.com:1214 as temporary index node");
 	fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex, "fm2.imesh.com", 1214, 0, time(NULL));
 
@@ -308,6 +319,9 @@ static void fst_giftcb_destroy (Protocol *p)
 
 	/* free session */
 	fst_session_free (FST_PLUGIN->session);
+
+	/* free list of banned ips */
+	fst_ipset_free (FST_PLUGIN->banlist);
 
 	/* save and free nodes */
 	nodesfile = gift_conf_path ("FastTrack/nodes");

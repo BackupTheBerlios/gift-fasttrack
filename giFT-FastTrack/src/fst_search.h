@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.6 2003/09/11 17:23:48 mkern Exp $
+ * $Id: fst_search.h,v 1.7 2003/09/12 21:12:53 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -58,8 +58,11 @@ typedef struct
 	unsigned int sent;			/* number of times a query for this search has
 								 * been sent to supernodes
 								 */
-	unsigned int replies;		/* number of received replies  */
-	unsigned int fw_replies;	/* number of firewalled replies  */
+	unsigned int replies;			/* number of received replies  */
+	unsigned int fw_replies;		/* number of firewalled replies  */
+	unsigned int banlist_replies;	/* number of replies which were dropped
+									 * because the ip was on the ban list
+									 */
 
 	char *query;                /* space delimited words to search for  */
 	char *exclude;              /* words to exlude from search */

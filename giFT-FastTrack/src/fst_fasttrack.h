@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.18 2003/09/10 11:10:25 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.19 2003/09/12 21:12:53 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -141,40 +141,59 @@ typedef uint32_t fst_uint32;
 #include "fst_stats.h"
 #include "fst_utils.h"
 #include "fst_meta.h"
+#include "fst_ipset.h"
 
 /*****************************************************************************/
 
 #define FST_PLUGIN ( (FSTPlugin*)fst_proto->udata)
 #define FST_PROTO (fst_proto)
 
-#define FST_NETWORK_NAME "KaZaA"	// network name we send to supernodes
+/* network name we send to supernodes */
+#define FST_NETWORK_NAME "KaZaA"
+
+/* the username we loaded from the config file */
 #define FST_USER_NAME (FST_PLUGIN->username)
 
-#define FST_MAX_NODESFILE_SIZE 1000	// max number of nodes we save in nodes file
+/* max number of nodes we save in nodes file */
+#define FST_MAX_NODESFILE_SIZE 1000
 
-#define FST_MAX_SEARCH_RESULTS 0xFF	// max number of results we want to be returned per search
+/* max number of results we want to be returned per search */
+#define FST_MAX_SEARCH_RESULTS 0xFF
 
-// no worki yet 
-//#define FST_DOWNLOAD_BOOST_PL     // use a participation level if 1000 for downloading
+/* use a participation level if 1000 for downloading
+ * need to check if this really works
+ */
+/*
+#define FST_DOWNLOAD_BOOST_PL
+*/
 
-// various timeouts in ms
-#define FST_SESSION_CONNECT_TIMEOUT	(8*SECONDS)
+/* various timeouts in ms */
+#define FST_SESSION_CONNECT_TIMEOUT		(8*SECONDS)
 #define FST_SESSION_HANDSHAKE_TIMEOUT	(10*SECONDS)
 
 /*****************************************************************************/
 
 typedef struct
 {
-	Config *conf;					// ~/.giFT/FastTrack/FastTrack.conf
-	char *username;					// copy of user name from config file
+	Config *conf;					/* ~/.giFT/FastTrack/FastTrack.conf */
+	char *username;					/* copy of user name from config file */
 
-	FSTNodeCache *nodecache;		// cache that holds known supernode addresses
+	FSTNodeCache *nodecache;		/* cache that holds known supernode
+									 * addresses */
 
-	FSTSession *session;			// established session to supernode we're currently using
+	FSTIpSet *banlist;				/* set banned of ip ranges we loaded from
+									 * ~/.giFT/FastTrack/banlist
+									 */
 
-	FSTSearchList *searches;		// list containing all currently running searches
+	FSTSession *session;			/* established session to supernode we are
+									 * currently using
+									 */
 
-	FSTStats *stats;				// network statistics
+	FSTSearchList *searches;		/* list containing all currently running
+									 * searches
+									 */
+
+	FSTStats *stats;				/* network statistics */
 
 } FSTPlugin;
 
