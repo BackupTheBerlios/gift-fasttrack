@@ -3,7 +3,7 @@ Section: net
 Priority: optional
 Maintainer: Markus Kern <mkern@users.berlios.de>
 Build-Depends: debhelper (>= 4.1.0), cdbs, autotools-dev,
- libgiftproto-dev (>= 0.11.3), libgiftproto-dev (<< 0.12)
+ libgiftproto-dev (>= 0.11.8), libgiftproto-dev (<< 0.12)
 Standards-Version: 3.6.0
 
 Package: libfasttrack-gift
