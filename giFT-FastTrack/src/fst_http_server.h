@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_server.h,v 1.1 2003/09/17 11:25:04 mkern Exp $
+ * $Id: fst_http_server.h,v 1.2 2003/09/18 14:54:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.9 2003/09/12 22:30:21 mkern Exp $
+ * $Id: fst_search.c,v 1.10 2003/09/18 14:54:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -444,11 +444,6 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			netname[i] = 0;
 		}
 
-		/* create actual user name sent to giFT */
-		tmp = username;
-		username = stringf_dup ("%s@%s", username, net_ip_str(ip));
-		free (tmp);
-
 		FST_HEAVY_DBG_5 ("result (%d): %s:%d \t%s@%s", nresults,
 						 net_ip_str(ip), port, username, netname);
 
@@ -534,15 +529,23 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 										   net_ip_str (ip), port, hash_base64);
 
 
-			href = stringf_dup ("%s?shost=%s&sport=%d", href_main,
-								net_ip_str (super_ip), super_port);
+			href = stringf_dup ("%s?shost=%s&sport=%d&uname=%s", href_main,
+								net_ip_str (super_ip), super_port, username);
 
 			free (href_main);
 			free (hash_base64);
 		}
 
-		/* send result to giFT if the ip is not private and not on ban list */
-		if (fst_utils_ip_private (ip) || !port)
+		/* send result to giFT if the ip is not on ban list
+		 * and we are able to receive push replies for private ips 
+		 */
+		if (( fst_utils_ip_private (ip) || !port ) &&
+			(
+			  !FST_PLUGIN->server ||
+			  !strcmp (username, "<unknown>") ||
+			  (FST_PLUGIN->external_ip != FST_PLUGIN->local_ip && !FST_PLUGIN->forwarding)
+			)
+		   )
 		{
 			search->fw_replies++;
 		}
@@ -553,6 +556,11 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 		}
 		else
 		{
+			/* create actual user name sent to giFT */
+			tmp = username;
+			username = stringf_dup ("%s@%s", username, net_ip_str(ip));
+			free (tmp);
+			/* notify giFT */
 			FST_PROTO->search_result (FST_PROTO, search->gift_event, username,
 									  netname, href, 1, file);
 		}

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.8 2003/09/17 11:25:04 mkern Exp $
+ * $Id: fst_session.c,v 1.9 2003/09/18 14:54:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -52,7 +52,7 @@ FSTSession *fst_session_create(FSTSessionCallback callback)
 	session->node = NULL;
 
 	// allocate and init session
-	session->callback = (int (*)(void *session, FSTSessionMsg msg_type, FSTPacket *msg_packet))callback;
+	session->callback = callback;
 
 	return session;
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.20 2003/09/17 11:25:04 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.21 2003/09/18 14:54:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -138,6 +138,7 @@ typedef uint32_t fst_uint32;
 #include "fst_meta.h"
 #include "fst_ipset.h"
 #include "fst_http_server.h"
+#include "fst_push.h"
 
 /*****************************************************************************/
 
@@ -196,6 +197,16 @@ typedef struct
 
 	FSTStats *stats;				/* network statistics */
 
+	FSTPushList *pushlist;			/* list of requested pushes */
+
+	in_addr_t local_ip;				/* the ip our supernode connection is bound
+									 * to locally
+									 */
+	in_addr_t external_ip;			/* our external ip as told by supernode */
+	int forwarding;					/* if we're behind NAT and the user has
+									 * set up port forwarding this is TRUE
+									 * (from config file)
+									 */
 } FSTPlugin;
 
 /*****************************************************************************/

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_server.c,v 1.1 2003/09/17 11:25:04 mkern Exp $
+ * $Id: fst_http_server.c,v 1.2 2003/09/18 14:54:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -18,7 +18,9 @@
 #include "fst_fasttrack.h"		/* for debug logging */
 #include "fst_http_server.h"
 
+/*
 #define LOG_HTTP_HEADERS
+*/
 
 /*****************************************************************************/
 
@@ -289,7 +291,7 @@ static void server_push (int fd, input_id input, ServCon *servcon)
 
 	buf = tcp_readbuf (servcon->tcpcon);
 
-	if ((len = fdbuf_delim (buf, "\r\n\r\n")) < 0)
+	if ((len = fdbuf_delim (buf, "\r\n")) < 0)
 	{
 		FST_DBG_1 ("fdbuf_delim() < 0 for connection from %s",
 				   net_ip_str (servcon->remote_ip));

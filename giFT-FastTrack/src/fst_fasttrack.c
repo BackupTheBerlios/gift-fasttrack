@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.25 2003/09/17 11:25:04 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.26 2003/09/18 14:54:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -84,6 +84,11 @@ static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_t
 	{
 		FST_DBG_3 ("supernode connection established to %s:%d, load: %d%%",
 				   session->node->host, session->node->port, session->node->load);
+
+		/* determine local ip */
+		FST_PLUGIN->local_ip = net_local_ip (session->tcpcon->fd, NULL);
+		FST_DBG_1 ("local ip: %s", net_ip_str (FST_PLUGIN->local_ip));
+
 		/* resent queries for all running searches */
 		/* TODO: greet supernode first! */
 /*
@@ -181,6 +186,11 @@ static int fst_plugin_session_callback (FSTSession *session, FSTSessionMsg msg_t
 		fst_packet_free(packet);
 		break;
 	}
+
+	case SessMsgExternalIp:
+		FST_PLUGIN->external_ip = fst_packet_get_uint32 (msg_data);
+		FST_DBG_1 ("received external ip: %s", net_ip_str (FST_PLUGIN->external_ip));
+		break;
 
 	case SessMsgQueryReply:
 	case SessMsgQueryEnd:
@@ -298,7 +308,7 @@ static int fst_giftcb_start (Protocol *p)
 	{
 		FST_PLUGIN->server = fst_http_server_create (server_port,
 													 NULL,
-													 NULL,
+													 fst_push_process_reply,
 													 NULL);
 
 		if (!FST_PLUGIN->server)
@@ -325,6 +335,15 @@ static int fst_giftcb_start (Protocol *p)
 	/* init stats */
 	FST_PLUGIN->stats = fst_stats_create ();
 
+	/* init push list */
+	FST_PLUGIN->pushlist = fst_pushlist_create ();
+
+	/* get forwarded port from config file */
+	FST_PLUGIN->forwarding = config_get_int (FST_PLUGIN->conf,
+											 "main/forwarding=0");
+	FST_PLUGIN->local_ip = 0;
+	FST_PLUGIN->external_ip = 0;
+
 	/* temporary, until we have a way to find useful nodes faster */
 	FST_DBG ("adding fm2.imesh.com:1214 as temporary index node");
 	fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex, "fm2.imesh.com", 1214, 0, time(NULL));
@@ -345,6 +364,9 @@ static void fst_giftcb_destroy (Protocol *p)
 
 	if (!FST_PLUGIN)
 		return;
+
+	/* free push list */
+	fst_pushlist_free (FST_PLUGIN->pushlist);
 
 	/* shutdown http server */
 	fst_http_server_free (FST_PLUGIN->server);

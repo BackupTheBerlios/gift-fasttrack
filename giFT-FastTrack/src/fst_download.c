@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.18 2003/09/17 11:25:04 mkern Exp $
+ * $Id: fst_download.c,v 1.19 2003/09/18 14:54:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -26,8 +26,6 @@ static void download_write_gift (Source *source, unsigned char *data,
 								 unsigned int len);
 static void download_error_gift (Source *source, int remove_source,
 								 unsigned short klass, char *error);
-static unsigned char *download_parse_url (char *url, in_addr_t *ip,
-										  in_port_t *port, Dataset **params);
 static char *download_parse_url_old (char *url, in_addr_t *ip, in_port_t *port);
 static char *download_calc_xferuid (char *uri);
 
@@ -37,17 +35,154 @@ static char *download_calc_xferuid (char *uri);
 int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 							   Source *source)
 {
+	in_addr_t ip;
+	in_port_t port;
+	char *uri;
+
+	/* determine whether we need to send a push.
+	 * this is ugly because we're still supporting the old url format
+	 */
+	if (! (uri = download_parse_url_old (source->url, &ip, &port)))
+	{
+		/* try new url format */
+		unsigned char *hash = fst_download_parse_url (source->url, &ip, &port,
+													  NULL);
+		
+		if (!hash)
+		{
+			FST_WARN_1 ("malformed url %s", source->url);
+			return FALSE;
+		}
+
+		free (hash);
+
+		if (fst_utils_ip_private (ip) || !port)
+		{
+			/* firewalled source, send push request */
+			FSTPush *push;
+
+			/* if we don't wait for push replies there is no point in requesting */
+			if (!FST_PLUGIN->server)
+				return FALSE;
+
+			if ((push = fst_pushlist_lookup_source (FST_PLUGIN->pushlist, source)))
+			{
+				/* we already sent a push request for this source, remove it
+				 * Actually we shouldn't even get here since we removed the push in
+				 * fst_giftcb_download_stop
+				 */
+				FST_WARN_2 ("removing old push for %s with id %d",
+							source->url, push->push_id);
+				fst_pushlist_remove (FST_PLUGIN->pushlist, push);
+				fst_push_free (push);
+			}
+
+			if (! (push = fst_pushlist_add (FST_PLUGIN->pushlist, source)))
+				return FALSE;
+
+			if (!fst_push_send_request (push, FST_PLUGIN->session))
+			{
+				FST_DBG_1 ("fst_push_send_request failed for %s", source->url);
+				FST_PROTO->source_status (FST_PROTO, source, SOURCE_TIMEOUT,
+										  "Can't send push yet");
+				fst_pushlist_remove (FST_PLUGIN->pushlist, push);
+				fst_push_free (push);
+				return FALSE;
+			}
+
+			FST_PROTO->source_status (FST_PROTO, source, SOURCE_WAITING, "Sent push");
+			return TRUE;
+		}
+	}
+
+	free (uri);
+
+	if (!fst_download_start (source, NULL))
+	{
+		FST_DBG ("fst_download_start failed");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+/* called by gift to stop download */
+void fst_giftcb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk,
+							   Source *source, int complete)
+{
+	FSTHttpClient *client = (FSTHttpClient*) source->udata;
+	FSTPush *push;
+
+	/* close connection if there is outstanding data */
+	if (client && client->state != HTCL_CONNECTED)
+	{
+		fst_http_client_cancel (client);
+		FST_HEAVY_DBG_1 ("request cancelled for url %s", source->url);
+	}
+
+	/* remove push */
+	if ((push = fst_pushlist_lookup_source (FST_PLUGIN->pushlist, source)))
+	{
+		FST_HEAVY_DBG_2 ("removing push for %s with id %d",
+						 source->url, push->push_id);
+		fst_pushlist_remove (FST_PLUGIN->pushlist, push);
+		fst_push_free (push);
+	}
+}
+
+/* called by gift to add a source */
+BOOL fst_giftcb_source_add (Protocol *p,Transfer *transfer, Source *source)
+{
+	source->udata = NULL;
+
+	return TRUE;
+}
+
+/* called by gift to remove source */
+void fst_giftcb_source_remove (Protocol *p, Transfer *transfer,
+							   Source *source)
+{
+	FSTHttpClient *client = (FSTHttpClient*) source->udata;
+	FSTPush *push;
+
+	if (client)
+	{
+		FST_HEAVY_DBG_1 ("removing source %s", source->url);
+		fst_http_client_free (client);
+		source->udata = NULL;
+	}
+
+	/* remove push */
+	if ((push = fst_pushlist_lookup_source (FST_PLUGIN->pushlist, source)))
+	{
+		FST_HEAVY_DBG_2 ("removing push for %s with id %d",
+						 source->url, push->push_id);
+		fst_pushlist_remove (FST_PLUGIN->pushlist, push);
+		fst_push_free (push);
+	}
+}
+
+/*****************************************************************************/
+
+/* start download for source, optionally using existing tcpcon */
+int fst_download_start (Source *source, TCPC *tcpcon)
+{
+	Chunk *chunk = source->chunk;
 	FSTHttpClient *client = (FSTHttpClient*) source->udata;
 	FSTHttpHeader *request;
 	in_addr_t ip;
 	in_port_t port;
 	char *uri, *range_str;
 
+	assert (source);
+	assert (chunk);
+
 	/* parse url */
 	if (! (uri = download_parse_url_old (source->url, &ip, &port)))
 	{
 		/* try new url format */
-		unsigned char *hash = download_parse_url (source->url, &ip, &port, NULL);
+		unsigned char *hash = fst_download_parse_url (source->url, &ip, &port,
+													  NULL);
 		char *hash_hex;
 		
 		if (!hash)
@@ -58,8 +193,8 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 
 		hash_hex = fst_utils_hex_encode (hash, FST_HASH_LEN);
 		uri = stringf_dup ("/.hash=%s", hash_hex);
-		free (hash);
 		free (hash_hex);
+		free (hash);
 	}
 
 	/* create http request */
@@ -69,8 +204,19 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 		return FALSE;
 	}
 
-	/* if this source is used for the first time create http client */
-	if (!client)
+	/* remove old client and create new one if pushed connection */
+	if (tcpcon)
+	{
+		FST_HEAVY_DBG_1 ("creating client for pushed connection from source %s",
+						 source->url);
+
+		fst_http_client_free (client);
+		client = fst_http_client_create_tcpc (tcpcon, download_client_callback);
+
+		client->udata = (void*) source;
+		source->udata = (void*) client;
+	}
+	else if (!client)
 	{
 		FST_HEAVY_DBG_1 ("first time use of source %s", source->url);
 
@@ -111,43 +257,79 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 	return TRUE;
 }
 
-/* called by gift to stop download */
-void fst_giftcb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk,
-							   Source *source, int complete)
+/* parses new format url
+ * returns hash of FST_HASH_LEN size which caller frees or NULL on failure
+ * params receives a dataset with additional params, caller frees, may be NULL
+ */
+unsigned char *fst_download_parse_url (char *url, in_addr_t *ip,
+									   in_port_t *port, Dataset **params)
 {
-	FSTHttpClient *client = (FSTHttpClient*) source->udata;
+	char *url0, *hash_str, *param_str;
+	char *ip_str, *port_str;
+	unsigned char *hash;
+	int hash_len;
 
-	/* close connection if there is outstanding data */
-	if (client && client->state != HTCL_CONNECTED)
+	if (!url)
+		return NULL;
+
+	url0 = param_str = strdup (url);
+
+	string_sep (&param_str, "://");
+
+	/* separate ip and port */
+	if (! (port_str = string_sep (&param_str, "/")))
 	{
-		FST_HEAVY_DBG_1 ("request cancelled for url %s", source->url);
-		fst_http_client_cancel (client);
+		free (url0);
+		return NULL;
 	}
-}
 
-/* called by gift to add a source */
-BOOL fst_giftcb_source_add (Protocol *p,Transfer *transfer, Source *source)
-{
-	source->udata = NULL;
-
-	return TRUE;
-}
-
-/* called by gift to remove source */
-void fst_giftcb_source_remove (Protocol *p, Transfer *transfer,
-							   Source *source)
-{
-	FSTHttpClient *client = (FSTHttpClient*) source->udata;
-
-	if (client)
+	if (! (ip_str = string_sep (&port_str, ":")))
 	{
-		FST_HEAVY_DBG_1 ("removing source %s", source->url);
-		fst_http_client_free (client);
-		source->udata = NULL;
+		free (url0);
+		return NULL;
 	}
+
+	if (ip) *ip = net_ip (ip_str);
+	if (port) *port = ATOI (port_str);
+
+	/* decode hash */
+	if (! (hash_str = string_sep (&param_str, "?")))
+		hash_str = param_str;
+
+	if (! (hash = fst_utils_base64_decode (hash_str, &hash_len))
+		|| hash_len != FST_HASH_LEN)
+	{
+		free (hash);
+		free (url0);
+		return NULL;
+	}
+
+	/* parse params if that was requested */
+	if (params && (*params = dataset_new (DATASET_HASH)))
+	{
+		char *name, *value;
+
+		while ((value = string_sep (&param_str, "&")))
+		{
+			if ((name = string_sep (&value, "=")))
+			{
+				string_lower (name);
+				dataset_insertstr (params, name, value);
+			}
+		}
+		if ((name = string_sep (&param_str, "=")))
+		{
+			string_lower (name);
+			dataset_insertstr (params, name, param_str);
+		}
+	}
+
+	free (url0);
+	return hash;
 }
 
 /*****************************************************************************/
+
 
 /* http client callback */
 static int download_client_callback (FSTHttpClient *client,
@@ -238,6 +420,7 @@ static int download_client_callback (FSTHttpClient *client,
 		 * this calls fst_giftcb_download_stop() when download is complete
 		 */
 		download_write_gift (source, client->data, client->data_len);
+	
 		break;
 
 	case HTCL_CB_DATA_LAST:
@@ -293,77 +476,6 @@ static void download_error_gift (Source *source, int remove_source,
 }
 
 /*****************************************************************************/
-
-/* parses new format url
- * returns hash of FST_HASH_LEN size which caller frees or NULL on failure
- * params receives a dataset with additional params, caller frees, may be NULL
- */
-static unsigned char *download_parse_url (char *url, in_addr_t *ip,
-										  in_port_t *port, Dataset **params)
-{
-	char *url0, *hash_str, *param_str;
-	char *ip_str, *port_str;
-	unsigned char *hash;
-	int hash_len;
-
-	if (!url)
-		return NULL;
-
-	url0 = param_str = strdup (url);
-
-	string_sep (&param_str, "://");
-
-	/* separate ip and port */
-	if (! (port_str = string_sep (&param_str, "/")))
-	{
-		free (url0);
-		return NULL;
-	}
-
-	if (! (ip_str = string_sep (&port_str, ":")))
-	{
-		free (url0);
-		return NULL;
-	}
-
-	if (ip) *ip = net_ip (ip_str);
-	if (port) *port = ATOI (port_str);
-
-	/* decode hash */
-	if (! (hash_str = string_sep (&param_str, "?")))
-		hash_str = param_str;
-
-	if (! (hash = fst_utils_base64_decode (hash_str, &hash_len))
-		|| hash_len != FST_HASH_LEN)
-	{
-		free (hash);
-		free (url0);
-		return NULL;
-	}
-
-	/* parse params if that was requested */
-	if (params && (*params = dataset_new (DATASET_HASH)))
-	{
-		char *name, *value;
-
-		while ((value = string_sep (&param_str, "&")))
-		{
-			if ((name = string_sep (&value, "=")))
-			{
-				string_lower (name);
-				dataset_insertstr (params, name, value);
-			}
-		}
-		if ((name = string_sep (&param_str, "=")))
-		{
-			string_lower (name);
-			dataset_insertstr (params, name, param_str);
-		}
-	}
-
-	free (url0);
-	return hash;
-}
 
 /* parses old format url.
  * returns uri which caller frees or NULL on failure.

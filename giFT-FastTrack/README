@@ -1,4 +1,4 @@
- $Id: README,v 1.19 2003/08/12 22:09:21 mkern Exp $
+ $Id: README,v 1.20 2003/09/18 14:54:49 mkern Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
@@ -67,6 +67,14 @@ You may also use a fully qualified path to the plugin filename:
  
 The plugin will copy the configuration files from the
 $PREFIX/share/giFT/FastTrack/ directory if necessary.
+
+
+Running FastTrack behind a NAT
+------------------------------
+
+If you are behind a NAT and you still want to download from other
+NATed / firewalled users you must forward the port in the config file
+(default is 1214) and set the config option main/forwarding=1.
 
 
 Common Problems

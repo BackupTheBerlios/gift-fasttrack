@@ -1,4 +1,8 @@
- $Id: ChangeLog,v 1.9 2003/09/17 11:25:04 mkern Exp $
+ $Id: ChangeLog,v 1.10 2003/09/18 14:54:49 mkern Exp $
+
+2003-09-18  Markus Kern <mkern@users.berlios.de>
+
+	* Added downloading from firewalled hosts
 
 2003-09-17  Markus Kern <mkern@users.berlios.de>
 

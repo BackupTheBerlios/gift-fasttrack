@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.c,v 1.1 2003/09/10 11:10:25 mkern Exp $
+ * $Id: fst_http_client.c,v 1.2 2003/09/18 14:54:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -371,10 +371,13 @@ static void client_read_header (int fd, input_id input, FSTHttpClient *client)
 		return;
 	}
 
-	if (! client_write_data (client))
+	if (client->data_len > 0)
 	{
-		/* data end or download aborted */
-		return;
+		if (! client_write_data (client))
+		{
+			/* data end or download aborted */
+			return;
+		}
 	}
 
 	/* read body data */
@@ -431,6 +434,8 @@ static int client_write_data (FSTHttpClient *client)
 				   client->content_received, client->content_length,
 				   net_ip_str(client->ip), client->port);
 */
+
+	assert (client->data_len > 0);
 
 	if (client->content_received == client->content_length)
 	{
