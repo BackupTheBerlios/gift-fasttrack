@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.11 2004/02/29 22:15:26 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.12 2004/03/02 18:30:51 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -65,7 +65,7 @@ static FSTUdpNode* fst_udp_node_create (FSTNode *node)
 		return NULL;
 
 	if (node)
-		udp_node->node = fst_node_copy (node);
+		udp_node->node = fst_node_create_copy (node);
 	else
 		udp_node->node = NULL;
 
@@ -248,7 +248,6 @@ static void udp_discover_receive (int fd, input_id input,
 	FSTPacket *packet;
 	FSTUdpNode *udp_node = NULL;
 	List *udp_node_link = NULL;
-	FSTNode *node;
 	unsigned char buf[UDP_BUFFER_LEN];
 	struct sockaddr_in addr;
 	int addr_len = sizeof(addr);
@@ -368,8 +367,9 @@ static void udp_discover_receive (int fd, input_id input,
 	{
 		FST_HEAVY_DBG ("removing timer");
 		/* remove timer */
+		timer_remove (discover->timer);
 		discover->timer = 0;
-		return FALSE;
+		return;
 	}
 
 	/* wait for next packet */

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.35 2004/02/29 22:15:26 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.36 2004/03/02 18:30:51 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -184,7 +184,7 @@ typedef uint32_t fst_uint32;
 #define FST_SESSION_HANDSHAKE_TIMEOUT	(10*SECONDS)
 
 /* timeout for udp ping */
-#define FST_UDP_DISCOVER_TIMEOUT        (8*SECONDS)
+#define FST_UDP_DISCOVER_TIMEOUT        (10*SECONDS)
 
 /* max number of simultaneous udp pings */
 #define FST_UDP_DISCOVER_MAX_PINGS      (20)

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.45 2004/02/29 22:15:26 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.46 2004/03/02 18:30:51 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -139,16 +139,16 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 		/* remove this node from node cache _if_ we know that udp works.
 		 * otherwise just move the node to the back of the cache.
 		 */
-		if (FST_PLUGIN->udp_discover->udp_working)
+		if (FST_PLUGIN->discover->udp_working)
 		{
-			FST_HEAVY_DBG ("UdpNodeStateDown: %s:%d, UDP works",
-			               node->host, node->port);
+			FST_HEAVY_DBG_2 ("UdpNodeStateDown: %s:%d, UDP works",
+			                 node->host, node->port);
 			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
 		}
 		else
 		{
-			FST_HEAVY_DBG ("UdpNodeStateDown: %s:%d, UDP not verified",
-			               node->host, node->port);
+			FST_HEAVY_DBG_2 ("UdpNodeStateDown: %s:%d, UDP not verified",
+			                 node->host, node->port);
 			/* remove node from current position in cache... */
 			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
 			/* ... and add it to the back */
@@ -157,7 +157,7 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 		}
 		break;
 	case UdpNodeStateUp:
-		FST_HEAVY_DBG ("UdpNodeStateUp: %s:%d", node->host, node->port);
+		FST_HEAVY_DBG_2 ("UdpNodeStateUp: %s:%d", node->host, node->port);
 		/* remove node from current position in cache... */
 		fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
 		/* ... and add it to the back */
@@ -165,14 +165,18 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 		                   node->port, 100, node->last_seen);
 		break;
 	case UdpNodeStateFree:
-		FST_HEAVY_DBG ("UdpNodeStateFree: %s:%d", node->host, node->port);
+		FST_HEAVY_DBG_2 ("UdpNodeStateFree: %s:%d", node->host, node->port);
 		/* remove node from current position in cache... */
 		fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
 		/* ... and add it to the front */
 		fst_nodecache_add (FST_PLUGIN->nodecache, node->klass, node->host,
 		                   node->port, 0, node->last_seen);
 
-#if 1
+/*
+ * Enabling this has proven to be a bad idea since it terminates connections
+ * before they are fully established.		
+ */
+#if 0
 		/* if we don't have a established session try again with this node */
 		if (!FST_PLUGIN->session || FST_PLUGIN->session->state == SessConnecting)
 		{
@@ -205,14 +209,6 @@ static int fst_plugin_session_callback (FSTSession *session,
 	{
 		FST_DBG_3 ("supernode connection established to %s:%d, load: %d%%",
 				   session->node->host, session->node->port, session->node->load);
-
-		/* stop udp discovery */
-		if (FST_PLUGIN->discover)
-		{
-			fst_udp_discover_free (FST_PLUGIN->discover, TRUE);
-			FST_PLUGIN->discover = NULL;
-			FST_DBG ("stopped udp node discovery");
-		}
 
 		/* resend queries for all running searches */
 		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
