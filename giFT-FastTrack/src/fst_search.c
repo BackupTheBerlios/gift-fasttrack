@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.12 2003/09/19 14:23:46 mkern Exp $
+ * $Id: fst_search.c,v 1.13 2003/09/19 21:15:48 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -357,7 +357,6 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 	in_port_t sport;
 	int nresults, ntags, i;
 	List *results = NULL, *item;
-	char *buf;
 
 	if (msg_type == SessMsgQueryEnd)
 	{
@@ -480,12 +479,14 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 		ntags = fst_packet_get_dynint (msg_data);
 
 #ifdef HEAVY_DEBUG
-		buf = fst_utils_base64_encode (result->hash, 20);
+		{
+		char *buf = fst_utils_base64_encode (result->hash, 20);
 		FST_HEAVY_DBG_2 ("result %d: %s", nresults, buf);
 		free (buf);
 		FST_HEAVY_DBG_2 ("\taddress: %s:%d", net_ip_str(result->ip), result->port);
 		FST_HEAVY_DBG_2 ("\tname: %s@%s", result->username, result->netname);
 		FST_HEAVY_DBG_2 ("\tfilesize: %d, ntags: %d", result->filesize, ntags);
+		}
 #endif
 
 		/* read tags */
@@ -503,11 +504,13 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			}
 
 #ifdef LOG_TAGS
-			buf = fst_packet_get_str (tagdata, taglen);
+			{
+			char *buf = fst_packet_get_str (tagdata, taglen);
 			FST_HEAVY_DBG_3 ("\t\ttag: 0x%02x, len: %02d, data: %s",
 							 tag, taglen, buf);
 			free (buf);
 			fst_packet_rewind (tagdata);
+			}
 #endif
 
 			if ((metatag = fst_metatag_create_from_filetag (tag, tagdata)))
