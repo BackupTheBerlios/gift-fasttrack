@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.c,v 1.12 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_utils.c,v 1.13 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -375,21 +375,24 @@ unsigned char *fst_utils_hex_decode (const char *data, int *dst_len)
 
 #ifndef HASH_TEST
 
-/* returns TRUE if ip in reserved private space, ip is big endian */
-BOOL fst_utils_ip_private (in_addr_t ip)
+/* returns TRUE if ip is routable on the internet */
+BOOL fst_utils_ip_routable (in_addr_t ip)
 {
 
 	ip = ntohl (ip);
 
+	/* TODO: filter multicast and broadcast */
 	if (((ip & 0xff000000) == 0x7f000000) || /* 127.0.0.0 */
 	    ((ip & 0xffff0000) == 0xc0a80000) || /* 192.168.0.0 */
 	    ((ip & 0xfff00000) == 0xac100000) || /* 172.16-31.0.0 */
-	    ((ip & 0xff000000) == 0x0a000000))   /* 10.0.0.0 */
+	    ((ip & 0xff000000) == 0x0a000000) || /* 10.0.0.0 */
+		(ip == 0) ||
+		(ip == INADDR_NONE)) /* invalid ip */
 	{
-		return TRUE;
+		return FALSE;
 	}
 
-	return FALSE;
+	return TRUE;
 }
 
 #endif

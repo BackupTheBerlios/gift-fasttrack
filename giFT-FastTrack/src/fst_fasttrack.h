@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.42 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.43 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -138,6 +138,7 @@ typedef uint32_t fst_uint32;
 #include "fst_upload.h"
 #include "fst_share.h"
 #include "fst_udp_discover.h"
+#include "fst_source.h"
 
 /*****************************************************************************/
 

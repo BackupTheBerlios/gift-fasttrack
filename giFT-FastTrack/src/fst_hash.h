@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.h,v 1.10 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_hash.h,v 1.11 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -19,21 +19,27 @@
 #define __FST_HASH_H
 
 #ifndef HASH_TEST
-# include "fst_fasttrack.h"
+
+#include "fst_fasttrack.h"
+
+typedef fst_uint8  uint8;
+typedef fst_uint16 uint16;
+typedef fst_uint32 uint32;
+
 #else
-# include <ctype.h>
-# define TRUE 1
-# define FALSE 0
-typedef int            BOOL;
-#endif
 
-#include "md5.h"
-
-/*****************************************************************************/
+#include <ctype.h>
+#define TRUE 1
+#define FALSE 0
 
 typedef unsigned char  uint8;
 typedef unsigned short uint16;
 typedef unsigned int   uint32;
+typedef int            BOOL;
+
+#endif
+
+#include "md5.h"
 
 /*****************************************************************************/
 
@@ -116,8 +122,11 @@ char *fst_giftcb_fthash_encode (unsigned char *data);
 /* create new hash object */
 FSTHash *fst_hash_create ();
 
+/* create new hash object from org_hash */
+FSTHash *fst_hash_create_copy (FSTHash *org_hash);
+
 /* create new hash object from raw data */
-FSTHash *fst_hash_create_copy (const uint8 *data, size_t len);
+FSTHash *fst_hash_create_raw (const uint8 *data, size_t len);
 
 /* free hash object */
 void fst_hash_free (FSTHash *hash);

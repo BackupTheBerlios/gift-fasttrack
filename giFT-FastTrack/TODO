@@ -1,4 +1,4 @@
-$Id: TODO,v 1.28 2004/03/08 21:09:56 mkern Exp $
+$Id: TODO,v 1.29 2004/03/10 02:07:00 mkern Exp $
 
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
@@ -12,4 +12,4 @@ $Id: TODO,v 1.28 2004/03/08 21:09:56 mkern Exp $
 - add searching by meta data
 - make the max uploaded shares work not only for bulk uploads but also for single shares_add
 - do clients signal to the supernode when their b/w is maxed out?
-- remove firewalled sources from incomplete downloads on shutdown
+- periodically ping supernode and disconnect on timeout

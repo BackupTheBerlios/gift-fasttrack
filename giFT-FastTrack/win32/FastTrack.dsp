@@ -161,6 +161,10 @@ SOURCE=..\src\fst_share.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\fst_source.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\fst_stats.c
 # End Source File
 # Begin Source File
@@ -242,6 +246,10 @@ SOURCE=..\src\fst_session.h
 # Begin Source File
 
 SOURCE=..\src\fst_share.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\fst_source.h
 # End Source File
 # Begin Source File
 

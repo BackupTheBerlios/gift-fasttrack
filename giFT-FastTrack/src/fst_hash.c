@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.c,v 1.10 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_hash.c,v 1.11 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -131,7 +131,7 @@ char *fst_giftcb_kzhash_encode (unsigned char *data)
 	FSTHash *hash;
 	char *str;
 
-	if (!(hash = fst_hash_create_copy (data, FST_KZHASH_LEN)))
+	if (!(hash = fst_hash_create_raw (data, FST_KZHASH_LEN)))
 		return NULL;
 
 	str = strdup (fst_hash_encode16_kzhash (hash));
@@ -197,7 +197,7 @@ char *fst_giftcb_fthash_encode (unsigned char *data)
 	FSTHash *hash;
 	char *str;
 
-	if (!(hash = fst_hash_create_copy (data, FST_FTHASH_LEN)))
+	if (!(hash = fst_hash_create_raw (data, FST_FTHASH_LEN)))
 		return NULL;
 
 	str = strdup (fst_hash_encode64_fthash (hash));
@@ -232,8 +232,27 @@ FSTHash *fst_hash_create ()
 	return hash;
 }
 
+/* create new hash object from org_hash */
+FSTHash *fst_hash_create_copy (FSTHash *org_hash)
+{
+	FSTHash *hash;
+
+	if (!(hash = fst_hash_create ()))
+		return NULL;
+
+
+	if (!fst_hash_set_raw (hash, FST_KZHASH (org_hash), FST_KZHASH_LEN))
+	{
+		fst_hash_free (hash);
+		return NULL;
+	}
+
+	return hash;
+}
+
+
 /* create new hash object from raw data */
-FSTHash *fst_hash_create_copy (const uint8 *data, size_t len)
+FSTHash *fst_hash_create_raw (const uint8 *data, size_t len)
 {
 	FSTHash *hash;
 
@@ -275,7 +294,12 @@ BOOL fst_hash_set_raw (FSTHash* hash, const uint8 *data, size_t len)
 /* returns TRUE if md5tree is present, FALSE otherwise */
 BOOL fst_hash_have_md5tree (FSTHash *hash)
 {
-	uint32 *md5tree = (uint32*) FST_MD5TREE (hash);
+	uint32 *md5tree;
+
+	if (!hash)
+		return FALSE;
+
+	md5tree = (uint32*) FST_MD5TREE (hash);
 
 	return (md5tree[0] || md5tree[1] || md5tree[2] || md5tree[3]);
 }
@@ -285,6 +309,9 @@ BOOL fst_hash_have_md5tree (FSTHash *hash)
  */
 BOOL fst_hash_equal (FSTHash *a, FSTHash *b)
 {
+	if (!a || !b)
+		return FALSE;
+
 	if (!fst_hash_have_md5tree (a) ||
 	    !fst_hash_have_md5tree (b))
 	{

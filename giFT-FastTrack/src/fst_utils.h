@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.h,v 1.10 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_utils.h,v 1.11 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -52,8 +52,8 @@ unsigned char *fst_utils_hex_decode (const char *data, int *dst_len);
 /* HACKHACK */
 #ifndef HASH_TEST
 
-/* returns TRUE if ip in reserved private space, ip is big endian */
-BOOL fst_utils_ip_private (in_addr_t ip);
+/* returns TRUE if ip is routable on the internet */
+BOOL fst_utils_ip_routable (in_addr_t ip);
 
 #endif
 

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_upload.c,v 1.9 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_upload.c,v 1.10 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -425,7 +425,7 @@ static int upload_send_success_reply (FSTUpload *upload)
 		FSTHash *hash;
 		assert (gift_hash->len == FST_KZHASH_LEN);
 
-		if (!(hash = fst_hash_create_copy (gift_hash->data, FST_KZHASH_LEN)))
+		if (!(hash = fst_hash_create_raw (gift_hash->data, FST_KZHASH_LEN)))
 		{
 			fst_http_header_free (reply);
 			return FALSE;

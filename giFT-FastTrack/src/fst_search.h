@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.15 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_search.h,v 1.16 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -19,6 +19,7 @@
 #define __FST_SEARCH_H
 
 #include "fst_session.h"
+#include "fst_source.h"
 #include "fst_packet.h"
 #include "fst_meta.h"
 
@@ -95,18 +96,12 @@ typedef struct
 
 typedef struct
 {
-	in_addr_t ip, sip;
-	in_port_t port, sport;
-
-	char *username;
-	char *netname;
+	FSTSource *source;
 
 	char *filename;
 	fst_uint32 filesize;
 	fst_uint32 file_id;
 	FSTHash *hash;
-
-	fst_uint8 bandwidth;
 
 	List *metatags;	/* list of FSTMetaTags */
 

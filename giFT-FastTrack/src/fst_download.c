@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.23 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_download.c,v 1.24 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -34,27 +34,23 @@ static char *download_calc_xferuid (char *uri);
 int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 							   Source *source)
 {
-	in_addr_t ip;
-	in_port_t port;
-	FSTHash *hash;
+	FSTSource *src;
+	FSTPush *push;
 
-	/* determine whether we need to send a push. */
-	if (!(hash = fst_download_parse_url (source->url, &ip, &port, NULL)))
+	if (!(src = fst_source_create_url (source->url)))
 	{
-		FST_WARN_1 ("malformed url %s", source->url);
+		/* this url is broken, remove the source */
+		FST_WARN_1 ("malformed url \"%s\", removing source", source->url);
+		FST_PROTO->source_abort (FST_PROTO, source->chunk->transfer, source);
 		return FALSE;
 	}
-	fst_hash_free (hash);
 
-	if (fst_utils_ip_private (ip) || !port)
+	/* determine whether we need to send a push. */
+	if (fst_source_firewalled (src))
 	{
-		/* firewalled source, send push request */
-		FSTPush *push;
+		fst_source_free (src);
 
-		/* if we don't wait for push replies there is no point in requesting */
-		if (!FST_PLUGIN->server)
-			return FALSE;
-
+		/* check if we already sent a push for this source */
 		if ((push = fst_pushlist_lookup_source (FST_PLUGIN->pushlist, source)))
 		{
 			/* We already sent a push request for this source, remove it.
@@ -67,22 +63,31 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 			fst_push_free (push);
 		}
 
+		/* create push and add to list */
 		if (! (push = fst_pushlist_add (FST_PLUGIN->pushlist, source)))
 			return FALSE;
 
+		/* send push request */
 		if (!fst_push_send_request (push, FST_PLUGIN->session))
 		{
-			FST_DBG_1 ("fst_push_send_request failed for %s", source->url);
-			FST_PROTO->source_status (FST_PROTO, source, SOURCE_TIMEOUT,
-									  "Can't send push yet");
+			FST_DBG_1 ("push send failed, removing source %s", source->url);
 			fst_pushlist_remove (FST_PLUGIN->pushlist, push);
 			fst_push_free (push);
-			return FALSE;
+
+			/* this will call fst_giftcb_source_remove */
+			FST_PROTO->source_abort (FST_PROTO, source->chunk->transfer, source);
+
+			/* Need to return TRUE because gift fill otherwise access the already
+			 * removed source in download.c::activate_chunk and crash.
+			 */
+			return TRUE;
 		}
 
 		FST_PROTO->source_status (FST_PROTO, source, SOURCE_WAITING, "Sent push");
 		return TRUE;
 	}
+
+	fst_source_free (src);
 
 	if (!fst_download_start (source, NULL))
 	{
@@ -120,7 +125,70 @@ void fst_giftcb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk,
 /* called by gift to add a source */
 BOOL fst_giftcb_source_add (Protocol *p,Transfer *transfer, Source *source)
 {
+	FSTSource *src;
+
+	/* prepare source */
+	assert (source->udata == NULL);
 	source->udata = NULL;
+
+	/* parse url */
+	if (!(src = fst_source_create_url (source->url)))
+	{
+		/* this url is broken, reject it */
+		FST_WARN_1 ("malformed url, rejecting source \"%s\"", source->url);
+		return FALSE;
+	}
+
+	/* firewalled sources may be rejected for various reasons */
+	if (fst_source_firewalled (src))
+	{
+		/* we must have data for pushing */
+		if (!fst_source_has_push_info (src))
+		{
+			FST_WARN_1 ("no push data, rejecting fw source \"%s\"", source->url);
+			fst_source_free (src);
+			return FALSE;	
+		}
+
+		/* we must be able to receive connections */
+		if (!FST_PLUGIN->server)
+		{
+			FST_DBG_1 ("no server listening, rejecting fw source \"%s\"",
+			           source->url);
+			fst_source_free (src);
+			return FALSE;
+		}
+
+		/* we must not be firewalled ourselves */
+		if (FST_PLUGIN->external_ip != FST_PLUGIN->local_ip &&
+			!FST_PLUGIN->forwarding)
+		{
+			FST_DBG_1 ("NAT detected but port is not forwarded, rejecting source %s",
+			           source->url);
+			fst_source_free (src);
+			return FALSE;
+		}
+
+		/* if there is no active session the supernode has most likely changed */
+		if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
+		{
+			FST_DBG_1 ("no established session, rejecting fw source %s",
+			           source->url);
+			fst_source_free (src);
+			return FALSE;
+		}
+
+		/* we must still be connected to the correct supernode */
+		if (FST_PLUGIN->session->tcpcon->host != src->parent_ip)
+		{
+			FST_DBG_1 ("no longer connected to correct supernode, rejecting source %s",
+			           source->url);
+			fst_source_free (src);
+			return FALSE;
+		}
+	}
+
+	fst_source_free (src);
 
 	return TRUE;
 }
@@ -157,28 +225,72 @@ int fst_download_start (Source *source, TCPC *tcpcon)
 	Chunk *chunk = source->chunk;
 	FSTHttpClient *client = (FSTHttpClient*) source->udata;
 	FSTHttpHeader *request;
-	in_addr_t ip;
-	in_port_t port;
 	char *uri, *range_str;
+	FSTSource *src;
 	FSTHash *hash;
+	char *hash_algo;
 
 	assert (source);
 	assert (chunk);
 
-	/* parse url */
-	if (!(hash = fst_download_parse_url (source->url, &ip, &port, NULL)))
+	/* parse hash */
+	if (!(hash = fst_hash_create ()))
+		return FALSE;
+
+	if (!(hash_algo = hashstr_algo (source->hash)))
 	{
-		FST_WARN_1 ("malformed url %s", source->url);
+		FST_WARN_2 ("invalid hash %s supplied with source \"%s\"",
+		            source->hash, source->url);
+		fst_hash_free (hash);
 		return FALSE;
 	}
 
+	if (!gift_strcasecmp (hash_algo, FST_KZHASH_NAME))
+	{
+		if (!fst_hash_decode16_kzhash (hash, hashstr_data (source->hash)))
+		{
+			FST_WARN_2 ("invalid hash %s supplied with source \"%s\"",
+			            source->hash, source->url);
+			fst_hash_free (hash);	
+			return FALSE;
+		}
+	}
+	else if (!gift_strcasecmp (hash_algo, FST_FTHASH_NAME))
+	{
+		if (!fst_hash_decode64_fthash (hash, hashstr_data (source->hash)))
+		{
+			FST_WARN_2 ("invalid hash %s supplied with source \"%s\"",
+			            source->hash, source->url);
+			fst_hash_free (hash);	
+			return FALSE;
+		}
+	}
+	else
+	{
+		FST_WARN_2 ("invalid hash %s supplied with source \"%s\"",
+		            source->hash, source->url);
+		fst_hash_free (hash);	
+		return FALSE;
+	}
+
+	/* create uri from hash */
 	uri = stringf_dup ("/.hash=%s", fst_hash_encode16_fthash (hash));
 	fst_hash_free (hash);
+
+	/* parse url */
+	if (!(src = fst_source_create_url (source->url)))
+	{
+		FST_WARN_1 ("malformed url %s", source->url);
+		free (uri);
+		return FALSE;
+	}
 
 	/* create http request */
 	if (! (request = fst_http_header_request (HTHD_VER_11, HTHD_GET, uri)))
 	{
 		FST_WARN_1 ("creation of request failed for url %s", source->url);
+		free (uri);
+		fst_source_free (src);
 		return FALSE;
 	}
 
@@ -198,7 +310,7 @@ int fst_download_start (Source *source, TCPC *tcpcon)
 	{
 		FST_HEAVY_DBG_1 ("first time use of source %s", source->url);
 
-		client = fst_http_client_create (net_ip_str (ip), port,
+		client = fst_http_client_create (net_ip_str (src->ip), src->port,
 										 download_client_callback);
 		client->udata = (void*) source;
 		source->udata = (void*) client;
@@ -222,11 +334,12 @@ int fst_download_start (Source *source, TCPC *tcpcon)
 #endif
 
 	free (uri);
+	fst_source_free (src);
 
 	/* make the request */
 	FST_PROTO->source_status (FST_PROTO, source, SOURCE_WAITING, "Connecting");
 
-	if (! fst_http_client_request (client, request, FALSE))
+	if (!fst_http_client_request (client, request, FALSE))
 	{
 		FST_WARN_1 ("request failed for url %s", source->url);
 		return FALSE;
@@ -235,79 +348,7 @@ int fst_download_start (Source *source, TCPC *tcpcon)
 	return TRUE;
 }
 
-/* Parses new format url.
- * Returns FSTHash which caller frees or NULL on failure.
- * params receives a dataset with additional params, caller frees, may be NULL
- */
-FSTHash *fst_download_parse_url (char *url, in_addr_t *ip,
-                                 in_port_t *port, Dataset **params)
-{
-	char *url0, *hash_str, *param_str;
-	char *ip_str, *port_str;
-	FSTHash *hash;
-
-	if (!url)
-		return NULL;
-
-	url0 = param_str = strdup (url);
-
-	string_sep (&param_str, "://");
-
-	/* separate ip and port */
-	if (! (port_str = string_sep (&param_str, "/")))
-	{
-		free (url0);
-		return NULL;
-	}
-
-	if (! (ip_str = string_sep (&port_str, ":")))
-	{
-		free (url0);
-		return NULL;
-	}
-
-	if (ip) *ip = net_ip (ip_str);
-	if (port) *port = ATOI (port_str);
-
-	/* decode hash */
-	if (! (hash_str = string_sep (&param_str, "?")))
-		hash_str = param_str;
-
-	hash = fst_hash_create ();
-	if (!fst_hash_decode16_kzhash (hash, hash_str))
-	{
-		fst_hash_free (hash);
-		free (hash);
-		free (url0);
-		return NULL;
-	}
-
-	/* parse params if that was requested */
-	if (params && (*params = dataset_new (DATASET_HASH)))
-	{
-		char *name, *value;
-
-		while ((value = string_sep (&param_str, "&")))
-		{
-			if ((name = string_sep (&value, "=")))
-			{
-				string_lower (name);
-				dataset_insertstr (params, name, value);
-			}
-		}
-		if ((name = string_sep (&param_str, "=")))
-		{
-			string_lower (name);
-			dataset_insertstr (params, name, param_str);
-		}
-	}
-
-	free (url0);
-	return hash;
-}
-
 /*****************************************************************************/
-
 
 /* http client callback */
 static int download_client_callback (FSTHttpClient *client,

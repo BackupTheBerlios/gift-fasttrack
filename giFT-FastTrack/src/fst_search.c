@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.24 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_search.c,v 1.25 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -35,6 +35,13 @@ int fst_giftcb_search (Protocol *p, IFEvent *event, char *query, char *exclude,
 	FSTSearch *search = fst_search_create (event, SearchTypeSearch, query,
 										   exclude, realm);
 	fst_searchlist_add (FST_PLUGIN->searches, search);
+
+	if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
+	{
+		FST_DBG_2 ("not connected, queueing query for \"%s\", fst_id = %d",
+				   search->query, search->fst_id);
+		return TRUE;
+	}
 
 	if (!fst_search_send_query (search, FST_PLUGIN->session))
 	{
@@ -98,6 +105,13 @@ int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hstr)
 	search->hash = hash;
 
 	fst_searchlist_add (FST_PLUGIN->searches, search);
+
+	if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
+	{
+		FST_DBG_2 ("not connected, queueing query for \"%s\", fst_id = %d",
+				   search->query, search->fst_id);
+		return TRUE;
+	}
 	
 	if (!fst_search_send_query (search, FST_PLUGIN->session))
 	{
@@ -415,7 +429,6 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 	}
 
 	assert (msg_type == SessMsgQueryReply);
-
 	/* we got a query result */
 
 	/* supernode ip an port */
@@ -447,12 +460,19 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 
 		/* add new result to list */
 		results = list_prepend (results, (void*) result);
-		result->sip = sip;
-		result->sport = sport;
+		result->source->snode_ip = sip;
+		result->source->snode_port = sport;
+		/* save our current supernode ip */
+		result->source->parent_ip = FST_PLUGIN->session->tcpcon->host;
 
-		result->ip = fst_packet_get_uint32 (msg_data);
-		result->port = ntohs(fst_packet_get_uint16 (msg_data));
-		result->bandwidth = fst_packet_get_uint8 (msg_data);
+		result->source->ip = fst_packet_get_uint32 (msg_data);
+		result->source->port = ntohs(fst_packet_get_uint16 (msg_data));
+
+		/* convert bandwidth back from log scale to kbit/sec*/
+		result->source->bandwidth = fst_packet_get_uint8 (msg_data);
+
+		if (result->source->bandwidth > 0)
+			result->source->bandwidth = exp(((double)result->source->bandwidth) * 0.0495105 - 2.9211202);
 
 		/* user and network name */
 		if(*(msg_data->read_ptr) == 0x02)
@@ -464,20 +484,22 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			for (item=results->next; item; item = item->next)
 			{
 				FSTSearchResult *res = (FSTSearchResult*) item->data;
-				if (res->ip == result->ip && res->port == result->port)
+				if (res->source->ip == result->source->ip &&
+				    res->source->port == result->source->port)
 				{
-					result->username = strdup (res->username);
-					result->netname = strdup (res->netname);
+					result->source->username = STRDUP (res->source->username);
+					result->source->netname = STRDUP (res->source->netname);
 					FST_HEAVY_DBG_2 ("decompressed %s@%s",
-									 result->username, result->netname);
+					                 result->source->username,
+					                 result->source->netname);
 					break;
 				}
 			}
 
-			if (!result->username)
-				result->username = strdup("<unknown>");
-			if (!result->netname)
-				result->netname = strdup("<unknown>");
+			if (!result->source->username)
+				result->source->username = STRDUP ("<unknown>");
+			if (!result->source->netname)
+				result->source->netname = STRDUP ("<unknown>");
 		}
 		else
 		{
@@ -488,8 +510,8 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 				return FALSE;
 			}
 
-			result->username = fst_packet_get_ustr (msg_data, i+1);
-			result->username[i] = 0;
+			result->source->username = fst_packet_get_ustr (msg_data, i+1);
+			result->source->username[i] = 0;
 
 			/* network name */
 			if((i = fst_packet_strlen (msg_data, 0x00)) < 0)
@@ -498,8 +520,8 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 				return FALSE;
 			}
 
-			result->netname = fst_packet_get_ustr (msg_data, i+1);
-			result->netname[i] = 0;
+			result->source->netname = fst_packet_get_ustr (msg_data, i+1);
+			result->source->netname[i] = 0;
 		}
 
 		if (fst_packet_remaining (msg_data) >= FST_FTHASH_LEN)
@@ -517,8 +539,10 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 		{
 		FST_HEAVY_DBG_2 ("result %d: %s", nresults,
 		                 fst_hash_encode64_fthash (result->hash));
-		FST_HEAVY_DBG_2 ("  address: %s:%d", net_ip_str(result->ip), result->port);
-		FST_HEAVY_DBG_2 ("  name: %s@%s", result->username, result->netname);
+		FST_HEAVY_DBG_2 ("  address: %s:%d", net_ip_str(result->source->ip),
+		                 result->source->port);
+		FST_HEAVY_DBG_2 ("  name: %s@%s", result->source->username,
+		                 result->source->netname);
 		FST_HEAVY_DBG_2 ("  filesize: %d, ntags: %d", result->filesize, ntags);
 		}
 #endif
@@ -590,7 +614,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 		/* send result to giFT if the ip is not on ban list
 		 * and we are able to receive push replies for private ips 
 		 */
-		if (( fst_utils_ip_private (result->ip) || !result->port ) &&
+		if (fst_source_firewalled (result->source) &&
 			(
 			  !FST_PLUGIN->server ||
 			  (FST_PLUGIN->external_ip != FST_PLUGIN->local_ip && !FST_PLUGIN->forwarding)
@@ -600,7 +624,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			search->fw_replies++;
 		}
 		else if (search->banlist_filter &&
-				 fst_ipset_contains (FST_PLUGIN->banlist, result->ip))
+				 fst_ipset_contains (FST_PLUGIN->banlist, result->source->ip))
 		{
 			search->banlist_replies++;
 		}
@@ -624,11 +648,26 @@ FSTSearchResult *fst_searchresult_create ()
 {
 	FSTSearchResult *result;
 
-	if (! (result = malloc (sizeof (FSTSearchResult))))
+	if (!(result = malloc (sizeof (FSTSearchResult))))
 		return NULL;
 
-	memset (result, 0 , sizeof (FSTSearchResult));
-	result->hash = fst_hash_create ();
+	if (!(result->source = fst_source_create ()))
+	{
+		free (result);
+		return NULL;
+	}
+
+	if (!(result->hash = fst_hash_create ()))
+	{
+		fst_source_free (result->source);
+		free (result);
+		return NULL;
+	}
+
+	result->filename = NULL;
+	result->filesize = 0;
+	result->file_id = 0;
+	result->metatags = NULL;
 
 	return result;
 }
@@ -646,10 +685,9 @@ void fst_searchresult_free (FSTSearchResult *result)
 	if (!result)
 		return;
 
-	free (result->username);
-	free (result->netname);
-	free (result->filename);
+	fst_source_free (result->source);
 	fst_hash_free (result->hash);
+	free (result->filename);
 
 	list_foreach_remove (result->metatags,
 						 (ListForeachFunc)searchresult_free_tag,
@@ -672,14 +710,13 @@ int fst_searchresult_write_gift (FSTSearchResult *result, FSTSearch *search)
 {
 	FileShare *share;
 	List *item;
-	char *href, *buf;
+	char *href, *username;
 	unsigned int avail = 0;
 
 	if (!result || !search)
 		return FALSE;
 
 	/* create FileShare for giFT */
-
 	if (! (share = share_new (NULL)))
 		return FALSE;
 
@@ -707,45 +744,31 @@ int fst_searchresult_write_gift (FSTSearchResult *result, FSTSearch *search)
 	}
 
 	/* add meta data */
-	for(item=result->metatags; item; item=item->next)
+	for (item = result->metatags; item; item = item->next)
 	{
 		FSTMetaTag *metatag = (FSTMetaTag*) item->data;
 		share_set_meta (share, metatag->name, metatag->value);
 	}
 
 	/* create href for giFT */
-	{
-		char *href_main = stringf_dup ("FastTrack://%s:%d/%s",
-									   net_ip_str (result->ip), result->port,
-									   fst_hash_encode16_kzhash (result->hash));
-
-		href = stringf_dup ("%s?shost=%s&sport=%d&uname=%s",
-							href_main, net_ip_str (result->sip),
-							result->sport,result->username);
-
-		free (href_main);
-	}
+	href = fst_source_encode (result->source);
 
 	/* create actual user name sent to giFT */
-	buf = stringf_dup ("%s@%s", result->username, net_ip_str(result->ip));
+	username = stringf_dup ("%s@%s", result->source->username,
+	                        net_ip_str(result->source->ip));
 
 	/* Calculate avilability based on reported bandwidth. */
-	if (result->bandwidth > 0)
+	if (result->source->bandwidth > 0)
 	{
-#if 1
-		avail = 1 + exp(((double)result->bandwidth) * 0.0495105 - 2.9211202) / 1680 * 5;
-#else
-		avail = 1 + (((double)result->bandwidth) / 0xd1) * 5;
-#endif
-		if (avail > 7)
-			avail = 7;
+		avail = 1 + result->source->bandwidth / 1680 * 5;
+		if (avail > 7)	avail = 7;
 	}
 
 	/* notify giFT */
-	FST_PROTO->search_result (FST_PROTO, search->gift_event, buf,
-	                          result->netname, href, avail, share);
+	FST_PROTO->search_result (FST_PROTO, search->gift_event, username,
+	                          NULL, href, avail, share);
 
-	free (buf);
+	free (username);
 	free (href);
 	share_free (share);
 

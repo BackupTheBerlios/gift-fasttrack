@@ -1,5 +1,5 @@
 /*
- * $Id: fst_share.c,v 1.8 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_share.c,v 1.9 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -353,7 +353,7 @@ int share_register_file (Share *share)
 	}
 	assert (gift_hash->len == FST_KZHASH_LEN);
 
-	if (!(hash = fst_hash_create_copy (gift_hash->data, FST_KZHASH_LEN)))
+	if (!(hash = fst_hash_create_raw (gift_hash->data, FST_KZHASH_LEN)))
 	{
 		fst_packet_free (packet);
 		return FALSE;
@@ -426,7 +426,7 @@ int share_unregister_file (Share *share)
 	}
 	assert (gift_hash->len == FST_KZHASH_LEN);
 
-	if (!(hash = fst_hash_create_copy (gift_hash->data, FST_KZHASH_LEN)))
+	if (!(hash = fst_hash_create_raw (gift_hash->data, FST_KZHASH_LEN)))
 	{
 		fst_packet_free (packet);
 		return FALSE;

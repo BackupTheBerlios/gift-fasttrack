@@ -1,5 +1,5 @@
 /*
- * $Id: fst_push.c,v 1.5 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_push.c,v 1.6 2004/03/10 02:07:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -80,18 +80,28 @@ void fst_push_free (FSTPush *push)
 int fst_push_send_request (FSTPush *push, FSTSession *session)
 {
 	FSTPacket *packet;
-	FSTHash *hash;
-	char *username;
-	in_addr_t ip, shost;
-	in_port_t port, sport;
-	Dataset *params;
+	FSTSource *src;
 
-	if (!push || !session)
+	if (!push)
 		return FALSE;
 
+	/* session must be established */
+	if (!session || session->state != SessEstablished)
+	{
+		FST_DBG_1 ("no established session, not requesting push for %s",
+				   push->source->url);
+		return FALSE;
+	}
+
+	/* we must be able to receive connections */
 	if (!FST_PLUGIN->server)
+	{
+		FST_DBG_1 ("no server listening, not requesting push for %s",
+				   push->source->url);
 		return FALSE;
+	}
 
+	/* we must not be firewalled ourselves */
 	if (FST_PLUGIN->external_ip != FST_PLUGIN->local_ip &&
 		!FST_PLUGIN->forwarding)
 	{
@@ -100,32 +110,33 @@ int fst_push_send_request (FSTPush *push, FSTSession *session)
 		return FALSE;
 	}
 
-	/* get everything we need from url */
-	if (!(hash = fst_download_parse_url (push->source->url, &ip, &port, &params)))
+	/* parse url */
+	if (!(src = fst_source_create_url (push->source->url)))
 	{
 		FST_WARN_1 ("malformed url %s", push->source->url);
 		return FALSE;
 	}
 
-	shost = net_ip (dataset_lookupstr (params, "shost"));
-	sport = ATOI (dataset_lookupstr (params, "sport"));
-	username = gift_strdup (dataset_lookupstr (params, "uname"));
-
-	fst_hash_free (hash);
-	dataset_clear (params);
-
-	if (!shost || !sport || !username)
+	/* we must have data for pushing */
+	if (!fst_source_has_push_info (src))
 	{
-		FST_WARN_1 ("malformed url %s", push->source->url);
-		free (username);
+		FST_WARN_1 ("no push data for url %s", push->source->url);
+		fst_source_free (src);
 		return FALSE;	
 	}
 
-	/* TODO: check that we are still connected to the right supernode */
-
-	if (! (packet = fst_packet_create()))
+	/* we must still be connected to the correct supernode */
+	if (session->tcpcon->host != src->parent_ip)
 	{
-		free (username);
+		FST_DBG_1 ("no longer connected to correct supernode for requesting push for %s",
+				   push->source->url);
+		fst_source_free (src);
+		return FALSE;
+	}
+
+	if (!(packet = fst_packet_create()))
+	{
+		fst_source_free (src);
 		return FALSE;
 	}
 
@@ -135,15 +146,15 @@ int fst_push_send_request (FSTPush *push, FSTSession *session)
 	fst_packet_put_uint32 (packet, FST_PLUGIN->external_ip);
 	fst_packet_put_uint16 (packet, htons(FST_PLUGIN->server->port));
 	/* ip and port of pushing user */
-	fst_packet_put_uint32 (packet, ip);
-	fst_packet_put_uint16 (packet, htons(port));
+	fst_packet_put_uint32 (packet, src->ip);
+	fst_packet_put_uint16 (packet, htons(src->port));
 	/* ip and port of pushing user's supernode */
-	fst_packet_put_uint32 (packet, shost);
-	fst_packet_put_uint16 (packet, htons(sport));
+	fst_packet_put_uint32 (packet, src->snode_ip);
+	fst_packet_put_uint16 (packet, htons(src->snode_port));
 	/* pushing user's name */
-	fst_packet_put_ustr (packet, username, strlen (username));
+	fst_packet_put_ustr (packet, src->username, strlen (src->username));
 
-	free (username);
+	fst_source_free (src);
 
 	/* now send it */
 	if (!fst_session_send_message (session, SessMsgPushRequest, packet))
