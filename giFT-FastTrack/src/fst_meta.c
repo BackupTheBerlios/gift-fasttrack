@@ -69,8 +69,8 @@ FSTMetaTag *fst_metatag_create_from_filetag (FSTFileTag filetag, FSTPacket *data
 		value = strdup(buf);
 		break;
 	case FILE_TAG_TIME:
-		name = "length";
-		sprintf (buf, "%d sec", fst_packet_get_dynint (data));
+		name = "duration";
+		sprintf (buf, "%d", fst_packet_get_dynint (data));
 		value = strdup(buf);
 		break;
 
