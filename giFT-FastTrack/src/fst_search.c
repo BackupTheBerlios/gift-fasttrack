@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.34 2004/11/10 21:46:35 mkern Exp $
+ * $Id: fst_search.c,v 1.35 2004/11/20 21:37:43 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -310,7 +310,7 @@ int fst_search_send_query_to_all (FSTSearch *search)
 	int i;
 
 	/* send to primary supernode */
-	if (FST_PLUGIN->session->state == SessEstablished)
+	if (FST_PLUGIN->session && FST_PLUGIN->session->state == SessEstablished)
 		if (!fst_search_send_query (search, FST_PLUGIN->session))
 			return 0;
 
