@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.14 2003/06/29 16:14:19 mkern Exp $
+# $Id: configure.ac,v 1.15 2003/06/30 16:12:23 mkern Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -108,7 +108,7 @@ DL_LDFLAGS=
 DL_CFLAGS=
 
 # Override -g -O2
-CFLAGS="-g -Wall -lm"
+CFLAGS="-g -Wall"
 
 dnl ###########################################################################
 dnl Architecture specific stuff
