@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.14 2004/03/08 21:09:56 mkern Exp $
+$Id: PROTOCOL,v 1.15 2004/03/10 19:53:00 mkern Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -552,7 +552,7 @@ Message types
 
   Bytes Desc
   2     ID(?)
-  1     unknown (0x32?)
+  1     max results? (0x32?)
   2     unknown (0x02 0x00)
 
   Requests a list of the files the remote node is sharing(?). FIXME.
@@ -653,11 +653,12 @@ The first byte is the message type:
   1     unknown (Incremented by 1 approx every 30 minutes, stays within +/-1 at
                  any given time for a sample of 200 nodes.)
   2     unknown (In a 200 node sample 81 were 0x3c13, 40 were 0x5d06,
-                 11 were 0x800e, 10 were 0xc005.)
+                 11 were 0x800e, 10 were 0xc005. A stand alone supernode
+                 reports 0x0100, with one client it reports 0x0200)
   1     load (load in percent, Same value as in TCP message 0x00)
-  1     number of children? (Majority evenly destributed below 15. About 15
-                             percent above 220. Large gap in between. Changes
-                             too fast to be uptime in minutes.)
+  1     unknown (Majority evenly destributed below 15. About 15 percent above
+                 220. Large gap in between. Changes too fast to be uptime in
+                 minutes. A stand alone supernode reported 207. Maybe signed?)
   n     zero-terminated network name
 
   Kazaa only seems to connect to nodes that return 0x28 in response to a ping,
