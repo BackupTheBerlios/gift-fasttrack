@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
+ * $Id: fst_fasttrack.h,v 1.9 2003/06/21 17:17:08 mkern Exp $
+ *
+ * Copyright (C) 2003 giFT-FastTrack project http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -45,6 +47,21 @@
 #define GIFT_PLUGIN
 #include <libgift/libgift.h>
 
+#include <libgift/giftconfig.h>
+
+#if TIME_WITH_SYS_TIME
+# include <time.h>
+# include <sys/time.h>
+#else /* !TIME_WITH_SYS_TIME */
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif /* TIME_WITH_SYS_TIME */
+
+#include <stdint.h>
+
 typedef int8_t   fst_int8;
 typedef uint8_t  fst_uint8;
 typedef int16_t  fst_int16;
@@ -71,6 +88,11 @@ typedef uint32_t fst_uint32;
 
 #include <libgift/proto/transfer_api.h>
 
+#include <string.h>
+
+#include <libgift/dataset.h>
+
+
 #include "fst_node.h"
 #include "fst_packet.h"
 #include "fst_session.h"
@@ -86,15 +108,15 @@ typedef uint32_t fst_uint32;
 #define FST_PLUGIN ((FSTPlugin*)fst_proto->udata)
 #define FST_PROTO (fst_proto)
 
-#define FST_NETWORK_NAME "KaZaA"	// network name we send and which we require from other supernodes
-#define FST_USER_NAME (config_get_str (FST_PLUGIN->conf, "main/username=giFTed"))
+#define FST_NETWORK_NAME "KaZaA"		// network name we send and which we require from other supernodes
+#define FST_USER_NAME (config_get_str (FST_PLUGIN->conf, "main/alias=giFTed"))
 
 #define FST_MAX_NODESFILE_SIZE 1000	// max number of nodes we save in nodes file
 
 #define FST_MAX_SEARCH_RESULTS 0xFF	// max number of results we want to be returned per search
 
 // no worki yet 
-//#define FST_DOWNLOAD_BOOST_PL		// use a participation level if 1000 for downloading
+//#define FST_DOWNLOAD_BOOST_PL               // use a participation level if 1000 for downloading
 
 // various timeouts in ms
 #define FST_SESSION_CONNECT_TIMEOUT		(10*SECONDS)
@@ -122,8 +144,7 @@ typedef struct
 
 /*****************************************************************************/
 
-// global pointer to plugin struct
-extern Protocol *fst_proto;
+extern Protocol *fst_proto;			// global pointer to plugin struct
 
 // called by gift to init plugin
 #ifdef WIN32
