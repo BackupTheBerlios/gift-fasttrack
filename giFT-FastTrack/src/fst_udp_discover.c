@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.6 2004/01/03 22:44:07 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.7 2004/01/04 17:24:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -233,7 +233,7 @@ static void udp_discover_receive (int fd, input_id input,
 		}
 		else
 		{
-			FST_ERR ("udp_discover_receive: recvfrom failed: %d", WSAGetLastError ());
+			FST_ERR_1 ("udp_discover_receive: recvfrom failed: %d", WSAGetLastError ());
 			return;
 		}
 #else
