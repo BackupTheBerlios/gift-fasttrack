@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.36 2005/01/03 17:13:41 mkern Exp $
+# $Id: configure.ac,v 1.37 2005/02/28 20:00:25 mkern Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -9,7 +9,7 @@ dnl ###########################################################################
 AC_PREREQ(2.52)
 
 AC_INIT(giFT-FastTrack, 0.8.9, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
-AC_REVISION($Revision: 1.36 $)
+AC_REVISION($Revision: 1.37 $)
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
 AM_INIT_AUTOMAKE
@@ -113,6 +113,7 @@ AC_CONFIG_FILES([
   src/crypt/Makefile
   data/Makefile
   m4/Makefile
+  win32/Makefile
   fasttrack.spec
 ])
 AC_OUTPUT
