@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.44 2004/03/10 20:35:16 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.45 2004/03/11 12:05:49 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -191,6 +191,12 @@ typedef uint32_t fst_uint32;
 
 /* timeout for sessions handshakes */
 #define FST_SESSION_HANDSHAKE_TIMEOUT	(10*SECONDS)
+
+/* time between session pings */
+#define FST_SESSION_PING_INTERVAL	(120*SECONDS)
+
+/* timeout for sessions pings */
+#define FST_SESSION_PING_TIMEOUT	(20*SECONDS)
 
 /* Sometimes we connect to a splitted segment of the network. While these
  * segments usually find their way back on the main network after a short time

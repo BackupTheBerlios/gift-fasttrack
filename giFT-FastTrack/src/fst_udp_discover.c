@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.20 2004/03/10 20:35:16 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.21 2004/03/11 12:05:49 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -216,8 +216,6 @@ int fst_udp_discover_ping_node (FSTUdpDiscover *discover, FSTNode *node)
 	/* create timer for ping timeout if necessary */
 	if (!discover->timer)
 	{
-		FST_HEAVY_DBG ("creating timer");
-
 		discover->timer = timer_add (FST_UDP_DISCOVER_TIMEOUT,
 		                             (TimerCallback)udp_discover_timeout,
 		                             discover);
@@ -412,7 +410,6 @@ static void udp_discover_receive (int fd, input_id input,
 	/* remove timer if no more outstanding pings */
 	if (discover->pinged_nodes == 0)
 	{
-		FST_HEAVY_DBG ("removing timer");
 		/* remove timer */
 		timer_remove (discover->timer);
 		discover->timer = 0;
@@ -459,7 +456,6 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 	/* remove timer if no more outstanding pings */
 	if (discover->pinged_nodes == 0)
 	{
-		FST_HEAVY_DBG ("removing timer");
 		/* remove timer */
 		discover->timer = 0;
 		return FALSE;

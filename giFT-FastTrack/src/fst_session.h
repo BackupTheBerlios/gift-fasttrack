@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.h,v 1.6 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_session.h,v 1.7 2004/03/11 12:05:49 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -78,6 +78,8 @@ struct _FSTSession
 	FSTSessionState state;
 	TCPC *tcpcon;				/* tcp connection */
 	FSTNode *node;				/* copy of node this session is connected to */
+
+	timer_id ping_timer;        /* timer used for pinging supernode */
 
 	FSTSessionCallback callback;
 };

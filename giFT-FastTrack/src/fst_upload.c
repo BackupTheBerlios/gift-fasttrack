@@ -1,5 +1,5 @@
 /*
- * $Id: fst_upload.c,v 1.10 2004/03/10 02:07:01 mkern Exp $
+ * $Id: fst_upload.c,v 1.11 2004/03/11 12:05:49 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -432,7 +432,7 @@ static int upload_send_success_reply (FSTUpload *upload)
 		}
 
 		fst_http_header_set_field (reply, "X-KazaaTag",
-		                           stringf ("%u==%s", FILE_TAG_HASH,
+		                           stringf ("%u=%s", FILE_TAG_HASH,
 		                           fst_hash_encode64_fthash (hash)));
 		fst_hash_free (hash);
 	}

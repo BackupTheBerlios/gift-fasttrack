@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.20 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_session.c,v 1.21 2004/03/11 12:05:49 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -28,6 +28,9 @@ static void session_connected (int fd, input_id input, FSTSession *session);
 static void session_decrypt_packet (int fd, input_id input, FSTSession *session);
 static int session_do_handshake (FSTSession *session);
 static int session_greet_supernode (FSTSession *session);
+static void session_received_pong (FSTSession *session);
+static BOOL session_ping (FSTSession *session);
+static BOOL session_ping_timeout (FSTSession *session);
 static int session_send_pong (FSTSession *session);
 static int session_send_ping (FSTSession *session);
 
@@ -62,6 +65,7 @@ FSTSession *fst_session_create (FSTSessionCallback callback)
 	session->tcpcon = NULL;
 	session->node = NULL;
 
+	session->ping_timer = 0;
 	session->callback = callback;
 
 	return session;
@@ -81,6 +85,7 @@ void fst_session_free (FSTSession *session)
 	tcp_close (session->tcpcon);
 
 	fst_node_free (session->node);
+	timer_remove (session->ping_timer);
 
 	free (session);
 }
@@ -133,7 +138,7 @@ int fst_session_disconnect (FSTSession *session)
 		return FALSE;
 
 	tcp_close_null (&session->tcpcon);
-	session->tcpcon = NULL;
+	timer_remove_zero (&session->ping_timer);
 
 	session->state = SessDisconnected;
 	
@@ -379,6 +384,11 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 			return;
 		}
 
+		/* set up ping timer */
+		session->ping_timer = timer_add (FST_SESSION_PING_INTERVAL,
+		                                 (TimerCallback) session_ping,
+		                                 session);
+
 		/* notify plugin of established session */
 		if (!session->callback (session, SessMsgEstablished, NULL))
 			return;
@@ -398,13 +408,15 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 			session_send_pong (session);
 			continue;
 		}
+
 		/* we got pong */
 		if (type == 0x52)
 		{
 			fst_packet_truncate (session->in_packet);	
-			FST_HEAVY_DBG ("got pong");
+			session_received_pong (session);
 			continue;
 		}
+
 		/* we got a message */
 		if (type == 0x4B)
 		{
@@ -595,11 +607,58 @@ static int session_greet_supernode (FSTSession *session)
 		return FALSE;
 	}
 
-	/* just for the fun of it */
-	session_send_ping(session);
-
 	fst_packet_free (packet);
 	return TRUE;
+}
+
+/*****************************************************************************/
+
+static void session_received_pong (FSTSession *session)
+{
+	FST_HEAVY_DBG ("got pong, resetting timer");
+
+	/* remove timer, whichever it was */
+	timer_remove (session->ping_timer);
+
+	/* add ping timer */
+	session->ping_timer = timer_add (FST_SESSION_PING_INTERVAL,
+	                                 (TimerCallback) session_ping,
+	                                 session);
+}
+
+static BOOL session_ping (FSTSession *session)
+{
+	/* send ping */
+	if (!session_send_ping (session))
+	{
+		FST_WARN ("sending ping failed, disconnecting");
+		fst_session_disconnect (session);
+		session->ping_timer = 0;
+		return FALSE;
+	}
+
+	/* add timeout timer */
+	session->ping_timer = timer_add (FST_SESSION_PING_TIMEOUT,
+	                                 (TimerCallback) session_ping_timeout,
+	                                 session);
+
+	FST_HEAVY_DBG ("periodic session ping sent");
+
+	/* remove ping timer */
+	return FALSE;
+}
+
+static BOOL session_ping_timeout (FSTSession *session)
+{
+	FST_WARN ("ping timeout, disconnecting");
+
+	/* didn't get pong, disconnect */
+	fst_session_disconnect (session);
+
+	session->ping_timer = 0;
+
+	/* remove ping timer */
+	return FALSE;
 }
 
 /*****************************************************************************/
