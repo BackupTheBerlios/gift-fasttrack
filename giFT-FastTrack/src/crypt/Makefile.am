@@ -1,10 +1,4 @@
-# $Id: Makefile.am,v 1.2 2003/06/28 14:29:35 beren12 Exp $
-
-AM_CFLAGS = $(FT_CFLAGS)
-
-INCLUDES = \
-	-I. \
-	-I$(top_srcdir)/src
+# $Id: Makefile.am,v 1.3 2003/06/29 13:15:00 beren12 Exp $
 
 noinst_LTLIBRARIES = libfst_crypt.la
 
@@ -13,3 +7,7 @@ libfst_crypt_la_SOURCES = \
 	enc_type_2.c \
 	enc_type_20.c \
 	fst_crypt.c
+
+INCLUDES = @FT_CFLAGS@
+
+libfst_crypt_la_LDFLAGS = @FT_LDFLAGS@ @FT_LIBS@ -lm
