@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.28 2003/11/29 13:33:30 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.29 2003/12/23 16:38:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -161,6 +161,15 @@ typedef uint32_t fst_uint32;
  * the exact value fluctuates and cannot be determined exactly currently
  */
 #define FST_DOWNLOAD_BOOST_PL
+
+/* Our advertised bandwidth.
+ * This tells the supernode how many users it should direct to us for
+ * uploading.
+ * It is a logarithmic scale.  0xd1 represents "infinity" (actually,
+ * 1680 kbps).  The value is approximately 14*log_2(x)+59, where
+ * x is the bandwidth in kbps.
+ */
+#define FST_ADVERTISED_BW 0x50
 
 /* the amount of time we wait before retrying with another node 
  * after resolve/tcp_open failed

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.16 2003/12/02 18:45:57 mkern Exp $
+ * $Id: fst_session.c,v 1.17 2003/12/23 16:38:50 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -27,7 +27,7 @@ char *valid_network_names[] = { "kazaa", "fileshare", "grokster", NULL};
 static void session_connected (int fd, input_id input, FSTSession *session);
 static void session_decrypt_packet (int fd, input_id input, FSTSession *session);
 static int session_do_handshake (FSTSession *session);
-static int session_greet_suppernode (FSTSession *session);
+static int session_greet_supernode (FSTSession *session);
 static int session_send_pong (FSTSession *session);
 static int session_send_ping (FSTSession *session);
 
@@ -376,7 +376,7 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 		session->state = SessEstablished;
 		fst_packet_truncate (session->in_packet);
 
-		if (!session_greet_suppernode (session))
+		if (!session_greet_supernode (session))
 		{
 			fst_session_disconnect (session);
 			return;
@@ -559,7 +559,7 @@ static int session_do_handshake (FSTSession *session)
 	return TRUE;
 }
 
-static int session_greet_suppernode (FSTSession *session)
+static int session_greet_supernode (FSTSession *session)
 {
 	FSTPacket *packet;
 
@@ -580,7 +580,7 @@ static int session_greet_suppernode (FSTSession *session)
 	 * 1680 kbps).  The value is approximately 14*log_2(x)+59, where
 	 * x is the bandwidth in kbps.
 	 */
-	fst_packet_put_uint8 (packet, 0x50);
+	fst_packet_put_uint8 (packet, FST_ADVERTISED_BW);
 
 	/* 1 byte: dunno. */
 	fst_packet_put_uint8 (packet, 0x00);
