@@ -1,5 +1,5 @@
 /*
- * $Id: fst_upload.c,v 1.3 2003/11/28 19:46:57 mkern Exp $
+ * $Id: fst_upload.c,v 1.4 2003/11/29 12:37:06 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -473,24 +473,33 @@ static int upload_parse_request (FSTUpload *upload)
 	/* get range */
 	buf = buf0 = gift_strdup (fst_http_header_get_field (upload->request, "Range"));
 
-	if (!buf)
-		return FALSE;
-
-	if (!string_sep (&buf, "bytes=") || !buf)
+	if (buf)
 	{
+		if (!string_sep (&buf, "bytes=") || !buf)
+		{
+			free (buf0);
+			return FALSE;
+		}
+
+		upload->start = (off_t)(gift_strtoul (string_sep (&buf, "-")));
+		upload->stop  = (off_t)(gift_strtoul (string_sep (&buf, " ")));
+
 		free (buf0);
-		return FALSE;
+
+		if (upload->stop == 0)
+			return FALSE;
+
+		upload->stop += 1; /* http range is inclusive, giFT's not */
+
+		if (upload->stop > upload->share->size)
+			return FALSE;
 	}
-
-	upload->start = (off_t)(gift_strtoul (string_sep (&buf, "-")));
-	upload->stop  = (off_t)(gift_strtoul (string_sep (&buf, " ")));
-
-	free (buf0);
-
-	if (upload->stop == 0)
-		return FALSE;
-
-	upload->stop += 1; /* http range is inclusive, giFT's not */
+	else
+	{
+		/* no range was given, send entire file */
+		upload->start = 0;
+		upload->stop = upload->share->size;
+	}
 
 	return TRUE;
 }
