@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.60 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.61 2004/03/10 11:21:55 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -526,6 +526,13 @@ static int fst_giftcb_start (Protocol *proto)
 	                                               "main/alias=giFTed"));
 
 	/* Make sure there are no spaces or other invalid chars in the user name. */
+	if (strlen (FST_PLUGIN->username) >= 32)
+	{
+		FST_PLUGIN->username[31] = 0;
+		FST_WARN_1 ("Username too long. Truncating to \"%s\"",
+		            FST_PLUGIN->username);
+	}
+
 	p = FST_PLUGIN->username;
 	string_sep_set (&p, " \t@");
 
