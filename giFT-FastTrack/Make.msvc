@@ -1,4 +1,4 @@
-# $Id: Make.msvc,v 1.1 2003/10/14 16:47:47 mkern Exp $
+# $Id: Make.msvc,v 1.2 2003/10/23 18:37:31 mkern Exp $
 
 VERSION = 0.8.4
 O = .obj
@@ -32,6 +32,13 @@ DEFS    = $(DEFS)    -D_DEBUG -DDEBUG -UNDEBUG -D_WALL
 LDFLAGS = $(LDFLAGS) -debug
 
 !endif # defined(release) || defined(RELEASE)
+
+
+!if defined(HEAVY_DEBUG)
+
+DEFS    = $(DEFS) -DHEAVY_DEBUG
+
+!endif
 
 
 ##########################
