@@ -1,3 +1,9 @@
+gift-fasttrack (0.8.4-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Göran Weinholt <weinholt@dtek.chalmers.se>  Sat, 20 Sep 2003 12:07:32 +0200
+
 gift-fasttrack (0.8.3-1) unstable; urgency=low
 
   * New upstream release.
