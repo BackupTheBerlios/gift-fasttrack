@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.10 2003/06/22 19:28:11 mkern Exp $
+# $Id: configure.ac,v 1.11 2003/06/24 15:18:37 rasa Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -181,6 +181,9 @@ AC_SUBST(datadir)
 dnl ###########################################################################
 dnl Finally do the generation
 dnl ###########################################################################
+
+dnl Needed to build with libtoolize 1.4.3 on Debian woody
+AC_CONFIG_AUX_DIR(.)
 
 AC_CONFIG_FILES([
 Makefile
