@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.17 2004/03/11 19:37:59 mkern Exp $
+$Id: PROTOCOL,v 1.18 2004/04/14 21:21:08 mkern Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -931,8 +931,8 @@ About this document
 Written by Tom Hargreaves <hex@freezone.co.uk>.
 
 Thanks to "the givers" (the anonymous bunch behind the original giFT);
-Markus Kern (pretender), author of giFT-FastTrack; Göran Weinholt, and
-everyone else involved in the reverse-engineering effort.
+Markus Kern (pretender), author of giFT-FastTrack, and everyone else
+involved in the reverse-engineering effort.
 
 No thanks to Sharman Networks Ltd, for attempting to exert such tight
 control over their network.
