@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.23 2004/11/25 14:33:11 mkern Exp $
+ * $Id: fst_node.c,v 1.24 2004/11/29 14:46:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -321,9 +321,9 @@ void fst_nodecache_remove (FSTNodeCache *cache, FSTNode *node)
 		if (node->link == cache->last)
 			cache->last = node->link->prev;
 
+		cache->list = list_remove_link (cache->list, node->link);
 		assert (cache->last || !cache->list);
 
-		cache->list = list_remove_link (cache->list, node->link);
 #ifdef NODECACHE_DEBUG
 		FST_DBG_2("nullified %p->link (was %p)", node, node->link);
 #endif
