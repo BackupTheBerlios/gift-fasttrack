@@ -1,4 +1,9 @@
- $Id: ChangeLog,v 1.4 2003/07/04 03:54:45 beren12 Exp $
+ $Id: ChangeLog,v 1.5 2003/07/14 19:52:50 mkern Exp $
+
+2003-07-14  Markus Kern <mkern@users.berlios.de>
+
+	* Lots of bug fixes/clean ups since last ChangeLog entry
+	* Releasing 0.8.2 for compatibility with giFT release 0.11.1
 
 2003-06-29  Chris Zubrzycki  <beren12@sheep.berlios.de>
 
@@ -16,39 +21,31 @@
         * TODO: add manpage and more docs
         * moved sources to src/
 
-03/05/18
---------
+2003-05-18  Markus Kern <mkern@user.berlios.de>
 
-- Fixed the endianess issues, the plugin should now work fine on big-endian
+	* Fixed the endianess issues, the plugin should now work fine
+	  on big-endian
 
+2003-05-09  Markus Kern <mkern@users.berlios.de>
 
-03/05/09
---------
+	* Fixed download status reporting
+	* Improved Makefile (thank you Justin)
 
-- Fixed download status reporting
-- Improved Makefile (thank you Justin)
+2003-05-07  Markus Kern <mkern@users.berlios.de>
 
-03/05/07
---------
+	* Fix source search bug
 
-- Fix source search bug
+2003-05-05  Markus Kern <mkern@users.berlios.de>
 
-03/05/05
---------
+	* Fixed serious file corruption bug
 
-- Fixed serious file corruption bug
+2003-05-04  Markus Kern <mkern@users.berlios.de>
 
+	* Removed removal of unavailable sources until proper interface
+	  is implemented
+	* Adapted to changes in giFT's hashing interface
+	* Added IP address to user names
 
-03/05/04
---------
+2003-05-01  Markus Kern <mkern@users.berlios.de>
 
-- Removed removal of unavailable sources until proper interface is implemented
-- Adapted to changes in giFT's hashing interface
-- Added IP address to user names
-
-
-03/05/01
---------
-
-Initial Release
-
+	* Initial Release

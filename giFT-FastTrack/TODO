@@ -1,10 +1,11 @@
-$Id: TODO,v 1.7 2003/07/04 03:55:24 beren12 Exp $
+$Id: TODO,v 1.8 2003/07/14 19:52:50 mkern Exp $
 
 - add firewalled download support
 - make node cache smarter / use udp discovery
 - implement sharing
 - make dowloading less greedy, custom throttle?
-- are searches really resent to new connections?
+- are searches really resent to new connections? (currently commented out)
 - automatically search more supernodes?
 - make a usefull manpage? :)
 - add the fixes i made to gift's configure.ac to this project
+- we don't need names and email addresses in both AUTHORS AND README

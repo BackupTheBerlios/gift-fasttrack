@@ -1,4 +1,4 @@
- $Id: README,v 1.13 2003/07/12 14:51:45 beren12 Exp $
+ $Id: README,v 1.14 2003/07/14 19:52:50 mkern Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
@@ -16,7 +16,7 @@ Compilation & Installation
 First put the sources you got somewhere outside the giFT source tree
 (note: this is contrary to previous versions of the plugin).
 
-Needed toold to build giFT-Fastrack are as follows:
+Needed tools to build giFT-Fastrack are as follows:
 
 automake    >= 1.5
 autoconf    >= 2.5
@@ -32,8 +32,12 @@ Mac OS X users should run sh -c 'LIBTOOL=glibtool LIBTOOLIZE=glibtoolize ./autog
 
 If you have giFT installed in a non-standard location (according to pkg-config),
 you must make sure that PKG_CONFIG_PATH is set to the directory where libgift.pc
-is located. Ex. export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
-(for bash).
+is located.
+
+For example:
+  export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH" (for bash)
+or
+  setenv PKG_CONFIG_PATH "/usr/local/lib/pkgconfig" (for tcsh)
 
 
 The next step is to run 'make' and 'make install' which will compile
@@ -57,7 +61,6 @@ You may also use a fully qualified path to the plugin filename:
  
 The plugin will copy the configuration files from the
 $PREFIX/share/giFT/FastTrack/ directory if necessary.
-
 
 
 
@@ -102,6 +105,7 @@ Email:          (pretender) mkern@users.berlios.de    [Developer / Project Admin
                 (cirdan)    beren12@users.berlios.de  [Developer]
                 (weinholt)  weinholt@users.berlios.de [Developer]
 		(rasa)      rasa@users.berlios.de     [Developer / windows port]
+		(HEx)       HEx@users.berlios.de      [Developer]
 
 Mailing Lists:  gift-fasttrack-devel@lists.berlios.de    [Developer discussion]
                 gift-fasttrack-checkins@lists.berlios.de [Notifies about cvs checkins]
