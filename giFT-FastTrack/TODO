@@ -1,4 +1,4 @@
-$Id: TODO,v 1.34 2004/07/08 18:45:21 mkern Exp $
+$Id: TODO,v 1.35 2004/08/09 16:53:39 mkern Exp $
 
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
@@ -14,6 +14,8 @@ $Id: TODO,v 1.34 2004/07/08 18:45:21 mkern Exp $
 - do clients signal to the supernode when their b/w is maxed out?
 - does kazaa supernode tell us how many shares we can upload?
 - is the SWAP32 in fst_download.c correct?
+
+- FIXME: downloading still uses gethostbyname to resolve ips
 
 - searches don't terminate with multi searchnode searching
 - pushes don't get forwarded to correct supernodes
