@@ -1,5 +1,5 @@
 /*
- * $Id: fst_meta.c,v 1.10 2004/01/08 19:47:48 mkern Exp $
+ * $Id: fst_meta.c,v 1.11 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -48,6 +48,10 @@ TagTable[] =
 	{ FILE_TAG_CODEC,       FILE_TAG_DATA_STRING, "codec"       },
 	{ FILE_TAG_RATING,      FILE_TAG_DATA_INT,    "rating"      },
     { FILE_TAG_SIZE,        FILE_TAG_DATA_INT,    "size"        },
+/*
+    { FILE_TAG_UNKNOWN1,    FILE_TAG_DATA_INT,    "UNKNOWN1"    },
+    { FILE_TAG_UNKNOWN2,    FILE_TAG_DATA_INT,    "UNKNOWN2"    },
+*/
 	{ FILE_TAG_ANY,         FILE_TAG_DATA_ANY,    NULL          }
 };
 
@@ -173,6 +177,7 @@ char *fst_meta_giftstr_from_packet (FSTFileTag tag, FSTPacket *data)
 		return NULL;	
 
 	case FILE_TAG_HASH:
+		/* TODO: use FSTHash */
 		return fst_utils_base64_encode (data->read_ptr, fst_packet_remaining (data));
 
 	default:
@@ -197,6 +202,9 @@ char *fst_meta_giftstr_from_packet (FSTFileTag tag, FSTPacket *data)
 		}
 	}
 
+/*
+	FST_HEAVY_DBG_1 ("WARNING: Unknown meta tag: 0x%08X", tag);
+*/
 	return NULL;
 }
 
@@ -206,7 +214,9 @@ FSTPacket *fst_meta_packet_from_giftstr (const char *name, const char *value)
 	FSTPacket *packet, *data;
 	FSTFileTag tag;
 	int i,v,w;
+/*
 	unsigned char *hash;
+*/
 
 	if (!name || !value)
 		return NULL;
@@ -242,12 +252,16 @@ FSTPacket *fst_meta_packet_from_giftstr (const char *name, const char *value)
 		break;
 
 	case FILE_TAG_HASH:
+		/* TODO: use FSTHash. But shouldn't get any hash here anyway */
+		assert (0);
+/*
 		if ((hash = fst_utils_base64_decode (value, &v)))
 		{
 			if (v == FST_HASH_LEN)
 				fst_packet_put_ustr (data, hash, v);
 			free (hash);
 		}
+*/
 		break;
 
 	default:
@@ -331,6 +345,7 @@ char *fst_meta_httpstr_from_giftstr (const char *name, const char *value)
 		return NULL;
 
 	case FILE_TAG_HASH:
+		/* TODO: use FSTHash. But shouldn't get any hash here anyway */
 		return strdup (value);
 
 	default:
@@ -385,6 +400,7 @@ void fst_metatag_free (FSTMetaTag *tag)
 FSTMetaTag *fst_metatag_create_from_filetag (FSTFileTag tag, FSTPacket *data)
 {
 	char *name, *value;
+	FSTMetaTag *metatag;
 
 	name = fst_meta_name_from_tag (tag);
 	value = fst_meta_giftstr_from_packet (tag, data);
@@ -392,7 +408,11 @@ FSTMetaTag *fst_metatag_create_from_filetag (FSTFileTag tag, FSTPacket *data)
 	if (!value || !name)
 		return NULL;
 
-	return fst_metatag_create (name, value);
+	metatag = fst_metatag_create (name, value);
+
+	free (value);
+
+	return metatag;
 }
 
 /*****************************************************************************/

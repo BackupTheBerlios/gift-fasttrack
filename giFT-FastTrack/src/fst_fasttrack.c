@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.57 2004/03/04 14:37:50 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.58 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -459,6 +459,26 @@ static int fst_giftcb_start (Protocol *proto)
 	if (! (plugin = malloc (sizeof (FSTPlugin))))
 		return FALSE;
 
+#if 0
+	/* We need to do this again even though we registered the hashes in 
+	 * fst_plugin_setup_functbl because the algo lookup is based on a
+	 * (get this!) _static_ dataset in libgiftproto. Sometimes i think giFT
+	 * needs a complete rewrite.
+	 */
+	hash_algo_register (proto, FST_KZHASH_NAME, HASH_PRIMARY,
+	                    (HashFn)fst_giftcb_kzhash,
+	                    (HashDspFn)fst_giftcb_kzhash_encode);
+
+	/* Note: I don't want this to be HASH_LOCAL but a stupid if() in
+	 * share_hash.c::get_first makes it necessary for displaying the hash to
+	 * the FE in search results. I have no words to express my hatred for the
+	 * hash system and its creator.
+	 */
+	hash_algo_register (proto, FST_FTHASH_NAME, HASH_SECONDARY | HASH_LOCAL,
+	                    (HashFn)fst_giftcb_fthash,
+	                    (HashDspFn)fst_giftcb_fthash_encode);
+#endif
+
 	/* init config and copy to local config if missing */
 	copy_default_file ("FastTrack.conf.template", "FastTrack.conf");
 	
@@ -663,6 +683,12 @@ static void fst_giftcb_destroy (Protocol *proto)
 	/* free config */
 	config_free (FST_PLUGIN->conf);
 
+#if 0
+	/* remove algo hack */
+	hash_algo_unregister (proto, FST_KZHASH_NAME);
+	hash_algo_unregister (proto, FST_FTHASH_NAME);
+#endif
+
 	free (FST_PLUGIN);
 }
 
@@ -731,7 +757,6 @@ static void fst_plugin_setup_functbl (Protocol *p)
 	 * giFT's behaviour
  	 * NOTE: most of these dont do anything yet
 	 */
-
 	p->support (p, "range-get", TRUE);
 	p->support (p, "hash-unique", TRUE);
 
@@ -739,9 +764,15 @@ static void fst_plugin_setup_functbl (Protocol *p)
 	 * Finally, assign the support communication structure.
 	 */
 
-	/* fst_hash.c */
-	p->hash_handler (p, (const char*)FST_HASH_NAME, HASH_PRIMARY,
-					 (HashFn)fst_giftcb_FTH, (HashDspFn)fst_giftcb_FTH_human);
+	/* fst_hash.c, also see fst_giftcb_start */
+	p->hash_handler (p, FST_KZHASH_NAME, HASH_PRIMARY,
+	                 (HashFn)fst_giftcb_kzhash,
+	                 (HashDspFn)fst_giftcb_kzhash_encode);
+
+	/* this is only HASH_LOCAL because the crazy hash system requires it */
+	p->hash_handler (p, FST_FTHASH_NAME, HASH_SECONDARY | HASH_LOCAL,
+	                 (HashFn)fst_giftcb_fthash,
+	                 (HashDspFn)fst_giftcb_fthash_encode);
 
 	/* fst_fasttrack.c */
 	p->start          = fst_giftcb_start;
@@ -782,7 +813,7 @@ static void fst_plugin_setup_functbl (Protocol *p)
 int FastTrack_init (Protocol *p)
 {
 	/* make sure we're loaded with the correct plugin interface version */
-	if (protocol_compat (p, LIBGIFTPROTO_MKVERSION (0, 11, 5)) != 0)
+	if (protocol_compat (p, LIBGIFTPROTO_MKVERSION (0, 11, 6)) != 0)
 		return FALSE;
 	
 	/* tell giFT about our version

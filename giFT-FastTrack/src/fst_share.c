@@ -1,5 +1,5 @@
 /*
- * $Id: fst_share.c,v 1.5 2004/03/02 23:14:38 mkern Exp $
+ * $Id: fst_share.c,v 1.6 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -20,6 +20,12 @@
 
 /*****************************************************************************/
 
+/*
+#define LOG_TAGS
+*/
+
+/*****************************************************************************/
+
 /* FIXME: imported from giFT, we need this in Protocol */
 extern Dataset *share_index (unsigned long *files, double *size);
 
@@ -34,14 +40,18 @@ int share_unregister_file (Share *share);
 /* called by giFT so we can add custom data to shares */
 void *fst_giftcb_share_new (Protocol *p, Share *share)
 {
+/*
 	FST_HEAVY_DBG_1 ("%s", share->path);
+*/
 	return NULL;
 }
 
 /* called be giFT for us to free custom data */
 void fst_giftcb_share_free (Protocol *p, Share *share, void *data)
 {
+/*
 	FST_HEAVY_DBG_1 ("%s", share->path);
+*/
 }
 
 /* called by giFT when share is added */
@@ -281,7 +291,9 @@ static void share_add_meta_tag (ds_data_t *key, ds_data_t *value,
 	fst_packet_free (data);
 	tag_param->ntags++;
 
+#ifdef LOG_TAGS
 	FST_HEAVY_DBG_2 ("\tmeta tag \"%s\" = \"%s\" to share", key->data, value->data);
+#endif
 
 }
 
@@ -307,7 +319,8 @@ static void share_add_filename (Share *share, ShareAddTagParam *tag_param)
 int share_register_file (Share *share)
 {
 	FSTPacket *packet;
-	Hash *hash;
+	Hash *gift_hash;
+	FSTHash *hash;
 	ShareAddTagParam tag_param;
 	FSTMediaType media_type;
 
@@ -331,16 +344,25 @@ int share_register_file (Share *share)
 	fst_packet_put_ustr (packet, "\x00\x00", 2);
 
 	/* hash */
-	if (! (hash = share_get_hash (share, FST_HASH_NAME)))
+	if (! (gift_hash = share_get_hash (share, FST_KZHASH_NAME)))
 	{
 		fst_packet_free (packet);
 		return FALSE;
 	}
-	assert (hash->len == FST_HASH_LEN);
-	fst_packet_put_ustr (packet, hash->data, FST_HASH_LEN);
+	assert (gift_hash->len == FST_KZHASH_LEN);
 
-	/* checksum */
-	fst_packet_put_dynint (packet, fst_hash_checksum (hash->data));
+	if (!(hash = fst_hash_create_copy (gift_hash->data, FST_KZHASH_LEN)))
+	{
+		fst_packet_free (packet);
+		return FALSE;
+	}
+
+	/* fthash */
+	fst_packet_put_ustr (packet, FST_FTHASH (hash), FST_FTHASH_LEN);
+	/* file_id */
+	fst_packet_put_dynint (packet, fst_hash_checksum (hash));
+
+	fst_hash_free (hash);
 
 	/* file size */
 	fst_packet_put_dynint (packet, share->size);
@@ -382,7 +404,8 @@ int share_register_file (Share *share)
 int share_unregister_file (Share *share)
 {
 	FSTPacket *packet;
-	Hash *hash;
+	Hash *gift_hash;
+	FSTHash *hash;
 	ShareAddTagParam tag_param;
 
 	if (!share)
@@ -394,20 +417,28 @@ int share_unregister_file (Share *share)
 	FST_HEAVY_DBG_1 ("unregistering file \"%s\"", share->path);
 
 	/* hash */
-	if (! (hash = share_get_hash (share, FST_HASH_NAME)))
+	if (! (gift_hash = share_get_hash (share, FST_KZHASH_NAME)))
 	{
 		fst_packet_free (packet);
 		return FALSE;
 	}
-	assert (hash->len == FST_HASH_LEN);
-	fst_packet_put_ustr (packet, hash->data, FST_HASH_LEN);
+	assert (gift_hash->len == FST_KZHASH_LEN);
 
-	/* checksum */
-	fst_packet_put_dynint (packet, fst_hash_checksum (hash->data));
+	if (!(hash = fst_hash_create_copy (gift_hash->data, FST_KZHASH_LEN)))
+	{
+		fst_packet_free (packet);
+		return FALSE;
+	}
+
+	/* fthash */
+	fst_packet_put_ustr (packet, FST_FTHASH (hash), FST_FTHASH_LEN);
+	/* file_id */
+	fst_packet_put_dynint (packet, fst_hash_checksum (hash));
+
+	fst_hash_free (hash);
 
 	/* file size */
 	fst_packet_put_dynint (packet, share->size);
-
 
 	/* collect tags */
 	if (!(tag_param.data = fst_packet_create()))

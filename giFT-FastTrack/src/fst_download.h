@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.h,v 1.7 2003/09/18 14:54:50 mkern Exp $
+ * $Id: fst_download.h,v 1.8 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -43,12 +43,12 @@ void fst_giftcb_source_remove (Protocol *p, Transfer *transfer,
 /* start download for source, optionally using existing tcpcon */
 int fst_download_start (Source *source, TCPC *tcpcon);
 
-/* parses new format url
- * returns hash of FST_HASH_LEN size which caller frees or NULL on failure
+/* Parses new format url.
+ * Returns FSTHash which caller frees or NULL on failure.
  * params receives a dataset with additional params, caller frees, may be NULL
  */
-unsigned char *fst_download_parse_url (char *url, in_addr_t *ip,
-									   in_port_t *port, Dataset **params);
+FSTHash *fst_download_parse_url (char *url, in_addr_t *ip,
+                                 in_port_t *port, Dataset **params);
 
 /*****************************************************************************/
 

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.20 2004/03/04 14:19:40 mkern Exp $
+ * $Id: fst_search.c,v 1.21 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -36,11 +36,17 @@ int fst_giftcb_search (Protocol *p, IFEvent *event, char *query, char *exclude,
 										   exclude, realm);
 	fst_searchlist_add (FST_PLUGIN->searches, search);
 
-	FST_DBG_2 ("sending search query for \"%s\", fst_id = %d",
-			   search->query, search->fst_id);
+	if (!fst_search_send_query (search, FST_PLUGIN->session))
+	{
+		FST_DBG_2 ("fst_search_send_query failed for \"%s\", fst_id = %d",
+				   search->query, search->fst_id);
+		fst_searchlist_remove (FST_PLUGIN->searches, search);
+		fst_search_free (search);
+		return FALSE;
+	}
 
-	/* FIXME: check result for closed session */
-	fst_search_send_query (search, FST_PLUGIN->session);
+	FST_DBG_2 ("sent search query for \"%s\", fst_id = %d",
+			   search->query, search->fst_id);
 
 	return TRUE;
 }
@@ -52,21 +58,58 @@ int fst_giftcb_browse (Protocol *p, IFEvent *event, char *user, char *node)
 }
 
 /* called by giFT to locate file */
-int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hash)
+int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hstr)
 {
 	FSTSearch *search;
+	FSTHash *hash;
 
-	if (!htype || !hash || strcmp (htype, "FTH"))
+	if (!htype || !hstr)
 		return FALSE;
-	
-	search = fst_search_create (event, SearchTypeLocate, hash, NULL, NULL);
+
+	if (!(hash = fst_hash_create ()))
+		return FALSE;
+
+	if (!gift_strcasecmp (htype, FST_KZHASH_NAME))
+	{
+		if (!fst_hash_decode16_kzhash (hash, hstr))
+		{
+			fst_hash_free (hash);	
+			FST_DBG_1 ("invalid hash string: %s", hstr);
+			return FALSE;
+		}
+	}
+	else if (!gift_strcasecmp (htype, FST_FTHASH_NAME))
+	{
+		if (!fst_hash_decode64_fthash (hash, hstr))
+		{
+			fst_hash_free (hash);	
+			FST_DBG_1 ("invalid hash string: %s", hstr);
+			return FALSE;
+		}
+	}
+	else
+	{
+		fst_hash_free (hash);	
+		FST_HEAVY_DBG_1 ("unknown hash type: %s", htype);
+		return FALSE;
+	}
+
+	search = fst_search_create (event, SearchTypeLocate, hstr, NULL, NULL);
+	search->hash = hash;
+
 	fst_searchlist_add (FST_PLUGIN->searches, search);
+	
+	if (!fst_search_send_query (search, FST_PLUGIN->session))
+	{
+		FST_DBG_2 ("fst_search_send_query failed for \"%s\", fst_id = %d",
+				   search->query, search->fst_id);
+		fst_searchlist_remove (FST_PLUGIN->searches, search);
+		fst_search_free (search);
+		return FALSE;
+	}
 
-	FST_DBG_2 ("sending locate query for \"%s\", fst_id = %d",
+	FST_DBG_2 ("sent locate query for \"%s\", fst_id = %d",
 				search->query, search->fst_id);
-
-	/* FIXME: check result for closed session */
-	fst_search_send_query (search, FST_PLUGIN->session);
 
 	return TRUE;
 }
@@ -108,6 +151,7 @@ FSTSearch *fst_search_create (IFEvent *event, FSTSearchType type, char *query,
 	search->query = query ? strdup (query) : NULL;
 	search->exclude = exclude ? strdup (exclude) : NULL;
 	search->realm = realm ? strdup (realm) : NULL;
+	search->hash = NULL;
 
 	return search;
 }
@@ -118,12 +162,10 @@ void fst_search_free (FSTSearch *search)
 	if(!search)
 		return;
 
-	if(search->query)
-		free (search->query);
-	if(search->exclude)
-		free (search->exclude);
-	if(search->realm)
-		free (search->realm);
+	free (search->query);
+	free (search->exclude);
+	free (search->realm);
+	fst_hash_free (search->hash);
 
 	free (search);
 }
@@ -170,34 +212,16 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 		fst_packet_put_uint8 (packet, (fst_uint8)FILE_TAG_ANY);
 		fst_packet_put_dynint (packet, strlen(search->query));
 		fst_packet_put_ustr (packet, search->query, strlen(search->query));
-
 		break;
 
 	case SearchTypeLocate:
 	{
-		char *p;
-		unsigned char *hash;
-		int hash_len;
-
-		/* convert hash string to binary */
-		if ((p = strchr (search->query, ':')))
-			p++;
-		else
-			p = search->query;
-
-		if(! (hash = fst_utils_base64_decode (p, &hash_len)) || hash_len != FST_HASH_LEN)
-		{
-			free (hash);
-			fst_packet_free (packet);
-			return FALSE;
-		}
+		assert (search->hash);
 
 		fst_packet_put_uint8 (packet, (fst_uint8)QUERY_CMP_EQUALS);
 		fst_packet_put_uint8 (packet, (fst_uint8)FILE_TAG_HASH);
-		fst_packet_put_dynint (packet, FST_HASH_LEN);
-		fst_packet_put_ustr (packet, hash, hash_len);
-
-		free (hash);
+		fst_packet_put_dynint (packet, FST_FTHASH_LEN);
+		fst_packet_put_ustr (packet, FST_FTHASH (search->hash), FST_FTHASH_LEN);
 		break;
 	}
 
@@ -474,20 +498,24 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			result->netname[i] = 0;
 		}
 
-		result->hash = fst_packet_get_ustr (msg_data, 20);
-		result->checksum = fst_packet_get_dynint (msg_data);
+		if (fst_packet_remaining (msg_data) >= FST_FTHASH_LEN)
+		{
+			fst_hash_set_raw (result->hash, msg_data->read_ptr, FST_FTHASH_LEN);
+			msg_data->read_ptr += FST_FTHASH_LEN;
+		}
+
+		result->file_id = fst_packet_get_dynint (msg_data);
 		result->filesize = fst_packet_get_dynint (msg_data);
-		
+
 		ntags = fst_packet_get_dynint (msg_data);
 
 #ifdef HEAVY_DEBUG
 		{
-		char *buf = fst_utils_base64_encode (result->hash, 20);
-		FST_HEAVY_DBG_2 ("result %d: %s", nresults, buf);
-		free (buf);
-		FST_HEAVY_DBG_2 ("\taddress: %s:%d", net_ip_str(result->ip), result->port);
-		FST_HEAVY_DBG_2 ("\tname: %s@%s", result->username, result->netname);
-		FST_HEAVY_DBG_2 ("\tfilesize: %d, ntags: %d", result->filesize, ntags);
+		FST_HEAVY_DBG_2 ("result %d: %s", nresults,
+		                 fst_hash_encode64_fthash (result->hash));
+		FST_HEAVY_DBG_2 ("  address: %s:%d", net_ip_str(result->ip), result->port);
+		FST_HEAVY_DBG_2 ("  name: %s@%s", result->username, result->netname);
+		FST_HEAVY_DBG_2 ("  filesize: %d, ntags: %d", result->filesize, ntags);
 		}
 #endif
 
@@ -499,6 +527,23 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			FSTPacket *tagdata;
 			FSTMetaTag *metatag;
 
+			/* Large tags are a sure sign of broken packets.
+			 * These packets have random junk inserted or miss some bytes while
+			 * the surrounding packet data is ok. For example there was an
+			 * artist tag with a correct length of 0x08 but the following
+			 * string was "Cldplay" shifting the entire packet by one byte.
+			 * This is _not_ a problem on our end! Looks like a memory
+			 * corruption issue on the sender side.
+			 */
+			if (tag > 0x40)
+			{
+				FST_WARN ("Corrupt search result detected. Bitch to the Kazaa developers.");
+#ifdef LOG_TAGS
+				FST_DBG ("*** Dump of corrupt result saved ***");
+				save_bin_data (msg_data->data, msg_data->used);
+#endif
+			}
+
 			if (! (tagdata = fst_packet_create_copy (msg_data, taglen)))
 			{
 				list_foreach_remove (results, (ListForeachFunc)result_free, NULL);			
@@ -508,8 +553,8 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 #ifdef LOG_TAGS
 			{
 			char *buf = fst_packet_get_str (tagdata, taglen);
-			FST_HEAVY_DBG_3 ("\t\ttag: 0x%02x, len: %02d, data: %s",
-							 tag, taglen, buf);
+			FST_HEAVY_DBG_4 ("    tag: 0x%02x (%s), len: %02d, data: %s",
+							 tag, fst_meta_name_from_tag (tag), taglen, buf);
 			free (buf);
 			fst_packet_rewind (tagdata);
 			}
@@ -557,7 +602,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 		}
 		else
 		{
-			fst_searchresult_write_gift (result, search->gift_event);
+			fst_searchresult_write_gift (result, search);
 		}	
 			
 		search->replies++;
@@ -579,6 +624,7 @@ FSTSearchResult *fst_searchresult_create ()
 		return NULL;
 
 	memset (result, 0 , sizeof (FSTSearchResult));
+	result->hash = fst_hash_create ();
 
 	return result;
 }
@@ -599,7 +645,7 @@ void fst_searchresult_free (FSTSearchResult *result)
 	free (result->username);
 	free (result->netname);
 	free (result->filename);
-	free (result->hash);
+	fst_hash_free (result->hash);
 
 	list_foreach_remove (result->metatags,
 						 (ListForeachFunc)searchresult_free_tag,
@@ -618,14 +664,14 @@ void fst_searchresult_add_tag (FSTSearchResult *result, FSTMetaTag *tag)
 }
 
 /* send result to gift */
-int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event)
+int fst_searchresult_write_gift (FSTSearchResult *result, FSTSearch *search)
 {
 	FileShare *share;
 	List *item;
 	char *href, *buf;
 	unsigned int avail = 0;
 
-	if (!result || !event)
+	if (!result || !search)
 		return FALSE;
 
 	/* create FileShare for giFT */
@@ -638,7 +684,23 @@ int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event)
 
 	share_set_path (share, result->filename);
 	share_set_mime (share, mime_type (result->filename));
-	share_set_hash (share, "FTH", result->hash, FST_HASH_LEN, TRUE);
+
+	/* If this is a source search and we know the full kzhash report it back to
+	 * giFT. Otherwise only report the fthash so integrity verification works
+	 * correctly.
+	 */
+	if (search->hash &&
+	    fst_hash_have_md5tree (search->hash) &&
+	    fst_hash_equal (result->hash, search->hash))
+	{
+		share_set_hash (share, FST_KZHASH_NAME, FST_KZHASH (search->hash),
+	                    FST_KZHASH_LEN, TRUE);
+	}
+	else
+	{
+		share_set_hash (share, FST_FTHASH_NAME, FST_FTHASH (result->hash),
+	                    FST_FTHASH_LEN, TRUE);
+	}
 
 	/* add meta data */
 	for(item=result->metatags; item; item=item->next)
@@ -649,17 +711,15 @@ int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event)
 
 	/* create href for giFT */
 	{
-		char *hash_base64 = fst_utils_base64_encode (result->hash, FST_HASH_LEN);
-		char *href_main = stringf_dup ("FastTrack://%s:%d/=%s",
+		char *href_main = stringf_dup ("FastTrack://%s:%d/%s",
 									   net_ip_str (result->ip), result->port,
-									   hash_base64);
+									   fst_hash_encode16_kzhash (result->hash));
 
 		href = stringf_dup ("%s?shost=%s&sport=%d&uname=%s",
 							href_main, net_ip_str (result->sip),
 							result->sport,result->username);
 
 		free (href_main);
-		free (hash_base64);
 	}
 
 	/* create actual user name sent to giFT */
@@ -678,8 +738,8 @@ int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event)
 	}
 
 	/* notify giFT */
-	FST_PROTO->search_result (FST_PROTO, event, buf, result->netname,
-							  href, avail, share);
+	FST_PROTO->search_result (FST_PROTO, search->gift_event, buf,
+	                          result->netname, href, avail, share);
 
 	free (buf);
 	free (href);

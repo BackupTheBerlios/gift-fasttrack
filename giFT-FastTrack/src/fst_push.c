@@ -1,5 +1,5 @@
 /*
- * $Id: fst_push.c,v 1.2 2003/12/24 22:41:40 mkern Exp $
+ * $Id: fst_push.c,v 1.3 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -80,7 +80,7 @@ void fst_push_free (FSTPush *push)
 int fst_push_send_request (FSTPush *push, FSTSession *session)
 {
 	FSTPacket *packet;
-	unsigned char *hash;
+	FSTHash *hash;
 	char *username;
 	in_addr_t ip, shost;
 	in_port_t port, sport;
@@ -101,7 +101,7 @@ int fst_push_send_request (FSTPush *push, FSTSession *session)
 	}
 
 	/* get everything we need from url */
-	if (! (hash = fst_download_parse_url (push->source->url, &ip, &port, &params)))
+	if (!(hash = fst_download_parse_url (push->source->url, &ip, &port, &params)))
 	{
 		FST_WARN_1 ("malformed url %s", push->source->url);
 		return FALSE;
@@ -111,7 +111,7 @@ int fst_push_send_request (FSTPush *push, FSTSession *session)
 	sport = ATOI (dataset_lookupstr (params, "sport"));
 	username = gift_strdup (dataset_lookupstr (params, "uname"));
 
-	free (hash);
+	fst_hash_free (hash);
 	dataset_clear (params);
 
 	if (!shost || !sport || !username)
@@ -120,6 +120,8 @@ int fst_push_send_request (FSTPush *push, FSTSession *session)
 		free (username);
 		return FALSE;	
 	}
+
+	/* TODO: check that we are still connected to the right supernode */
 
 	if (! (packet = fst_packet_create()))
 	{

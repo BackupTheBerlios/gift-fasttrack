@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.c,v 1.9 2004/01/02 18:25:35 mkern Exp $
+ * $Id: fst_utils.c,v 1.10 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -16,7 +16,17 @@
  * General Public License for more details.
  */
 
-#include "fst_fasttrack.h"
+/* HACKHACK */
+#ifndef HASH_TEST
+# include "fst_fasttrack.h"
+#else
+# include <ctype.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <string.h>
+#endif
+
+#include "fst_utils.h"
 
 /*****************************************************************************/
 
@@ -77,6 +87,8 @@ void save_bin_data(unsigned char * data, int len)
 			fprintf(logfile,"%02x ", data[i]);
 		fprintf(logfile,"\r\n");
 	}
+
+	fflush (logfile);
 }
 
 /*****************************************************************************/
@@ -127,7 +139,7 @@ char *fst_utils_url_decode (char *encoded)
 
 				*ptr = (char) oct_val;
 
-				string_move (ptr + 1, ptr + 3);
+				memmove (ptr + 1, ptr + 3, strlen (ptr + 1) + 1);
 			}
 			break;
 		 default:
@@ -361,8 +373,10 @@ unsigned char *fst_utils_hex_decode (const char *data, int *dst_len)
 
 /*****************************************************************************/
 
+#ifndef HASH_TEST
+
 /* returns TRUE if ip in reserved private space, ip is big endian */
-int fst_utils_ip_private (in_addr_t ip)
+BOOL fst_utils_ip_private (in_addr_t ip)
 {
 
 	ip = ntohl (ip);
@@ -377,6 +391,8 @@ int fst_utils_ip_private (in_addr_t ip)
 
 	return FALSE;
 }
+
+#endif
 
 /*****************************************************************************/
 

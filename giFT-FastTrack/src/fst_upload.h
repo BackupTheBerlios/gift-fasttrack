@@ -1,5 +1,5 @@
 /*
- * $Id: fst_upload.h,v 1.1 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_upload.h,v 1.2 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -64,18 +64,6 @@ FSTUpload *fst_upload_create (TCPC *tcpcon, FSTHttpHeader *request);
 
 /* free push */
 void fst_upload_free (FSTUpload *upload);
-
-/*****************************************************************************/
-
-/* start download for source, optionally using existing tcpcon */
-int fst_download_start (Source *source, TCPC *tcpcon);
-
-/* parses new format url
- * returns hash of FST_HASH_LEN size which caller frees or NULL on failure
- * params receives a dataset with additional params, caller frees, may be NULL
- */
-unsigned char *fst_download_parse_url (char *url, in_addr_t *ip,
-									   in_port_t *port, Dataset **params);
 
 /*****************************************************************************/
 

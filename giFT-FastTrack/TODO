@@ -1,4 +1,4 @@
-$Id: TODO,v 1.26 2004/03/04 14:19:40 mkern Exp $
+$Id: TODO,v 1.27 2004/03/07 23:16:30 mkern Exp $
 
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
@@ -10,9 +10,8 @@ $Id: TODO,v 1.26 2004/03/04 14:19:40 mkern Exp $
 - do byte order conversion in fst_packet instead of all over the place
 - normalize meta data
 - add searching by meta data
-- does kazaa use the same fst_id for searching again?
 - make the max uploaded shares work not only for bulk uploads but also for single shares_add
-- use new kzhash
 - remove firewalled sources from incomplete downloads on shutdown
-- if network down idle a while
-
+- answer 0x26 (version?) message
+- check if udp pongs contain supernode load
+- do clients signal to the supernode when their b/w is maxed out?

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.39 2004/03/03 21:09:56 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.40 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -152,7 +152,7 @@ typedef uint32_t fst_uint32;
 #define FST_MAX_NODESFILE_SIZE 400
 
 /* max number of results we want to be returned per search */
-#define FST_MAX_SEARCH_RESULTS 0xFF
+#define FST_MAX_SEARCH_RESULTS 128
 
 /* application strings for http */
 #define FST_HTTP_SERVER "giFT-FastTrack " VERSION

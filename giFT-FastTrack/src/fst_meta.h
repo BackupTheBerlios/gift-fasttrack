@@ -1,5 +1,5 @@
 /*
- * $Id: fst_meta.h,v 1.6 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_meta.h,v 1.7 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -41,10 +41,12 @@ typedef enum
 	FILE_TAG_TYPE		= 0x12, /* e.g. "movie", "video clip", "amateur" */
 	FILE_TAG_QUALITY	= 0x15,
     FILE_TAG_VERSION	= 0x18,
+	FILE_TAG_UNKNOWN1   = 0x19, /* 0x00 and large integer witnessed */
 	FILE_TAG_COMMENT	= 0x1a,
 	FILE_TAG_CODEC		= 0x1c,
 	FILE_TAG_RATING		= 0x1d,
     FILE_TAG_SIZE		= 0x21, /* only used for searching */
+	FILE_TAG_UNKNOWN2   = 0x35, /* 0x02 witnessed */
 } FSTFileTag;
 
 

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.20 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_download.c,v 1.21 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -26,7 +26,6 @@ static void download_write_gift (Source *source, unsigned char *data,
 								 unsigned int len);
 static void download_error_gift (Source *source, int remove_source,
 								 unsigned short klass, char *error);
-static char *download_parse_url_old (char *url, in_addr_t *ip, in_port_t *port);
 static char *download_calc_xferuid (char *uri);
 
 /*****************************************************************************/
@@ -37,65 +36,53 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 {
 	in_addr_t ip;
 	in_port_t port;
-	char *uri;
+	FSTHash *hash;
 
-	/* determine whether we need to send a push.
-	 * this is ugly because we're still supporting the old url format
-	 */
-	if (! (uri = download_parse_url_old (source->url, &ip, &port)))
+	/* determine whether we need to send a push. */
+	if (!(hash = fst_download_parse_url (source->url, &ip, &port, NULL)))
 	{
-		/* try new url format */
-		unsigned char *hash = fst_download_parse_url (source->url, &ip, &port,
-													  NULL);
-		
-		if (!hash)
+		FST_WARN_1 ("malformed url %s", source->url);
+		return FALSE;
+	}
+	fst_hash_free (hash);
+
+	if (fst_utils_ip_private (ip) || !port)
+	{
+		/* firewalled source, send push request */
+		FSTPush *push;
+
+		/* if we don't wait for push replies there is no point in requesting */
+		if (!FST_PLUGIN->server)
+			return FALSE;
+
+		if ((push = fst_pushlist_lookup_source (FST_PLUGIN->pushlist, source)))
 		{
-			FST_WARN_1 ("malformed url %s", source->url);
+			/* We already sent a push request for this source, remove it.
+			 * Actually we shouldn't even get here since we removed the push in
+			 * fst_giftcb_download_stop
+			 */
+			FST_WARN_2 ("removing old push for %s with id %d",
+						source->url, push->push_id);
+			fst_pushlist_remove (FST_PLUGIN->pushlist, push);
+			fst_push_free (push);
+		}
+
+		if (! (push = fst_pushlist_add (FST_PLUGIN->pushlist, source)))
+			return FALSE;
+
+		if (!fst_push_send_request (push, FST_PLUGIN->session))
+		{
+			FST_DBG_1 ("fst_push_send_request failed for %s", source->url);
+			FST_PROTO->source_status (FST_PROTO, source, SOURCE_TIMEOUT,
+									  "Can't send push yet");
+			fst_pushlist_remove (FST_PLUGIN->pushlist, push);
+			fst_push_free (push);
 			return FALSE;
 		}
 
-		free (hash);
-
-		if (fst_utils_ip_private (ip) || !port)
-		{
-			/* firewalled source, send push request */
-			FSTPush *push;
-
-			/* if we don't wait for push replies there is no point in requesting */
-			if (!FST_PLUGIN->server)
-				return FALSE;
-
-			if ((push = fst_pushlist_lookup_source (FST_PLUGIN->pushlist, source)))
-			{
-				/* we already sent a push request for this source, remove it
-				 * Actually we shouldn't even get here since we removed the push in
-				 * fst_giftcb_download_stop
-				 */
-				FST_WARN_2 ("removing old push for %s with id %d",
-							source->url, push->push_id);
-				fst_pushlist_remove (FST_PLUGIN->pushlist, push);
-				fst_push_free (push);
-			}
-
-			if (! (push = fst_pushlist_add (FST_PLUGIN->pushlist, source)))
-				return FALSE;
-
-			if (!fst_push_send_request (push, FST_PLUGIN->session))
-			{
-				FST_DBG_1 ("fst_push_send_request failed for %s", source->url);
-				FST_PROTO->source_status (FST_PROTO, source, SOURCE_TIMEOUT,
-										  "Can't send push yet");
-				fst_pushlist_remove (FST_PLUGIN->pushlist, push);
-				fst_push_free (push);
-				return FALSE;
-			}
-
-			FST_PROTO->source_status (FST_PROTO, source, SOURCE_WAITING, "Sent push");
-			return TRUE;
-		}
+		FST_PROTO->source_status (FST_PROTO, source, SOURCE_WAITING, "Sent push");
+		return TRUE;
 	}
-
-	free (uri);
 
 	if (!fst_download_start (source, NULL))
 	{
@@ -173,29 +160,20 @@ int fst_download_start (Source *source, TCPC *tcpcon)
 	in_addr_t ip;
 	in_port_t port;
 	char *uri, *range_str;
+	FSTHash *hash;
 
 	assert (source);
 	assert (chunk);
 
 	/* parse url */
-	if (! (uri = download_parse_url_old (source->url, &ip, &port)))
+	if (!(hash = fst_download_parse_url (source->url, &ip, &port, NULL)))
 	{
-		/* try new url format */
-		unsigned char *hash = fst_download_parse_url (source->url, &ip, &port,
-													  NULL);
-		char *hash_hex;
-		
-		if (!hash)
-		{
-			FST_WARN_1 ("malformed url %s", source->url);
-			return FALSE;
-		}
-
-		hash_hex = fst_utils_hex_encode (hash, FST_HASH_LEN);
-		uri = stringf_dup ("/.hash=%s", hash_hex);
-		free (hash_hex);
-		free (hash);
+		FST_WARN_1 ("malformed url %s", source->url);
+		return FALSE;
 	}
+
+	uri = stringf_dup ("/.hash=%s", fst_hash_encode16_fthash (hash));
+	fst_hash_free (hash);
 
 	/* create http request */
 	if (! (request = fst_http_header_request (HTHD_VER_11, HTHD_GET, uri)))
@@ -257,17 +235,16 @@ int fst_download_start (Source *source, TCPC *tcpcon)
 	return TRUE;
 }
 
-/* parses new format url
- * returns hash of FST_HASH_LEN size which caller frees or NULL on failure
+/* Parses new format url.
+ * Returns FSTHash which caller frees or NULL on failure.
  * params receives a dataset with additional params, caller frees, may be NULL
  */
-unsigned char *fst_download_parse_url (char *url, in_addr_t *ip,
-									   in_port_t *port, Dataset **params)
+FSTHash *fst_download_parse_url (char *url, in_addr_t *ip,
+                                 in_port_t *port, Dataset **params)
 {
 	char *url0, *hash_str, *param_str;
 	char *ip_str, *port_str;
-	unsigned char *hash;
-	int hash_len;
+	FSTHash *hash;
 
 	if (!url)
 		return NULL;
@@ -296,9 +273,10 @@ unsigned char *fst_download_parse_url (char *url, in_addr_t *ip,
 	if (! (hash_str = string_sep (&param_str, "?")))
 		hash_str = param_str;
 
-	if (! (hash = fst_utils_base64_decode (hash_str, &hash_len))
-		|| hash_len != FST_HASH_LEN)
+	hash = fst_hash_create ();
+	if (!fst_hash_decode16_kzhash (hash, hash_str))
 	{
+		fst_hash_free (hash);
 		free (hash);
 		free (url0);
 		return NULL;
@@ -479,50 +457,6 @@ static void download_error_gift (Source *source, int remove_source,
 
 /*****************************************************************************/
 
-/* parses old format url.
- * returns uri which caller frees or NULL on failure.
- * also returns NULL in case of new url format
- */
-static char *download_parse_url_old (char *url, in_addr_t *ip, in_port_t *port)
-{
-	char *tmp, *uri, *ip_str, *port_str;
-
-	if (!url)
-		return NULL;
-
-	tmp = uri = strdup (url);
-
-	string_sep (&uri, "://");       /* get rid of this useless crap */
-
-	/* divide the string into two sides */
-	if ( (port_str = string_sep (&uri, "/")))
-	{
-		/* pull off the left-hand operands */
-		ip_str     = string_sep (&port_str, ":");
-
-		if (ip_str && port_str)
-		{
-			if (ip)
-				*ip = net_ip (ip_str);
-			if (port)
-				*port = ATOI (port_str);
-
-			if (strncmp (uri, ".hash", 5) == 0)
-			{
-				uri--; *uri = '/';
-				uri = strdup (uri);
-				free (tmp);
-				return uri;
-			}
-		}
-	}
-
-	free (tmp);
-	return NULL;
-}
-
-/*****************************************************************************/
-
 #define SWAPU32(x) ((fst_uint32) ((((( \
 ((fst_uint8*)&(x))[0] << 8) | \
 ((fst_uint8*)&(x))[1]) << 8) | \
@@ -562,7 +496,7 @@ static char *download_calc_xferuid (char *uri)
 	if (*uri == '/')
 		uri++;
 
-	uri_smhash = fst_hash_small (uri, strlen(uri), 0xFFFFFFFF);
+	uri_smhash = fst_hash_small (0xFFFFFFFF, uri, strlen(uri));
 
 	memcpy (buf, last_search_hash, 32);
 	seed = SWAPU32 (buf[0]);
@@ -583,7 +517,7 @@ static char *download_calc_xferuid (char *uri)
 	seed = SWAPU32 (buf[1]);
 
 	buf[1] = 0;
-	smhash = fst_hash_small ( (unsigned char*)(buf+1), 28, 0xFFFFFFFF);
+	smhash = fst_hash_small (0xFFFFFFFF, (unsigned char*)(buf+1), 28);
 
 	/* weird */
 	if( (seed != smhash) ||
@@ -602,7 +536,7 @@ static char *download_calc_xferuid (char *uri)
 	buf[2] = SWAPU32 (uri_smhash);
 
 	buf[1] = 0;
-	smhash = fst_hash_small ( (unsigned char*)(buf+1), 28, 0xFFFFFFFF);
+	smhash = fst_hash_small (0xFFFFFFFF, (unsigned char*)(buf+1), 28);
 	buf[1] = SWAPU32 (smhash);
 
 	seed = SWAPU32 (buf[3]);

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_upload.c,v 1.6 2003/12/02 19:50:34 mkern Exp $
+ * $Id: fst_upload.c,v 1.7 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -56,8 +56,8 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 {
 	FSTUpload *upload;
 	Share *share;
-	unsigned char *hash;
-	int hash_len, auth;
+	FSTHash *hash;
+	int auth;
 
 	/* if we don't share try no further */
 	if (!FST_PLUGIN->allow_sharing || FST_PLUGIN->hide_shares)
@@ -77,20 +77,23 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 		return FALSE;
 	}
 
-	hash = fst_utils_hex_decode (request->uri + 7, &hash_len);
+	if (!(hash = fst_hash_create ()))
+		return FALSE;
 
-	if (!hash || hash_len != FST_HASH_LEN)
+	if (!fst_hash_decode16_fthash (hash, request->uri+7))
 	{
 		FST_DBG_2 ("Non-hash uri \"%s\" from %s",
 		           request->uri, net_ip_str (tcpcon->host));
 		upload_send_error_reply (tcpcon, 400);
-		free (hash);
+		fst_hash_free (hash);
 		return FALSE;
 	}
 
+	/* look up by fthash */
 	share = FST_PROTO->share_lookup (FST_PROTO, SHARE_LOOKUP_HASH,
-	                                 FST_HASH_NAME, hash, FST_HASH_LEN);
-	free (hash);
+	                                 FST_FTHASH_NAME, FST_FTHASH (hash),
+	                                 FST_FTHASH_LEN);
+	fst_hash_free (hash);
 
 	if (!share)
 	{
@@ -362,7 +365,7 @@ static int upload_send_success_reply (FSTUpload *upload)
 	FSTHttpHeader *reply;
 	String *reply_str;
 	char *value;
-	Hash *hash;
+	Hash *gift_hash;
 
 	if (! (reply = fst_http_header_reply (HTHD_VER_11, 206)))
 		return FALSE;
@@ -417,15 +420,21 @@ static int upload_send_success_reply (FSTUpload *upload)
 #endif
 
 	/* add X-KazaaTag tag for hash */
-	if ((hash = share_get_hash (upload->share, FST_HASH_NAME)))
+	if ((gift_hash = share_get_hash (upload->share, FST_KZHASH_NAME)))
 	{
-		assert (hash->len == FST_HASH_LEN);
+		FSTHash *hash;
+		assert (gift_hash->len == FST_KZHASH_LEN);
 
-		value = fst_utils_base64_encode (hash->data, hash->len);
+		if (!(hash = fst_hash_create_copy (gift_hash->data, FST_KZHASH_LEN)))
+		{
+			fst_http_header_free (reply);
+			return FALSE;
+		}
 
 		fst_http_header_set_field (reply, "X-KazaaTag",
-								   stringf ("%u==%s", FILE_TAG_HASH, value));
-		free (value);
+		                           stringf ("%u==%s", FILE_TAG_HASH,
+		                           fst_hash_encode64_fthash (hash)));
+		fst_hash_free (hash);
 	}
 
 	/* compile and send header */

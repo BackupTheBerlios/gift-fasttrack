@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.12 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_search.h,v 1.13 2004/03/07 23:16:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -76,9 +76,11 @@ typedef struct
 									 * because the ip was on the ban list
 									 */
 
-	char *query;                /* space delimited words to search for  */
-	char *exclude;              /* words to exlude from search */
-	char *realm;                /* mime type we're searching for e.g. "audio" */
+	char *query;       /* space delimited words to search for  */
+	char *exclude;     /* words to exlude from search */
+	char *realm;       /* mime type we're searching for e.g. "audio" */
+
+	FSTHash *hash;     /* the hash to look for if this is SearchTypeLocate */
 } FSTSearch;
 
 
@@ -100,11 +102,11 @@ typedef struct
 	char *netname;
 
 	char *filename;
-	unsigned int filesize;
-	unsigned char *hash;
-	unsigned int checksum;
+	fst_uint32 filesize;
+	fst_uint32 file_id;
+	FSTHash *hash;
 
-	unsigned char bandwidth;
+	fst_uint8 bandwidth;
 
 	List *metatags;	/* list of FSTMetaTags */
 
@@ -121,7 +123,7 @@ int fst_giftcb_search (Protocol *p, IFEvent *event, char *query, char *exclude,
 int fst_giftcb_browse (Protocol *p, IFEvent *event, char *user, char *node);
 
 /* called by giFT to locate file */
-int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hash);
+int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hstr);
 
 /* called by giFT to cancel search/locate/browse */
 void fst_giftcb_search_cancel (Protocol *p, IFEvent *event);
@@ -182,7 +184,7 @@ void fst_searchresult_free (FSTSearchResult *result);
 void fst_searchresult_add_tag (FSTSearchResult *result, FSTMetaTag *tag);
 
 /* send result to gift */
-int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event);
+int fst_searchresult_write_gift (FSTSearchResult *result, FSTSearch *search);
 
 /*****************************************************************************/
 
