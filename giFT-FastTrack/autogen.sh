@@ -1,4 +1,6 @@
 #! /bin/sh
+
+# $Id: autogen.sh,v 1.2 2003/06/20 18:57:30 beren12 Exp $
 # Run this to generate all the initial makefiles, etc.
 
 # Stolen from the GNU Midnight Commander. Customized for giFTcurs. Stolen from

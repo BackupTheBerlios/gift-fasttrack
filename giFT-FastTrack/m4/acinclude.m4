@@ -1,3 +1,4 @@
+# $Id: acinclude.m4,v 1.2 2003/06/20 18:57:30 beren12 Exp $
 #serial 3
 
 dnl From Jim Meyering

@@ -1,3 +1,5 @@
+# $Id: Makefile.am,v 1.4 2003/06/20 18:57:30 beren12 Exp $
+
 AM_CFLAGS = $(FT_CFLAGS)
 
 INCLUDES = -I$(top_srcdir)/src \

@@ -1,4 +1,6 @@
 /*
+ * $Id: fst_fasttrack.h,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
  * This program is free software; you can redistribute it and/or modify it
