@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.26 2004/07/08 17:58:44 mkern Exp $
+ * $Id: fst_session.c,v 1.27 2004/07/14 17:27:39 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -650,7 +650,7 @@ static BOOL session_ping (FSTSession *session)
 	{
 		FST_WARN ("sending ping failed, disconnecting");
 		fst_session_disconnect (session);
-		session->ping_timer = 0;
+
 		return FALSE;
 	}
 
@@ -671,8 +671,6 @@ static BOOL session_ping_timeout (FSTSession *session)
 
 	/* didn't get pong, disconnect */
 	fst_session_disconnect (session);
-
-	session->ping_timer = 0;
 
 	/* remove ping timer */
 	return FALSE;
