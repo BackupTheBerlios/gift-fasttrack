@@ -15,8 +15,8 @@
 #include "fst_fasttrack.h"
 #include "fst_search.h"
 
-#include "share_file.h"
-#include "meta.h"
+#include <libgift/proto/share.h>
+#include <libgift/proto/share_hash.h>
 
 /*****************************************************************************/
 
@@ -31,7 +31,7 @@ int gift_cb_search (Protocol *p, IFEvent *event, char *query, char *exclude, cha
 	// FIXME: check result for closed session
 	fst_search_send_query (search, FST_PLUGIN->session);
 
-	return TRUE;	
+	return TRUE;
 }
 
 // called by giFT to initiate browse
@@ -44,15 +44,11 @@ int gift_cb_browse (Protocol *p, IFEvent *event, char *user, char *node)
 int gift_cb_locate (Protocol *p, IFEvent *event, char *htype, char *hash)
 {
 	FSTSearch *search;
-	char *cleanhash;
 
-	// hash may be of form "FTH:xxx", remove FTH:
-	if((cleanhash = strchr(hash, ':')))
-		cleanhash++;
-	else
-		cleanhash = hash;
+	if (strcmp (htype, "FTH"))
+		return FALSE;
 	
-	search = fst_search_create (event, SearchTypeLocate, cleanhash, NULL, NULL);
+	search = fst_search_create (event, SearchTypeLocate, hash, NULL, NULL);
 	fst_searchlist_add (FST_PLUGIN->searches, search);
 
 	FST_DBG_2 ("sending locate query for \"%s\", fst_id = %d", search->query, search->fst_id);
@@ -60,14 +56,14 @@ int gift_cb_locate (Protocol *p, IFEvent *event, char *htype, char *hash)
 	// FIXME: check result for closed session
 	fst_search_send_query (search, FST_PLUGIN->session);
 
-	return TRUE;	
+	return TRUE;
 }
 
 // called by giFT to cancel search/locate/browse
 void gift_cb_search_cancel (Protocol *p, IFEvent *event)
 {
 	FSTSearch *search = fst_searchlist_lookup_event (FST_PLUGIN->searches, event);
-	
+
 	if(search)
 	{
 		FST_DBG_2 ("removing search for \"%s\", fst_id = %d", search->query, search->fst_id);
@@ -119,7 +115,7 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 
 	 // two unknown bytes
 	fst_packet_put_ustr (packet, "\x00\x01", 2);
-	
+
 	// max search results
 	fst_packet_put_uint16 (packet, htons(FST_MAX_SEARCH_RESULTS));
 	// search id
@@ -133,7 +129,7 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 		char *p, *realm = strdup(search->realm);
 		if((p = strchr(realm, '/')))
 			*p = 0;
-	
+
 		if		(!strcasecmp(realm, "audio"))			fst_packet_put_uint8 (packet, QUERY_REALM_AUDIO);
 		else if	(!strcasecmp(realm, "video"))			fst_packet_put_uint8 (packet, QUERY_REALM_VIDEO);
 		else if	(!strcasecmp(realm, "image"))			fst_packet_put_uint8 (packet, QUERY_REALM_IMAGES);
@@ -165,7 +161,7 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 	else if(search->type == SearchTypeLocate)
 	{
 		unsigned char hash[FST_HASH_LEN];
-		// convert hash string to binary 
+		// convert hash string to binary
 		if(fst_hash_set_string (hash, search->query) == FALSE)
 		{
 			fst_packet_free (packet);
@@ -196,7 +192,7 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 
 	search->sent++;
 	fst_packet_free (packet);
-	
+
 	return TRUE;
 }
 
@@ -205,7 +201,7 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 // allocate and init searchlist
 FSTSearchList *fst_searchlist_create ()
 {
-	FSTSearchList *searchlist = malloc (sizeof(FSTSearchList)); 
+	FSTSearchList *searchlist = malloc (sizeof(FSTSearchList));
 
 	searchlist->searches = NULL;
 	searchlist->current_ft_id = 0x00;
@@ -332,7 +328,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 			FST_DBG_1 ("received query end for search not in list, fst_id = %d", fst_id);
 			return FALSE;
 		}
-		
+
 		FST_DBG_2 ("received query end for search with fst_id = %d, got %d replies", fst_id, search->replies);
 
 		// remove search from list
@@ -345,7 +341,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 		fst_search_free (search);
 
 		return TRUE;
-	} 
+	}
 	else if(msg_type != SessMsgQueryReply)
 	{
 		return FALSE;
@@ -377,7 +373,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 		port = ntohs(fst_packet_get_uint16 (msg_data));
 		// bandwidth tag
 		fst_packet_get_uint8 (msg_data);
-		
+
 		// user and network name
 		// note: a compression is used here which refers back to previous replies
 		// since we don't cache replies we just return "<unknown>" as user name in that case
@@ -396,7 +392,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 
 			username = fst_packet_get_ustr (msg_data, i+1);
 			username[i] = 0;
-			
+
 			// network name
 			if((i = fst_packet_strlen (msg_data, 0x00)) < 0)
 			{
@@ -438,17 +434,17 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 			taglen = fst_packet_get_dynint (msg_data);
 			// tag_data
 			tagdata = fst_packet_create_copy (msg_data, taglen);
-/*			
+/*
 			{
 				char *data;
 				data = fst_packet_get_str (tagdata, taglen);
 				FST_HEAVY_DBG ("\t\ttag: type = 0x%02x, len = %02d, data = %s", tag, taglen, data);
 				free (data);
 				fst_packet_rewind (tagdata);
-			}			
-*/			
+			}
+*/
 			metatag = fst_metatag_create_from_filetag (tag, tagdata);
-		
+
 			if(metatag)
 			{
 				if(strcmp(metatag->name, "filename") == 0) // filename is special case
@@ -478,15 +474,16 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 		}
 
 		// create FileShare for giFT, we just pass the realm used in the query for now
-		file = share_new (FST_PROTO, NULL, 0, filename, search->realm, filesize, 0);
+		file = share_new_ex (FST_PROTO, NULL, 0, filename,
+		                     search->realm, filesize, 0);
 
 		// add hash, hash is freed in share_free()
-		share_hash_set (file, "FTH", hash, FST_HASH_LEN);
+		share_set_hash (file, "FTH", hash, FST_HASH_LEN);
 
 		// add meta data
 		for(; metalist; metalist = list_remove_link (metalist, metalist))
 		{
-			meta_set (file, ((FSTMetaTag*)metalist->data)->name, ((FSTMetaTag*)metalist->data)->value);
+			share_set_meta (file, ((FSTMetaTag*)metalist->data)->name, ((FSTMetaTag*)metalist->data)->value);
 			fst_metatag_free (((FSTMetaTag*)metalist->data));
 		}
 

@@ -15,7 +15,7 @@
 #ifndef __FST_HTTP_H
 #define __FST_HTTP_H
 
-#include "dataset.h"
+#include <libgift/dataset.h>
 #include "fst_packet.h"
 
 /*****************************************************************************/

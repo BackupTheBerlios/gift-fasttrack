@@ -15,8 +15,8 @@
 #ifndef __FST_NODE_H__
 #define __FST_NODE_H__
 
-#include "list.h"
-#include "dataset.h"
+#include <libgift/list.h>
+#include <libgift/dataset.h>
 
 /**************************************************************************/
 
@@ -31,7 +31,7 @@ typedef struct
 {
 	char *host;
 	unsigned short port;
-	
+
 	FSTNodeKlass klass;
 
 } FSTNode;

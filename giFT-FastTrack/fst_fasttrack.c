@@ -16,9 +16,6 @@
 
 #include "fst_fasttrack.h"
 
-#include "file.h"
-#include "parse.h"
-
 /*****************************************************************************/
 
 Protocol *fst_proto = NULL;
@@ -37,7 +34,7 @@ static int fst_plugin_connect_next()
 	if(FST_PLUGIN->session && FST_PLUGIN->session->node)
 		fst_nodecache_remove (FST_PLUGIN->nodecache, FST_PLUGIN->session->node->host);
 
-	// free old session	
+	// free old session
 	fst_session_free (FST_PLUGIN->session);
 	FST_PLUGIN->session = NULL;
 
@@ -49,7 +46,7 @@ static int fst_plugin_connect_next()
 //		fst_nodecache_add (FST_PLUGIN->nodecache, "fm1.imesh.com", 1214, NodeKlassIndex);
 		fst_nodecache_add (FST_PLUGIN->nodecache, "fm2.imesh.com", 1214, NodeKlassIndex);
 		node = fst_nodecache_get_freshest(FST_PLUGIN->nodecache);
-	
+
 //		FST_DBG ("ERROR: ran out of nodes. giving up.");
 //		return FALSE;
 	}
@@ -121,16 +118,16 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 		if(fst_packet_remaining(msg_data) < 12) // 97 bytes total now? was 60?
 			break;
 
-		FST_PLUGIN->stats->users = ntohl(fst_packet_get_uint32 (msg_data));	// number of users	
+		FST_PLUGIN->stats->users = ntohl(fst_packet_get_uint32 (msg_data));	// number of users
 		FST_PLUGIN->stats->files = ntohl(fst_packet_get_uint32 (msg_data));	// number of files
 
 		mantissa = ntohs(fst_packet_get_uint16 (msg_data));	// mantissa of size
 		exponent = ntohs(fst_packet_get_uint16 (msg_data));	// exponent of size
-		
+
     	if (exponent >= 30)
 			FST_PLUGIN->stats->size = mantissa << (exponent-30);
     	else
-			FST_PLUGIN->stats->size = mantissa >> (30-exponent);	 
+			FST_PLUGIN->stats->size = mantissa >> (30-exponent);
 
 		// what follows in the packet is the number of files and their size per media type (6 times)
 		// we do not currently care for those
@@ -249,7 +246,7 @@ static void gift_cb_destroy (Protocol *p)
 	// free searches
 	fst_searchlist_free (FST_PLUGIN->searches);
 
-	// free session	
+	// free session
 	fst_session_free (FST_PLUGIN->session);
 
 	// save and free nodes
@@ -281,7 +278,7 @@ static void fst_plugin_setup_functbl (Protocol *p)
 	/*
 	 * Finally, assign the support communication structure.
 	 */
-	
+
 	/* fst_hash.c */
 	p->hash_handler (p, (const char*)FST_HASH_NAME, HASH_PRIMARY, (HashFn)gift_cb_FTH, (HashDspFn)gift_cb_FTH_human);
 

@@ -34,42 +34,42 @@
 # define FST_HEAVY_DBG_4(fmt,a,b,c,d)	FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d)
 # define FST_HEAVY_DBG_5(fmt,a,b,c,d,e)	FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a,b,c,d,e)
 #else
-# define FST_HEAVY_DBG(fmt)				
-# define FST_HEAVY_DBG_1(fmt,a)			
-# define FST_HEAVY_DBG_2(fmt,a,b)		
-# define FST_HEAVY_DBG_3(fmt,a,b,c)		
-# define FST_HEAVY_DBG_4(fmt,a,b,c,d)	
-# define FST_HEAVY_DBG_5(fmt,a,b,c,d,e)	
+# define FST_HEAVY_DBG(fmt)
+# define FST_HEAVY_DBG_1(fmt,a)
+# define FST_HEAVY_DBG_2(fmt,a,b)
+# define FST_HEAVY_DBG_3(fmt,a,b,c)
+# define FST_HEAVY_DBG_4(fmt,a,b,c,d)
+# define FST_HEAVY_DBG_5(fmt,a,b,c,d,e)
 #endif
 
-//#include "giftconfig.h"
+#define GIFT_PLUGIN
+#include <libgift/libgift.h>
 
-typedef signed char fst_int8;
-typedef unsigned char fst_uint8;
-typedef signed short fst_int16;
-typedef unsigned short fst_uint16;
-typedef signed int fst_int32;
-typedef unsigned int fst_uint32;
+typedef int8_t   fst_int8;
+typedef uint8_t  fst_uint8;
+typedef int16_t  fst_int16;
+typedef uint16_t fst_uint16;
+typedef int32_t  fst_int32;
+typedef uint32_t fst_uint32;
 
 /*****************************************************************************/
-/*
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-*/
+
 #include <ctype.h>
 
-#include "gift.h"
+#include <libgift/proto/protocol.h>
+#include <libgift/proto/if_event.h>
+#include <libgift/file.h>
+#include <libgift/parse.h>
+#include <libgift/network.h>
+#include <libgift/dataset.h>
+#include <libgift/tcpc.h>
 
-#include "protocol.h"
-#include "if_event.h"
-#include "file.h"
-#include "parse.h"
-#include "transfer.h"
-#include "download.h" // download_remove_source
-#include "network.h"
-#include "dataset.h"
-#include "tcpc.h"
+#if 0
+#include "src/transfer.h"
+#include "src/download.h" // download_remove_source
+#endif
+
+#include <libgift/proto/transfer_api.h>
 
 #include "fst_node.h"
 #include "fst_packet.h"
@@ -80,7 +80,6 @@ typedef unsigned int fst_uint32;
 #include "fst_stats.h"
 #include "fst_utils.h"
 #include "fst_meta.h"
-
 
 /*****************************************************************************/
 

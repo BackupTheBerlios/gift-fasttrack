@@ -29,7 +29,7 @@ typedef struct
 
 	TCPC *tcpcon;
 	FSTPacket *in_packet; // input buffer
-	
+
 	Chunk *chunk;
 
 	// parsed url
