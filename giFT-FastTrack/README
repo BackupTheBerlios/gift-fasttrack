@@ -1,4 +1,4 @@
- $Id: README,v 1.11 2003/06/28 16:31:58 beren12 Exp $
+ $Id: README,v 1.12 2003/07/06 14:41:15 beren12 Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
@@ -23,7 +23,7 @@ autoconf    >= 2.5
 libtool     >= 1.4
 pkg-config
 giFT
-
+ltdl        (for now)
 
 Then run './autogen.sh' in the top source dir.
 
