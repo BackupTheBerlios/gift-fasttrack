@@ -1,9 +1,14 @@
 gift-fasttrack for Debian
 -------------------------
 
-plugin location is located in /usr/lib/giFT/libFastTrack.so
+To enable the FastTrack plugin, modify the plugins line in ~/.giFT/gift.conf:
 
-make sure you update your gift.conf or just run gift like this, "giFT -p FastTrack"
+plugins = OpenFT:FastTrack
 
+This enables the OpenFT and FastTrack plugins. To test the plugin without
+modifying the configuration file, run "giFT -p FastTrack".
 
- -- Dan Weber <knoppix@mirrorlynx.com>, Sat,  7 Jun 2003 13:50:27 -0400
+If you have installed giFT in /usr/local, you might need to run this instead:
+$ giFT -p /usr/lib/giFT/libFastTrack.la
+
+ -- Göran Weinholt <weinholt@dtek.chalmers.se>, Sun,  6 Jul 2003 18:40:13 +0200

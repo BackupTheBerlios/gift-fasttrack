@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.3 2003/06/20 20:15:30 beren12 Exp $
+# $Id: Makefile.am,v 1.4 2003/07/06 18:21:29 weinholt Exp $
 
 SUBDIRS = src data
 
@@ -14,3 +14,5 @@ SUBDIRS = src data
 
 #  install the man pages
 man_MANS=gift_fasttrack.1
+
+EXTRA_DIST = $(man_MANS)

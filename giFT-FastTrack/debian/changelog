@@ -1,3 +1,9 @@
+gift-fasttrack (0.8.1-2) unstable; urgency=low
+
+  * Clean up the package a bit.
+
+ -- Göran Weinholt <weinholt@dtek.chalmers.se>  Sun,  6 Jul 2003 18:40:59 +0200
+
 gift-fasttrack (0.0.1-1) unstable; urgency=low
 
   * Initial Release.

@@ -1,29 +1,29 @@
-# $Id: Makefile.am,v 1.8 2003/06/29 13:36:07 beren12 Exp $
+# $Id: Makefile.am,v 1.9 2003/07/06 18:21:29 weinholt Exp $
 
 SUBDIRS = crypt
 
 plugin_LTLIBRARIES = libFastTrack.la
 
-libFastTrack_la_SOURCES =	\
-	fst_download.c		\
-	fst_fasttrack.c		\
-	fst_hash.c		\
-	fst_http.c		\
-	fst_meta.c		\
-	fst_node.c		\
-	fst_packet.c		\
-	fst_search.c		\
-	fst_session.c		\
-	fst_stats.c		\
-	fst_utils.c		\
-	md5.c
+libFastTrack_la_SOURCES = \
+	fst_download.c   fst_download.h \
+	fst_fasttrack.c  fst_fasttrack.h \
+	fst_hash.c       fst_hash.h \
+	fst_http.c       fst_http.h \
+	fst_meta.c       fst_meta.h \
+	fst_node.c       fst_node.h \
+	fst_packet.c     fst_packet.h \
+	fst_search.c     fst_search.h \
+	fst_session.c    fst_session.h \
+	fst_stats.c      fst_stats.h \
+	fst_utils.c      fst_utils.h \
+	md5.c            md5.h
 
 libFastTrack_la_LIBADD = \
-	$(prefix)/lib/libgift.la \
-	$(prefix)/lib/libgiftproto.la \
 	$(top_builddir)/src/crypt/libfst_crypt.la
+#	$(prefix)/lib/libgift.la 
+#	$(prefix)/lib/libgiftproto.la 
 
-INCLUDES = \
+libFastTrack_la_CFLAGS = \
 	@FT_CFLAGS@ \
 	-I$(top_srcdir)/src/crypt
 

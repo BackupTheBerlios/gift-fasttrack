@@ -5,9 +5,6 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-
-
-
 CFLAGS = -Wall -g
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
@@ -23,7 +20,10 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	./autogen.sh --prefix=/usr
+	# Replace this with a call to configure to build a package in The Real World.
+	./autogen.sh --prefix=/usr \
+	            --mandir=\$${prefix}/share/man \
+	            CFLAGS="$(CFLAGS)"
 	touch configure-stamp
 
 
@@ -34,7 +34,6 @@ build-stamp: configure-stamp
 
 	# Add here commands to compile the package.
 	$(MAKE)
-	#/usr/bin/docbook-to-man debian/gift-fasttrack.sgml > gift-fasttrack.1
 
 	touch build-stamp
 
@@ -44,7 +43,12 @@ clean:
 	rm -f build-stamp configure-stamp
 
 	# Add here commands to clean up after the build process.
-	-$(MAKE) clean
+	-$(MAKE) -i distclean
+
+	-test -r /usr/share/misc/config.sub && \
+	    cp -f /usr/share/misc/config.sub config.sub
+	-test -r /usr/share/misc/config.guess && \
+	    cp -f /usr/share/misc/config.guess config.guess
 
 	dh_clean
 
@@ -67,14 +71,11 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs ChangeLog
-	dh_installdocs -n
-	dh_installexamples
-#	dh_install
-	dh_installman
+	dh_installdocs
+#	dh_strip
 	dh_link
 	dh_compress
 	dh_fixperms
-#	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol
