@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.5 2003/06/22 14:38:34 beren12 Exp $
+# $Id: Makefile.am,v 1.6 2003/06/28 16:41:07 beren12 Exp $
 
 SUBDIRS = crypt
 
@@ -7,11 +7,6 @@ AM_CFLAGS = $(FT_CFLAGS)
 INCLUDES = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/crypt
-
-#
-# The rest of this file is conditional on whether we're
-# compiling the gnutella plugin at all
-#
 
 plugin_LTLIBRARIES = libFastTrack.la
 

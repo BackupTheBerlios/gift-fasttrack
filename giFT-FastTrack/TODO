@@ -1,9 +1,9 @@
-$Id: TODO,v 1.5 2003/06/22 14:31:14 mkern Exp $
+$Id: TODO,v 1.6 2003/06/28 16:41:07 beren12 Exp $
 
 - add firewalled download support
 - make node cache smarter / use udp discovery
 - implement sharing
-- make dowloading less greedy
+- make dowloading less greedy, custom throttle?
 - are searches really resent to new connections?
-- make a usefull manpage :)
-- find someone (rasa?) to intagrate into the win32 build of giFT
+- automatically search more supernodes?
+- make a usefull manpage? :)
