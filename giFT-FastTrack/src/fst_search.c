@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.38 2004/11/27 10:09:10 mkern Exp $
+ * $Id: fst_search.c,v 1.39 2005/01/01 22:06:07 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -518,7 +518,9 @@ static int end_of_results (FSTSearchList *searchlist,
 	/* remove search from list */
 	fst_searchlist_remove (searchlist, search);
 
-	/* tell giFT we're finished, this makes giFT call gift_cb_search_cancel() */
+	/* Tell giFT we're finished, this does _not_ make giFT call
+	 * fst_gift_cb_search_cancel().
+	 */
 	FST_PROTO->search_complete (FST_PROTO, search->gift_event);
 
 	/* free search */
