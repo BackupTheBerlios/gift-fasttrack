@@ -1,6 +1,6 @@
-# $Id: Makefile.am,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+# $Id: Makefile.am,v 1.3 2003/06/20 20:15:30 beren12 Exp $
 
-SUBDIRS = src
+SUBDIRS = src data
 
 #EXTRA_DIST=gift_fasttrack.lsm.in gift_fasttrack.spec.in gift_fasttrack.texinfo
 

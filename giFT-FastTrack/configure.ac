@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.6 2003/06/20 18:57:30 beren12 Exp $
+# $Id: configure.ac,v 1.7 2003/06/20 20:15:30 beren12 Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -68,56 +68,8 @@ AC_C_CONST
 AC_HEADER_TIME
 AC_STRUCT_TM
 
-AC_CHECK_SIZEOF(short)
-AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(long)
-AC_CHECK_SIZEOF(long long)
-AC_CHECK_SIZEOF(void *)
-
-AC_DEFINE_UNQUOTED(SIZEOF_SHORT, AS_VAR_GET(ac_cv_sizeof_short))
-AC_DEFINE_UNQUOTED(SIZEOF_INT, AS_VAR_GET(ac_cv_sizeof_int))
-AC_DEFINE_UNQUOTED(SIZEOF_LONG, AS_VAR_GET(ac_cv_sizeof_long))
-
-if test "${ac_cv_sizeof_int}" = "4" ; then
-   AS_VAR_SET(ac_cv_gift_int32, int)
-elif test "${ac_cv_sizeof_long}" = "4"; then
-   AS_VAR_SET(ac_cv_gift_int32, long)
-else
-   AC_MSG_ERROR(No 32-bit datatype found - please report this to the developers)
-fi
-
-AC_CHECK_TYPE(uint8_t, unsigned char)
-AC_CHECK_TYPE(int8_t, char)
-AC_CHECK_TYPE(uint16_t, unsigned short)
-AC_CHECK_TYPE(int16_t, short)
-AC_CHECK_TYPE(uint32_t, unsigned AS_VAR_GET(ac_cv_gift_int32))
-AC_CHECK_TYPE(int32_t, AS_VAR_GET(ac_cv_gift_int32))
-
-dnl TODO, check for _Bool from C99 or bool from some other whacky platform
-AC_DEFINE(BOOL, int, [Define BOOL])
-AC_DEFINE(TRUE, 1, [TRUE=1])
-AC_DEFINE(FALSE, 0, [FASLE=0])
-
-AC_CHECK_TYPE(in_addr_t, uint32_t,
-                   [Define to 'uint32_t' if <netinet/in.h> and <sys/types.h> do not define],
-                   [#include <sys/types.h>
-                    #include <netinet/in.h>
-                    ])
-
-AC_CHECK_TYPE(in_port_t, uint16_t,
-                   [Define to 'uint16_t' if <netinet/in.h> and <sys/types.h> do not define],
-                   [#include <sys/types.h>
-                    #include <netinet/in.h>
-                    ])
-
-AC_CHECK_TYPE(pid_t, int)
-AC_CHECK_TYPE(off_t, long)
-AC_CHECK_TYPE(size_t, unsigned)
-
-
 dnl ###########################################################################
 dnl Checks for library functions.
-dnl TODO: Wrap these in m4/giftconfig.m4
 dnl ###########################################################################
 
 AC_FUNC_MEMCMP
@@ -223,6 +175,9 @@ fi
 plugindir=${prefix}/lib/giFT
 AC_SUBST(plugindir)
 
+datadir=${prefix}/share/giFT
+AC_SUBST(datadir)
+
 dnl ###########################################################################
 dnl Finally do the generation
 dnl ###########################################################################
@@ -230,6 +185,7 @@ dnl ###########################################################################
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+data/Makefile
 ])
 AC_OUTPUT
 
@@ -247,5 +203,6 @@ echo
 echo "-----------------------------"
 echo
 echo "$PACKAGE will be installed in $plugindir/"
+echo " configs will be installed in $datadir/"
 echo
 echo

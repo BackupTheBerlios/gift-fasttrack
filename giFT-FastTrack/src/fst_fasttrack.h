@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_fasttrack.h,v 1.3 2003/06/20 20:15:30 beren12 Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -18,6 +18,21 @@
 #define __FASTTRACK_H
 
 /*****************************************************************************/
+
+#include <libgift/giftconfig.h>
+
+#if TIME_WITH_SYS_TIME
+# include <time.h>
+# include <sys/time.h>
+#else /* !TIME_WITH_SYS_TIME */
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif /* TIME_WITH_SYS_TIME */
+ 
+#include <stdint.h>
 
 #define FILE_LINE_FUNC __FILE__,__LINE__,__PRETTY_FUNCTION__
 
@@ -72,6 +87,11 @@ typedef uint32_t fst_uint32;
 #endif
 
 #include <libgift/proto/transfer_api.h>
+
+#include <string.h>
+
+#include <libgift/dataset.h>
+
 
 #include "fst_node.h"
 #include "fst_packet.h"
