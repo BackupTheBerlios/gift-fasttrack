@@ -1,7 +1,7 @@
 /*
- * $Id: fst_fasttrack.h,v 1.5 2003/06/20 22:01:34 beren12 Exp $
+ * $Id: fst_fasttrack.h,v 1.6 2003/06/20 22:29:17 beren12 Exp $
  *
- * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
+ * Copyright (C) 2003 giFT-FastTrack project http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
