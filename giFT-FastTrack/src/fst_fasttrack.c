@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.31 2003/10/14 16:47:02 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.32 2003/11/13 17:48:31 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -35,7 +35,7 @@ static int fst_plugin_connect_next()
 {
 	FSTNode *node;
 
-	do
+	while (1)
 	{
 		if (FST_PLUGIN->session)
 		{
@@ -71,7 +71,17 @@ static int fst_plugin_connect_next()
 		/* create session */
 		FST_PLUGIN->session = fst_session_create (fst_plugin_session_callback);
 
-	} while (!fst_session_connect (FST_PLUGIN->session, node));
+		if (fst_session_connect (FST_PLUGIN->session, node))
+		{
+			/* we started connecting, got back to doing other stuff */
+			break;
+		}
+		else
+		{
+			/* free node and try again with a different one */
+			fst_node_free (node);
+		}
+	}
 
 	return TRUE;
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.h,v 1.4 2003/09/18 14:54:50 mkern Exp $
+ * $Id: fst_http_client.h,v 1.5 2003/11/13 17:48:31 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -89,9 +89,9 @@ struct _FSTHttpClient
 	unsigned int  data_len;			/* length of content in data */
 
 	FSTHttpClientCallback callback;
+	enum { CB_NONE, CB_ACTIVE, CB_FREED } callback_state;
 
 	void *udata;					/* user data */
-
 };
 
 /*****************************************************************************/

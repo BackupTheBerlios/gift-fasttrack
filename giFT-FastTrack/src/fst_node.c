@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.6 2003/09/12 21:12:53 mkern Exp $
+ * $Id: fst_node.c,v 1.7 2003/11/13 17:48:31 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -90,6 +90,7 @@ void fst_nodecache_free (FSTNodeCache *cache)
 										(ListForeachFunc)nodecache_free_node,
 										NULL);
 	dataset_clear (cache->hash);
+	free (cache);
 }
 
 /*****************************************************************************/
@@ -129,6 +130,7 @@ void fst_nodecache_remove (FSTNodeCache *cache, char *host)
 		/* remove node */
 		cache->list = list_remove (cache->list, node);
 		dataset_removestr (cache->hash, node->host);
+		fst_node_free (node);
 	}
 }
 

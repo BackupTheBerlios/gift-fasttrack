@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.14 2003/11/05 16:43:13 mkern Exp $
+ * $Id: fst_search.c,v 1.15 2003/11/13 17:48:31 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -667,6 +667,7 @@ int fst_searchresult_write_gift (FSTSearchResult *result, IFEvent *event)
 							  href, 1, share);
 
 	free (buf);
+	free (href);
 	share_free (share);
 
 	return TRUE;
