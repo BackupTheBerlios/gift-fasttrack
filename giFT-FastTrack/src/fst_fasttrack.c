@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.74 2004/07/23 19:26:52 hex Exp $
+ * $Id: fst_fasttrack.c,v 1.75 2004/07/23 20:45:14 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -135,7 +135,6 @@ static void fst_plugin_connect_next ()
 
 			continue;
 		}
-			
 
 		/* don't connect to banned ips */
 		if (config_get_int (FST_PLUGIN->conf, "main/banlist_filter=0") &&

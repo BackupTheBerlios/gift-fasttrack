@@ -16,18 +16,14 @@
 
 static List *add_global (Dataset *gpeers, FSTNode *node, FSTNode *peer)
 {
-	List **ll = dataset_lookup (gpeers, &peer, sizeof(peer));
-	List *l = ll ? *ll : NULL;
+	List *l = dataset_lookup (gpeers, &peer, sizeof(peer));
 
 	assert (node->session);
 
-	FST_DBG_2("peer=%p, l=%p", peer, l);
-
 	l = list_prepend (l, node);
 
-	dataset_insert (&gpeers, &peer, sizeof(peer), l, sizeof(*l));
+	dataset_insert (&gpeers, &peer, sizeof(peer), l, 0);
 
-	FST_DBG_1 ("reffing %p", peer);
 	fst_node_ref (peer);
 
 	return l;
@@ -38,10 +34,9 @@ static List *add_global (Dataset *gpeers, FSTNode *node, FSTNode *peer)
 static void remove_global (Dataset *gpeers, FSTNode *peer, List *nodelink)
 {
 	FSTNode *node = nodelink->data;
-	List *l, **ll, *lnew;
-	FST_DBG_1 ("freeing %p", peer);
-	ll = dataset_lookup (gpeers, &peer, sizeof(peer));
-	l = ll ? *ll : NULL;
+	List *l, *lnew;
+
+	l = dataset_lookup (gpeers, &peer, sizeof(peer));
 	
 	assert (l);
 
@@ -53,16 +48,16 @@ static void remove_global (Dataset *gpeers, FSTNode *peer, List *nodelink)
 		return;
 
 	if (lnew)
-		dataset_insert (&gpeers, &peer, sizeof(peer), lnew, sizeof(*lnew));
+		dataset_insert (&gpeers, &peer, sizeof(peer), lnew, 0);
 	else
-		dataset_remove (gpeers, peer, sizeof(peer));
+		dataset_remove (gpeers, &peer, sizeof(peer));
 }
 
 static int remove_peer (ds_data_t *key, ds_data_t *value,
 			 void *udata)
 {
 	remove_global ((Dataset *)udata, *(FSTNode **)key->data,
-		       *(List **)value->data);
+		       (List *)value->data);
 
 	return DS_REMOVE;
 }
@@ -79,7 +74,7 @@ void fst_peer_remove (Dataset *gpeers, FSTNode *node, Dataset *peers)
 void fst_peer_insert (Dataset *gpeers, FSTNode *node, Dataset **peers, FSTNode *peer)
 {
 	List *nodelink = dataset_lookup (*peers, &peer, sizeof(peer));
-	
+	List *nl;
 	fst_node_ref (peer);
 
 	if (nodelink)
@@ -87,7 +82,9 @@ void fst_peer_insert (Dataset *gpeers, FSTNode *node, Dataset **peers, FSTNode *
 
 	nodelink = add_global (gpeers, node, peer);
 	assert (nodelink->prev == NULL || nodelink->prev->next == nodelink);
-	dataset_insert (peers, &peer, sizeof(peer), &nodelink, sizeof(nodelink));
+	dataset_insert (peers, &peer, sizeof(peer), nodelink, 0);
 
+	nl = dataset_lookup (*peers, &peer, sizeof (peer));
+	assert (nl == nodelink);
 	fst_node_free (peer);
 }

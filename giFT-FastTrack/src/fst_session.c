@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.29 2004/07/23 19:26:52 hex Exp $
+ * $Id: fst_session.c,v 1.30 2004/07/23 20:45:14 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -88,7 +88,8 @@ void fst_session_free (FSTSession *session)
 
 	tcp_close (session->tcpcon);
 
-	session->node->session = NULL;
+	if (session->node)
+		session->node->session = NULL;
 
 	fst_node_free (session->node);
 	timer_remove (session->ping_timer);
