@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.3 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_search.c,v 1.4 2003/06/27 17:29:52 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -87,6 +87,7 @@ FSTSearch *fst_search_create (IFEvent *event, FSTSearchType type, char *query, c
 	search->type = type;
 	search->sent = 0;
 	search->replies = 0;
+	search->fw_replies = 0;
 
 	search->query = query ? strdup (query) : NULL;
 	search->exclude = exclude ? strdup (exclude) : NULL;
@@ -339,7 +340,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 			return FALSE;
 		}
 
-		FST_DBG_2 ("received query end for search with fst_id = %d, got %d replies", fst_id, search->replies);
+		FST_DBG_3 ("received query end for search with fst_id = %d, got %d replies of which %d are firewalled", fst_id, search->replies, search->fw_replies);
 
 		// remove search from list
 		fst_searchlist_remove (searchlist, search);
@@ -513,6 +514,10 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 		if(!fst_utils_ip_private (ip) && port != 0)
 		{
 			FST_PROTO->search_result (FST_PROTO, search->gift_event, username, netname, href, 1, file);
+		}
+		else
+		{
+			search->fw_replies++;
 		}
 
 		// increment reply counter

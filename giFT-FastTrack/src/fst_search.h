@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.3 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_search.h,v 1.4 2003/06/27 17:29:52 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -52,6 +52,7 @@ typedef struct
 	FSTSearchType type;          // type of search
 	unsigned int sent;			// number of times a query for this search has been sent to supernodes
 	unsigned int replies;		// number of received replies
+	unsigned int fw_replies;	// number of firewalled replies
 
 	char *query;                // space delimited words to search for
 	char *exclude;              // words to exlude from search
