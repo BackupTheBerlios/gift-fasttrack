@@ -198,7 +198,7 @@ if test x$enable_ltdl = xyes; then
         DL_LIBS=-lltdl
         FT_LIBS="$LIBS $DL_LIBS"
         FT_LDFLAGS="$LDFLAGS $DL_LDFLAGS"
-        FT_CFLAGS="$CFLAGS $DL_CFLAGS"
+        FT_CFLAGS="$FT_CFLAGS $DL_CFLAGS"
 
         AC_DEFINE(USE_LTDL)
         AC_SUBST(USE_LTDL)
