@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.23 2003/07/28 21:10:20 beren12 Exp $
+# $Id: configure.ac,v 1.24 2003/08/01 14:54:59 weinholt Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -9,7 +9,7 @@ dnl ###########################################################################
 AC_PREREQ(2.52)
 
 AC_INIT(giFT-FastTrack, 0.8.2, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
-AC_REVISION($Revision: 1.23 $)
+AC_REVISION($Revision: 1.24 $)
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
 AM_INIT_AUTOMAKE
@@ -38,14 +38,8 @@ dnl ###########################################################################
 dnl Checks for libraries.
 dnl ###########################################################################
 
-# Add some nice paths to the search path for pkg-config
-FIXED_AC_PREFIX_PROGRAM([giftd])
-if test x$prefix != xNONE; then
-	PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$prefix/lib/pkgconfig
-fi
-PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
-export PKG_CONFIG_PATH
-PKG_CHECK_MODULES(GIFT, libgift >= 0.10.0)
+GIFT_PLUGIN_PREFIX
+GIFT_PLUGIN_PKGCONFIG(GIFT, 0.11.1, 0.12.0)
 
 dnl ###########################################################################
 dnl Checks for header files.
@@ -79,11 +73,6 @@ AC_ARG_ENABLE(heavy_debug,        [  --enable-heavy-debug    create _lots_ debug
 AM_CONDITIONAL(HEAVY_DEBUG,        test x$enable_heavy_debug    = xyes)
 
 dnl ###########################################################################
-dnl Architecture specific stuff
-dnl ###########################################################################
-
-
-dnl ###########################################################################
 dnl normal debug
 dnl ###########################################################################
 
@@ -104,18 +93,10 @@ if test x$enable_heavy_debug = xyes; then
 fi
 
 dnl ###########################################################################
-dnl Setup some misc build environment settings
+dnl Configure installation paths
 dnl ###########################################################################
 
-if test x$prefix = xNONE; then
-    prefix=`pkg-config libgift --variable=prefix`
-fi
-
-plugindir=${prefix}/lib/giFT
-AC_SUBST(plugindir)
-
-datadir=${prefix}/share/giFT
-AC_SUBST(datadir)
+GIFT_PLUGIN_INSTALL_PATH
 
 dnl ###########################################################################
 dnl Finally do the generation
@@ -129,6 +110,7 @@ AC_CONFIG_FILES([
   src/Makefile
   src/crypt/Makefile
   data/Makefile
+  m4/Makefile
 ])
 AC_OUTPUT
 

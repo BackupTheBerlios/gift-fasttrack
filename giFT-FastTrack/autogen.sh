@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# $Id: autogen.sh,v 1.3 2003/07/19 19:31:06 weinholt Exp $
+# $Id: autogen.sh,v 1.4 2003/08/01 14:54:59 weinholt Exp $
 # Run this to generate all the initial makefiles, etc.
 
 # Stolen from the GNU Midnight Commander. Customized for giFTcurs. Stolen from
@@ -21,8 +21,9 @@ cd $srcdir
 
 # The autoconf cache (version after 2.52) is not reliable yet.
 rm -rf autom4te.cache
-
 rm -f aclocal.m4
+
+ACLOCAL_INCLUDES="-I m4"
 
 # Some old version of GNU build tools fail to set error codes.
 # Check that they generate some of the files they should.
