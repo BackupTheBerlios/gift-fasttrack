@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.c,v 1.7 2003/08/15 15:05:02 weinholt Exp $
+ * $Id: fst_crypt.c,v 1.8 2003/08/27 15:26:09 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -26,6 +26,7 @@
 void enc_type_1 (unsigned char *out_key, unsigned char *in_key);
 void enc_type_2 (unsigned int *key, unsigned int seed);
 void enc_type_20 (unsigned int *key, unsigned int seed);
+void enc_type_80 (unsigned int *key, unsigned int seed);
 
 /*****************************************************************************/
 
@@ -252,10 +253,10 @@ static int pad_init (unsigned int *pseed, unsigned int enc_type, unsigned char* 
 
 		if (enc_type & 0x80)
 		{
-//			FST_WARN ("pad_init: enc_type & 0x80 not implemented");
+			FST_HEAVY_DBG ("pad_init: enc_type & 0x80");
 
 			seed = seed_step (seed);
-			return FALSE;
+			enc_type_80 (key_80, seed);
 		}
 
 		if (enc_type & 0x100)

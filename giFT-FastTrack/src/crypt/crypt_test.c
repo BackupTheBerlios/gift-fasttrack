@@ -9,6 +9,7 @@
 extern void enc_type_1 (unsigned char *out_key, unsigned char *in_key);
 extern void enc_type_2 (unsigned int *key, unsigned int seed);
 extern void enc_type_20 (unsigned int *key, unsigned int seed);
+extern void enc_type_80 (unsigned int *key, unsigned int seed);
 
 unsigned char enc_1_md5_in[]   = "\x28\x5f\x6e\x27\xf0\x42\xca\x78\x5a\x0b\x21\x4b\x21\x78\x3a\x78";
 unsigned char enc_1_md5_out[]  = "\xfc\x2f\x97\xe5\x04\xf5\x43\x0b\xd6\x10\x45\x00\x82\x71\x82\x12";
@@ -16,6 +17,8 @@ unsigned char enc_2_md5_in[]   = "\x9d\x2a\x30\xae\x28\xc1\x3e\x3b\x91\x88\x4d\x
 unsigned char enc_2_md5_out[]  = "\xd3\x10\xb6\x45\x9a\x86\x88\x4a\xac\x6c\x43\x66\xc8\xf0\xa6\x19";
 unsigned char enc_20_md5_in[]  = "\x9d\x2a\x30\xae\x28\xc1\x3e\x3b\x91\x88\x4d\xfb\xf3\x98\x65\x61";
 unsigned char enc_20_md5_out[] = "\x44\x29\x82\x10\xa3\x6e\x14\x3a\xd2\x8a\xa2\x82\x6d\xe7\x11\xe6";
+unsigned char enc_80_md5_in[]  = "\x9d\x2a\x30\xae\x28\xc1\x3e\x3b\x91\x88\x4d\xfb\xf3\x98\x65\x61";
+unsigned char enc_80_md5_out[] = "\x46\x47\xd6\xf8\x65\x72\xfe\x79\xaf\x48\xc9\x8c\x17\xf7\xd6\x5f";
 
 /* rndlcg            Linear Congruential Method, the "minimal standard generator"
                      Park & Miller, 1988, Comm of the ACM, 31(10), pp. 1192-1201
@@ -165,7 +168,7 @@ int main (int argc, char* argv[])
 	{
 		printf ("usage: %s [enc_type]\n", argv[0]);
 		printf ("where enc_type is one if the following:\n");
-		printf ("- \"1\" for enc_type_1\n- \"2\" for enc_type_2\n- \"20\" for enc_type_20\n");
+		printf ("- \"1\" for enc_type_1\n- \"2\" for enc_type_2\n- \"20\" for enc_type_20\n- \"80\" for enc_type_80\n");
 		printf ("no argument means all enc_types are tested.\n");
 		return 1;
 	}
@@ -302,6 +305,55 @@ int main (int argc, char* argv[])
 		printf ("output hash is: %s\n", md5_get_str (out_hash));
 		printf ("should be:      %s", md5_get_str (enc_20_md5_out));
 		if (memcmp (out_hash, enc_20_md5_out, MD5_HASH_LEN) == 0)
+			printf (" => OK\n");
+		else
+			printf (" => FAILURE\n"), exit_code++;
+	}
+
+	if (test_all || (argc == 2 && !strcmp (argv[1], "80")))
+	{
+		printf ("\ntesting enc_type_80 with 500.000 iterations...\n");
+		printf ("-------------------------------------------------------------\n");
+
+		r250_init(1);
+		MD5Init (&in_md5_ctx);
+		MD5Init (&out_md5_ctx);
+
+		for (runs=0; runs < 500000; runs++)
+		{
+			/* fill input with randomness */
+			for (i=0; i<20; i++)
+				key_80[i] = r250();	
+			seed = r250();
+
+			reverse_bytes (key_80, 20);
+			MD5Update (&in_md5_ctx, (unsigned char*)key_80, 80);
+			reverse_bytes (key_80, 20);
+
+			reverse_bytes (&seed, 1);
+			MD5Update (&in_md5_ctx, (unsigned char*)&seed, 4);
+			reverse_bytes (&seed, 1);
+
+			enc_type_80 (key_80, seed);
+
+			reverse_bytes (key_80, 20);
+			MD5Update (&out_md5_ctx, (unsigned char*)key_80, 80);		
+			reverse_bytes (key_80, 20);
+		}
+
+		MD5Final (in_hash, &in_md5_ctx);
+		MD5Final (out_hash, &out_md5_ctx);
+
+		printf ("input hash is:  %s\n", md5_get_str (in_hash));
+		printf ("should be:      %s", md5_get_str (enc_80_md5_in));
+		if (memcmp (in_hash, enc_80_md5_in, MD5_HASH_LEN) == 0)
+			printf (" => OK\n\n");
+		else
+			printf (" => FAILURE, PRNG broken?\n\n"), exit_code++;
+
+		printf ("output hash is: %s\n", md5_get_str (out_hash));
+		printf ("should be:      %s", md5_get_str (enc_80_md5_out));
+		if (memcmp (out_hash, enc_80_md5_out, MD5_HASH_LEN) == 0)
 			printf (" => OK\n");
 		else
 			printf (" => FAILURE\n"), exit_code++;
