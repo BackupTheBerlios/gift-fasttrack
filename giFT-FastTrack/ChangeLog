@@ -1,3 +1,8 @@
+2003-06-07  Chris Zubrzycki  <beren12@sheep.berlios.de>
+
+        * added automake files for plugin creation.
+        * TODO: add manpage and more docs
+        * moved sources to src/
 
 03/05/18
 --------
