@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.18 2003/07/20 23:42:13 weinholt Exp $
+# $Id: configure.ac,v 1.19 2003/07/27 02:00:23 weinholt Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -9,7 +9,7 @@ dnl ###########################################################################
 AC_PREREQ(2.52)
 
 AC_INIT(giFT-FastTrack, 0.8.2, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
-AC_REVISION($Revision: 1.18 $)
+AC_REVISION($Revision: 1.19 $)
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
 AM_INIT_AUTOMAKE
@@ -38,6 +38,10 @@ dnl ###########################################################################
 dnl Checks for libraries.
 dnl ###########################################################################
 
+# Add some nice paths to the search path for pkg-config
+if test x$prefix != xNONE; then
+	PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$prefix/lib/pkgconfig
+fi
 PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
 export PKG_CONFIG_PATH
 PKG_CHECK_MODULES(GIFT, libgift >= 0.10.0)
