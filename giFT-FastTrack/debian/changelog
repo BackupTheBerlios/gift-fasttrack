@@ -2,40 +2,4 @@ gift-fasttrack (0.8.8-1) unstable; urgency=low
 
   * New upstream release.
 
-gift-fasttrack (0.8.5-2) unstable; urgency=low
-
-  * debian/README.Debian: Update with giFT's new binary name.
-
-gift-fasttrack (0.8.5-1) unstable; urgency=low
-
-  * New upstream release.
-
-gift-fasttrack (0.8.4-1) unstable; urgency=low
-
-  * New upstream release.
-
-gift-fasttrack (0.8.3-1) unstable; urgency=low
-
-  * New upstream release.
-
-gift-fasttrack (0.8.2-3) unstable; urgency=low
-
-  * Took one look at the gift-gnutella package and decided to switch to
-    cdbs.
-
-gift-fasttrack (0.8.2-2) unstable; urgency=low
-
-  * Added proper dependencies on the giFT packages.
-  * Changed the binary package name to libfasttrack-gift.
-
-gift-fasttrack (0.8.2-1) unstable; urgency=low
-
-  * New upstream release.
-
-gift-fasttrack (0.8.1-2) unstable; urgency=low
-
-  * Clean up the package a bit.
-
-gift-fasttrack (0.0.1-1) unstable; urgency=low
-
-  * Initial Release.
+ -- pretender <mkern@users.berlios.de>  Thu, 11 Nov 2004 19:57:14 +0100
