@@ -1,4 +1,5 @@
-# $Id: Makefile.am,v 1.10 2003/07/10 13:08:20 weinholt Exp $
+# $Id: Makefile.am,v 1.11 2003/07/19 16:30:28 weinholt Exp $
+AM_CFLAGS = -Wall
 
 SUBDIRS = crypt
 
@@ -20,12 +21,9 @@ libFastTrack_la_SOURCES = \
 
 libFastTrack_la_LIBADD = \
 	$(top_builddir)/src/crypt/libfst_crypt.la
-#	$(prefix)/lib/libgift.la 
-#	$(prefix)/lib/libgiftproto.la 
 
 INCLUDES = \
-	@FT_CFLAGS@ \
+	@GIFT_CFLAGS@ \
 	-I$(top_srcdir)/src/crypt
 
-
-libFastTrack_la_LDFLAGS = @FT_LDFLAGS@ @FT_LIBS@ -lm
+libFastTrack_la_LDFLAGS = @GIFT_LIBS@ -module -avoid-version

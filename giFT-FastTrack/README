@@ -1,4 +1,4 @@
- $Id: README,v 1.15 2003/07/15 16:45:31 mkern Exp $
+ $Id: README,v 1.16 2003/07/19 16:30:28 weinholt Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
@@ -23,7 +23,7 @@ autoconf    >= 2.5 (not if you use the tarball release)
 libtool     >= 1.4
 pkg-config
 giFT
-ltdl        (for now it is required)
+ltdl        (required for giFT to be able to load giFT-Fasttrack)
 
 
 Next run './configure' in the top source dir if you are using a TARBALL release.

@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.16 2003/07/14 20:18:15 mkern Exp $
+# $Id: configure.ac,v 1.17 2003/07/19 16:30:28 weinholt Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -8,47 +8,26 @@ dnl ###########################################################################
 
 AC_PREREQ(2.52)
 
-AC_INIT
+AC_INIT(giFT-FastTrack, 0.8.2, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
+AC_REVISION($Revision: 1.17 $)
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
-AM_INIT_AUTOMAKE(giFT-FastTrack, 0.8.2)
+AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
 
 dnl AM_MAINTAINER_MODE
 
 dnl ###########################################################################
-dnl acconfig.h
-dnl ###########################################################################
-
-AH_VERBATIM([BUILD_DATE], [
-#undef BUILD_DATE
-])
-
-AH_VERBATIM([USE_LTDL], [
-#undef USE_LTDL
-])
-
-AH_VERBATIM([DEBUG], [
-#undef DEBUG
-])
-
-AH_VERBATIM([HEAVY_DEBUG], [
-#undef HEAVY_DEBUG
-])
-
-dnl ###########################################################################
 dnl Build information
 dnl ###########################################################################
 
-BUILD_DATE="`date`"
-AC_DEFINE_UNQUOTED(BUILD_DATE, "$BUILD_DATE")
+AC_DEFINE_UNQUOTED(BUILD_DATE, "`date`", [Build date])
 
 dnl ###########################################################################
 dnl Checks for programs.
 dnl ###########################################################################
 
 AC_PROG_CC
-AM_PROG_CC_STDC
 AC_HEADER_STDC
 AC_PROG_INSTALL
 
@@ -59,15 +38,16 @@ dnl ###########################################################################
 dnl Checks for libraries.
 dnl ###########################################################################
 
-PKG_CHECK_MODULES(FT, libgift >= 0.10.0)
+OLD_PKG_CONFIG_PATH=$PKG_CONFIG_PATH
+PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
+PKG_CHECK_MODULES(GIFT, libgift >= 0.10.0)
+PKG_CONFIG_PATH=$OLD_PKG_CONFIG_PATH
 
 dnl ###########################################################################
 dnl Checks for header files.
 dnl ###########################################################################
 
-AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_HEADER_SYS_WAIT
 
 dnl ###########################################################################
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -82,135 +62,59 @@ dnl Checks for library functions.
 dnl ###########################################################################
 
 AC_FUNC_MEMCMP
-AC_FUNC_MMAP
 AC_CHECK_FUNCS(strdup)
 
 dnl ###########################################################################
 dnl All of the lovely arguments
 dnl ###########################################################################
 
-AC_ARG_ENABLE(ltdl,               [  --disable-ltdl          do not use libltdl],,[enable_ltdl=yes])
-AM_CONDITIONAL(LTDL,               test x$enable_ltdl    = xyes)
+AC_ARG_ENABLE(debug,
+  AC_HELP_STRING([--disable-debug], [do not create debug messages]),
+  [], [enable_debug=yes])
 
-AC_ARG_ENABLE(debug,              [  --disable-debug         do not create debug messages],,[enable_debug=yes])
-AM_CONDITIONAL(DEBUG,              test x$enable_debug    = xyes)
-
-AC_ARG_ENABLE(heavy_debug,        [  --enable-heavy-debug    create _lots_ debug messages],,[enable_heavy_debug=no])
-AM_CONDITIONAL(HEAVY_DEBUG,        test x$enable_heavy_debug    = xyes)
-
-dnl ###########################################################################
-dnl Overrides
-dnl ###########################################################################
-
-DL_MODULE=
-DL_LIBS=
-DL_LDFLAGS=
-DL_CFLAGS=
-
-# Override -g -O2
-CFLAGS="-g -Wall"
+AC_ARG_ENABLE(heavy_debug,
+  AC_HELP_STRING([--enable-heavy-debug], [create _lots_ debug messages]),
+  [], [enable_heavy_debug=no])
 
 dnl ###########################################################################
 dnl Architecture specific stuff
 dnl ###########################################################################
 
-# AC_CANONICAL_HOST is already REQUIRED by libtool, i think
 # AC_CANONICAL_HOST
 
-PROGRAM_EXT=
-SO_SUFFIX=so
-ZLIB_VER=1.1.4
-
 case "${host}" in
-  *-hp-hpux* )
-    SO_SUFFIX=sl
-  ;;
   *-*-linux* )
-    DL_LDFLAGS='-rdynamic'
+    LIBS="$LIBS -rdynamic"
   ;;
-  *-*-cygwin*)
-    SO_SUFFIX=dll
-    PROGRAM_EXT=".exe"
-  ;;
-
   *-*-darwin* )
     dnl PowerPC & x86 Darwin based distributions (including Mac OS X)
-    SO_SUFFIX=dylib
-    ZLIB_VER=1.1.3
-    DL_CFLAGS="-Ddlsym=dlsym_prepend_underscore"
-    DL_LDFLAGS="-dynamic"
+    LIBS="$LIBS -dynamic"
   ;;
 esac
-
-dnl ###########################################################################
-dnl libltdl checks
-dnl ###########################################################################
-
-# set the defaults
-use_ltdl=no
-FT_CFLAGS="$FT_CFLAGS $CFLAGS"
-FT_LIBS="$FT_LIBS $LIBS \$(top_builddir)/src/libFastTrack.la"
-
-if test x$enable_ltdl = xyes; then
-    dnl check for lt_dlopen and lt_dlsym in libltdl
-    AC_CHECK_LIB(ltdl, lt_dlopen,
-        [AC_CHECK_LIB(ltdl, lt_dlsym, found_libltdl=yes, found_libltdl=no )] ,)
-
-    dnl check for ltdl header files
-    AC_CHECK_HEADERS(ltdl.h,
-            [ found_ltdlh=yes ],
-            [ found_ltdlh=no ])
-
-    # only add flags for ltdl stuff if all the tests passed
-    if (test x$found_libltdl = xyes) && (test x$found_ltdlh = xyes); then
-        use_ltdl=yes
-        DL_LIBS=-lltdl
-        FT_LIBS="$LIBS $DL_LIBS"
-        FT_LDFLAGS="$LDFLAGS $DL_LDFLAGS"
-        FT_CFLAGS="$FT_CFLAGS $DL_CFLAGS"
-
-        AC_DEFINE(USE_LTDL)
-        AC_SUBST(USE_LTDL)
-    fi
-fi
 
 dnl ###########################################################################
 dnl normal debug
 dnl ###########################################################################
 
-# set the defaults
-use_debug=yes
-
+use_debug=no
 if test x$enable_debug = xyes; then
-
-	AC_DEFINE(DEBUG)
-	AC_SUBST(DEBUG)
-
-else
-	use_debug=no
+	AC_DEFINE(DEBUG, 1, [Enable debugging])
+	use_debug=yes
 fi
 
 dnl ###########################################################################
 dnl heavy debug
 dnl ###########################################################################
 
-# set the defaults
 use_heavy_debug=no
-
 if test x$enable_heavy_debug = xyes; then
-
-        AC_DEFINE(HEAVY_DEBUG)
-        AC_SUBST(HEAVY_DEBUG)
+	AC_DEFINE(HEAVY_DEBUG, 1, [Enable heavy debugging])
 	use_heavy_debug=yes
 fi
 
 dnl ###########################################################################
 dnl Setup some misc build environment settings
 dnl ###########################################################################
-
-AC_SUBST(FT_CFLAGS)
-AC_SUBST(FT_LIBS)
-AC_SUBST(FT_LDFLAGS)
 
 if test x$prefix = xNONE; then
     prefix=`pkg-config libgift --variable=prefix`
@@ -231,10 +135,10 @@ dnl Needed to build with libtoolize 1.4.3 on Debian woody
 AC_CONFIG_AUX_DIR(.)
 
 AC_CONFIG_FILES([
-Makefile
-src/Makefile
-src/crypt/Makefile
-data/Makefile
+  Makefile
+  src/Makefile
+  src/crypt/Makefile
+  data/Makefile
 ])
 AC_OUTPUT
 
@@ -247,7 +151,6 @@ echo "$PACKAGE $VERSION"
 echo
 echo "------------------ core ------------------"
 echo
-echo "use ltdl................: $use_ltdl"
 echo "normal debugging........: $use_debug"
 echo "heavy debugging.........: $use_heavy_debug"
 echo
@@ -255,5 +158,4 @@ echo "------------------------------------------"
 echo
 echo "$PACKAGE will be installed in $plugindir/"
 echo "configs will be installed in $datadir/"
-echo
 echo

@@ -1,8 +1,8 @@
 Source: gift-fasttrack
 Section: net
 Priority: optional
-Maintainer: Dan Weber <knoppix@mirrorlynx.com>
-Build-Depends: debhelper (>> 4.0.0), libltdl3-dev
+Maintainer: Göran Weinholt <weinholt@dtek.chalmers.se>
+Build-Depends: debhelper (>> 4.0.0)
 Standards-Version: 3.5.8
 
 Package: gift-fasttrack
