@@ -52,28 +52,14 @@ static unsigned int my_ftol (double var)
 	return (unsigned int)var;
 }
 
-static void reverse_bytes (unsigned char *buf, unsigned int longs)
-{
-	for(; longs; longs--, buf+=4) {
-		*((unsigned int *)buf)= ((unsigned int) buf[3] << 8 | buf[2]) << 16 |
-								((unsigned int) buf[1] << 8 | buf[0]);
-	}
-}
-
 /* the entry point of this mess */
+/* this all works on unsigned ints so endianess is not an issue */
 
 THROWS_RET enc_20_mix (unsigned char *key, unsigned int seed);
 
 void enc_type_20 (unsigned int *key, unsigned int seed)
 {
-	// reverse byte order for big-endian machines, this is harmles on little-endian
-	reverse_bytes ((unsigned char*)key, 20);
-	reverse_bytes ((unsigned char*)&seed, 1);
-
 	enc_20_mix ((unsigned char*)key, seed);
-
-	// and reverse again
-	reverse_bytes ((unsigned char*)key, 20);
 }
 
 /* major functions which make calls to other funcs */

@@ -19,10 +19,9 @@
 /*****************************************************************************/
 
 // crypt functions
-void enc_type_1 (unsigned int *out_key, unsigned int *in_key);
+void enc_type_1 (unsigned char *out_key, unsigned char *in_key);
 void enc_type_2 (unsigned int *key, unsigned int seed);
 void enc_type_20 (unsigned int *key, unsigned int seed);
-
 
 /*****************************************************************************/
 
@@ -32,6 +31,7 @@ static unsigned int calculate_num_xor(unsigned int seed);
 static int calculate_num(unsigned int *num, int val);
 static unsigned int seed_step(unsigned int seed);
 static int qsort_cmp_func(const void *ap, const void *bp);
+static void reverse_bytes (unsigned int *buf, unsigned int longs);
 
 /*****************************************************************************/
 
@@ -95,7 +95,6 @@ void fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type
 	for(i=0; i<sizeof(cipher->lookup); i++)
 		cipher->lookup[i] = (unsigned char)i;
 
-
 	if(enc_type & 0x08)
 	{
 		MD5Context ctx;
@@ -106,6 +105,9 @@ void fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type
 		MD5Init(&ctx);
 		MD5Update(&ctx, cipher->pad, sizeof(cipher->pad));
 		MD5Final(md5, &ctx);
+
+		// correct md5 byte order on big-endian since it's converted to (unsigned int*) below
+		reverse_bytes ((unsigned int*)&md5, 4);
 
 		// modify cipher->lookup
 		for(i=0; i<sizeof(cipher->lookup); i++)
@@ -130,7 +132,7 @@ void fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type
 	// sort cipher->pad
 	sortpos = ((cipher->pos * cipher->pos) + 2) % (sizeof(cipher->pad)-4);
 	qsort(cipher->pad + sortpos, 5, 1, qsort_cmp_func);
-	
+
 	// modify every third byte of cipher->pad
 	for(i=5; i<sizeof(cipher->pad); i+=3) 
 	{
@@ -180,7 +182,7 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 			key_256_in[i] = (unsigned char) (temp % 0xE0);
 		}
 
-		enc_type_1 ((unsigned int*)key_256_out, (unsigned int*)key_256_in);
+		enc_type_1 (key_256_out, key_256_in);
 
 		// merge with pad
 		for(i=0; i<pad_size; i++)
@@ -234,10 +236,12 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 			seed = seed_step(seed);
 		}
 
+		// correct byte order on big-endian before merging
+		reverse_bytes (key_80, 20);
+
 		// merge with pad
 		for(i=0; i<pad_size; i++)
 			pad[i] ^= ((unsigned char*)key_80)[i];
-
 	}
 	*pseed = seed;
 }
@@ -442,4 +446,18 @@ static int qsort_cmp_func(const void *ap, const void *bp)
 
 	return (a^0x41) - (b^0x41);
 */
+}
+
+
+/* simple byte reversal function for endianess correction
+ * this is a noop on little-endian
+ */
+static void reverse_bytes (unsigned int *buf, unsigned int longs)
+{
+	unsigned char *cbuf = (unsigned char*)buf;
+
+	for(; longs; longs--, buf++, cbuf+=4) {
+		*buf = ((unsigned int) cbuf[3] << 8 | cbuf[2]) << 16 |
+			   ((unsigned int) cbuf[1] << 8 | cbuf[0]);
+	}
 }

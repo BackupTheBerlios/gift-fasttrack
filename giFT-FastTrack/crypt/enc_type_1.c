@@ -21,7 +21,6 @@
  * The code in this file is very close to the original assembler code.
  * It particularly uses unsigned int to store pointers which leads to
  * crashes on machines where pointers are larger than 32 bit.
- *
  */
 
 #include <string.h>	// memcpy()
@@ -53,7 +52,7 @@ static unsigned int cipher_table[] =
     0x0AE08473D, 0x00A532F6A, 0x034EB20CA, 0x0D453EC0A
 };
 
-void enc_type_1 (unsigned int *out_key/*stack1*/, unsigned int *in_key/*stack2*/);
+void enc_type_1 (unsigned char *out_key/*stack1*/, unsigned char *in_key/*stack2*/);
 
 static void enc_1_mix (unsigned int *table/*ecx*/, unsigned int *in_key/*stack1*/, unsigned int *out_key/*stack2*/, unsigned int cnt/*stack3*/, unsigned int *buf/*stack4*/);
 static void enc_1_zero (unsigned int *buf/*ecx*/, unsigned int first/*stack1*/);
@@ -95,13 +94,13 @@ static void my_exmul (unsigned int a, unsigned int b, unsigned int *eax, unsigne
 }
 
 
-void enc_type_1 (unsigned int *out_key/*stack1*/, unsigned int *in_key/*stack2*/)
+void enc_type_1 (unsigned char *out_key/*stack1*/, unsigned char *in_key/*stack2*/)
 {
 	unsigned int buf1[0x40], buf2[0x40];
 
 	enc_1_zero (buf1, 3);
 
-	enc_1_mix (cipher_table, in_key, buf2, 1, buf1);
+	enc_1_mix (cipher_table, (unsigned int*)in_key, buf2, 1, buf1);
 
 	memcpy (out_key, buf2, 0xFF);
 }

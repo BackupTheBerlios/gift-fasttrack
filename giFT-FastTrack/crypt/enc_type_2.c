@@ -23,24 +23,11 @@ typedef unsigned int u32;
 
 static u32 mix_major0(u32 *state, u32 extra_state);
 
-static void reverse_bytes (unsigned char *buf, unsigned int longs)
-{
-	for(; longs; longs--, buf+=4) {
-		*((unsigned int *)buf)= ((unsigned int) buf[3] << 8 | buf[2]) << 16 |
-								((unsigned int) buf[1] << 8 | buf[0]);
-	}
-}
+/* this all works on unsigned ints so endianess is not an issue */
 
 void enc_type_2 (unsigned int *key, unsigned int seed)
 {
-	// reverse byte order for big-endian machines, this is harmles on little-endian
-	reverse_bytes ((unsigned char*)key, 20);
-	reverse_bytes ((unsigned char*)&seed, 1);
-
 	mix_major0 (key, seed);
-
-	// and reverse again
-	reverse_bytes ((unsigned char*)key, 20);
 }
 
 static u32 mix_major0(u32 *state, u32 extra_state);
