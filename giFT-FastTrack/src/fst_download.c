@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.8 2003/06/28 20:17:34 beren12 Exp $
+ * $Id: fst_download.c,v 1.9 2003/07/04 19:37:43 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -142,7 +142,7 @@ int fst_download_start (FSTDownload *download)
 	if (download->tcpcon == NULL)
 	{
 		FST_DBG_2 ("ERROR: tcp_open() failed for %s:%d", net_ip_str(download->ip), download->port);
-		download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Connection Failed");
+		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Connect failed");
 		return FALSE;
 	}
 
@@ -175,7 +175,7 @@ static void download_connected (int fd, input_id input, FSTDownload *download)
 	if (net_sock_error (download->tcpcon->fd))
 	{
 		FST_HEAVY_DBG_2 ("connection to %s:%d failed -> removing source", net_ip_str(download->ip), download->port);
-		download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Connection failed");
+		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Connect failed");
 		return;
 	}
 
@@ -202,7 +202,6 @@ static void download_connected (int fd, input_id input, FSTDownload *download)
 	/* range, http range is inclusive! */
 	/* IMPORTANT: use chunk->start + chunk->transmit for starting point, rather non-intuitive */
 	sprintf (buf, "bytes=%d-%d", (int)(download->chunk->start + download->chunk->transmit), (int)download->chunk->stop - 1);
-
 	fst_http_request_set_header (request, "Range", buf);
 
 	/* compile and send request */
@@ -212,7 +211,7 @@ static void download_connected (int fd, input_id input, FSTDownload *download)
 
 	if (fst_packet_send (packet, download->tcpcon) == FALSE)
 	{
-		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Request Failed");
+		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Request failed");
 		fst_packet_free (packet);
 		return;
 	}
@@ -233,7 +232,7 @@ static void download_read_header (int fd, input_id input, FSTDownload *download)
 	if (net_sock_error (download->tcpcon->fd))
 	{
 		FST_HEAVY_DBG_2 ("read error while downloading from %s:%d -> removing source", net_ip_str(download->ip), download->port);
-		download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Request Failed");
+		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Request Failed");
 		return;
 	}
 
@@ -241,7 +240,7 @@ static void download_read_header (int fd, input_id input, FSTDownload *download)
 	if (fst_packet_recv (download->in_packet, download->tcpcon) == FALSE)
 	{
 		FST_DBG_2 ("read error while getting header from %s:%d -> aborting", net_ip_str(download->ip), download->port);
-		download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Request Failed");
+		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Request Failed");
 		return;
 	}
 
@@ -254,7 +253,7 @@ static void download_read_header (int fd, input_id input, FSTDownload *download)
 		if (fst_packet_size (download->in_packet) > 4096)
 		{
 			FST_WARN ("Didn't get whole http header and received more than 4K, closing connection");
-			download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Source sent crap");
+			download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Invalid response");
 			return;
 		}
 
@@ -274,7 +273,7 @@ static void download_read_header (int fd, input_id input, FSTDownload *download)
 		FST_HEAVY_DBG_4 ("%s:%d replied with %d (\"%s\") -> aborting", net_ip_str (download->ip), download->port, reply->code, reply->code_str);
 
 		if (reply->code == 503)
-			download_error_gift (download, FALSE, SOURCE_QUEUED_REMOTE, "Queued Remotely");
+			download_error_gift (download, FALSE, SOURCE_QUEUED_REMOTE, "Remotely queued");
 		else if (reply->code == 404)
 			download_error_gift (download, TRUE, SOURCE_CANCELLED, "File not found");
 		else
@@ -305,7 +304,7 @@ static void download_read_header (int fd, input_id input, FSTDownload *download)
 				FST_WARN_1 ("\tcontent-length: %s", p);
 
 			fst_http_reply_free (reply);
-			download_error_gift (download, TRUE, SOURCE_CANCELLED, "Range Mismatch");
+			download_error_gift (download, TRUE, SOURCE_CANCELLED, "Range mismatch");
 			return;
 		}
 	}
@@ -348,7 +347,6 @@ static void download_read_body (int fd, input_id input, FSTDownload *download)
 
 		/* this makes giFT call gift_cb_download_stop(), which closes connection and frees download */
 		download_error_gift (download, FALSE, SOURCE_CANCELLED, "Download Failed");
-
 		return;
 	}
 	
@@ -379,24 +377,23 @@ static void download_write_gift (FSTDownload *download, unsigned char *data, uns
 
 static void download_error_gift (FSTDownload *download, int remove_source, unsigned short klass, char *error)
 {
-//	FST_DBG ("download_error_gift()");
 	if (remove_source)
 	{
-		/* hack to remove source from download */
+		FST_DBG_1 ("download error (%s), removing source", error);
 		FST_PROTO->source_status (FST_PROTO, download->chunk->source, klass, error);
-//		download_remove_source (download->chunk->transfer, download->chunk->source->url);
-//		download->chunk->source = NULL;
-		download->chunk->data = NULL;
-		// tell giFT and error occured with this download
-		download_write_gift (download, NULL, 0);
-		fst_download_free (download);
+		FST_PROTO->source_abort (FST_PROTO, download->chunk->transfer, download->chunk->source);
+
+ 		download->chunk->data = NULL;
+ 		/* tell giFT an error occured with this download */
+ 		download_write_gift (download, NULL, 0);
+ 		fst_download_free (download);
 	}
 	else
 	{
 		FST_PROTO->source_status (FST_PROTO, download->chunk->source, klass, error);
 		download->chunk->data = NULL;
 
-		/* tell giFT and error occured with this download */
+		/* tell giFT an error occured with this download */
 		download_write_gift (download, NULL, 0);
 		fst_download_free (download);
 	}
