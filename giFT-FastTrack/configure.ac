@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.19 2003/07/27 02:00:23 weinholt Exp $
+# $Id: configure.ac,v 1.20 2003/07/27 02:29:06 weinholt Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -9,7 +9,7 @@ dnl ###########################################################################
 AC_PREREQ(2.52)
 
 AC_INIT(giFT-FastTrack, 0.8.2, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
-AC_REVISION($Revision: 1.19 $)
+AC_REVISION($Revision: 1.20 $)
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
 AM_INIT_AUTOMAKE
@@ -83,7 +83,7 @@ dnl ###########################################################################
 dnl Architecture specific stuff
 dnl ###########################################################################
 
-# AC_CANONICAL_HOST
+dnl AC_CANONICAL_HOST
 
 case "${host}" in
   *-*-linux* )
