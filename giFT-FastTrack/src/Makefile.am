@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.11 2003/07/19 16:30:28 weinholt Exp $
+# $Id: Makefile.am,v 1.12 2003/08/27 20:31:19 weinholt Exp $
 AM_CFLAGS = -Wall
 
 SUBDIRS = crypt
@@ -26,4 +26,4 @@ INCLUDES = \
 	@GIFT_CFLAGS@ \
 	-I$(top_srcdir)/src/crypt
 
-libFastTrack_la_LDFLAGS = @GIFT_LIBS@ -module -avoid-version
+libFastTrack_la_LDFLAGS = @GIFT_LIBS@ -module -avoid-version -Wl,-z,defs
