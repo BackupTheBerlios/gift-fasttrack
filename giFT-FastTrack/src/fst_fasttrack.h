@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.21 2003/09/18 14:54:50 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.22 2003/09/27 15:56:56 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -160,9 +160,9 @@ typedef uint32_t fst_uint32;
 /* use a participation level if 1000 for downloading
  * need to check if this really works
  */
-/*
+
 #define FST_DOWNLOAD_BOOST_PL
-*/
+
 
 /* various timeouts in ms */
 #define FST_SESSION_CONNECT_TIMEOUT		(8*SECONDS)

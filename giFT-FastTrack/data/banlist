@@ -2,6 +2,9 @@
 # This banlist is taken from P2P Guardian.
 # You can get updates from http://methlab.tech.nu
 #
+Overpeer:216.74.135.160-216.74.135.191
+Overpeer:64.15.245.0-64.15.245.31
+#
 80.24.141.243:80.24.141.243-80.24.141.243
 [fi] police (Keskusrikospoliisi):194.89.205.0-194.89.205.255
 [se] police:147.186.0.0-147.186.255.255
