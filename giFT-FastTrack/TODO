@@ -1,4 +1,4 @@
-$Id: TODO,v 1.44 2005/01/21 11:55:04 mkern Exp $
+$Id: TODO,v 1.45 2005/02/28 13:27:33 mkern Exp $
 
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
@@ -15,3 +15,4 @@ $Id: TODO,v 1.44 2005/01/21 11:55:04 mkern Exp $
 - does kazaa supernode tell us how many shares we can upload?
 - is the SWAP32 in fst_download.c correct?
 - failure to load default nodes file makes us crash?
+- it can happen that we are connected but the stats are zero
