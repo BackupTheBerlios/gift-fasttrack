@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.10 2003/09/19 14:23:46 mkern Exp $
+ * $Id: fst_session.c,v 1.11 2003/10/14 17:36:37 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -235,8 +235,11 @@ static void session_connected(int fd, input_id input, FSTSession *session)
 
 	/* go on with handshake */
 	session->state = SessHandshaking;
-	session->out_cipher->enc_type = 0xA9;
+	session->out_cipher->enc_type = 0xA9; /* the type we prefer to use */
 	session->out_cipher->seed = 0x0FACB1238; /* random number? */
+
+	FST_HEAVY_DBG_1 ("requesting outgoing enc_type: 0x%02x",
+	                 session->out_cipher->enc_type);
 
 	if (! (packet = fst_packet_create ()))
 	{
@@ -506,7 +509,13 @@ static int session_do_handshake (FSTSession *session)
 	enc_type = fst_cipher_decode_enc_type (seed, enc_type);
 
 	/* generate send key */
-	session->out_cipher->seed ^= seed; // xor send cipher with received seed
+	session->out_cipher->seed ^= seed; /* xor send cipher with received seed */
+
+	/* the correct behaviour here is to use the enc_type the supernode sent
+	 * us for out_cipher too.
+	 * thanks to HEx and weinholt for figuring this out.
+	 */
+	session->out_cipher->enc_type = enc_type;
 
 	if(!fst_cipher_init (session->out_cipher, session->out_cipher->seed,
 						 session->out_cipher->enc_type))
