@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.9 2003/07/06 18:21:29 weinholt Exp $
+# $Id: Makefile.am,v 1.10 2003/07/10 13:08:20 weinholt Exp $
 
 SUBDIRS = crypt
 
@@ -23,7 +23,7 @@ libFastTrack_la_LIBADD = \
 #	$(prefix)/lib/libgift.la 
 #	$(prefix)/lib/libgiftproto.la 
 
-libFastTrack_la_CFLAGS = \
+INCLUDES = \
 	@FT_CFLAGS@ \
 	-I$(top_srcdir)/src/crypt
 
