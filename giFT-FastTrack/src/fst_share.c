@@ -1,5 +1,5 @@
 /*
- * $Id: fst_share.c,v 1.1 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_share.c,v 1.2 2003/11/28 19:46:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -53,7 +53,7 @@ BOOL fst_giftcb_share_add (Protocol *p, Share *share, void *data)
 	if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
 		return FALSE;
 
-	FST_DBG_1 ("registering share %s", share->path);
+	FST_HEAVY_DBG_1 ("registering share %s", share->path);
 
 	if (!share_register_file (share))
 	{
@@ -73,7 +73,7 @@ BOOL fst_giftcb_share_remove (Protocol *p, Share *share, void *data)
 	if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
 		return TRUE; /* removed since we didn't share anyway */
 
-	FST_DBG_1 ("unregistering share %s", share->path);
+	FST_HEAVY_DBG_1 ("unregistering share %s", share->path);
 
 	if (!share_unregister_file (share))
 	{
@@ -94,28 +94,38 @@ void fst_giftcb_share_sync (Protocol *p, int begin)
 void fst_giftcb_share_hide (Protocol *p)
 {
 	FST_HEAVY_DBG ("hiding shares...");
-	
-	FST_PLUGIN->hide_shares = TRUE;
 
 	if (!fst_share_do_share ())
 		return;
 
 	if (FST_PLUGIN->session && FST_PLUGIN->session->state == SessEstablished)
-		fst_share_unregister_all ();
+	{
+		FST_DBG ("hiding shares by removing them from supernode");
+
+		if (!fst_share_unregister_all ())
+			FST_DBG ("uregistering all shares failed");
+	}
+
+	FST_PLUGIN->hide_shares = TRUE;
 }
 
 /* called by giFT when user shows shares */
 void fst_giftcb_share_show (Protocol *p)
 {
 	FST_HEAVY_DBG ("showing shares...");
-	
-	FST_PLUGIN->hide_shares = FALSE;
 
+	FST_PLUGIN->hide_shares = FALSE;
+	
 	if (!fst_share_do_share ())
 		return;
 
 	if (FST_PLUGIN->session && FST_PLUGIN->session->state == SessEstablished)
-		fst_share_register_all ();
+	{
+		FST_DBG ("showing shares by registering them with supernode");
+
+		if (!fst_share_register_all ())
+			FST_DBG ("registering all shares failed");
+	}
 }
 
 /*****************************************************************************/
