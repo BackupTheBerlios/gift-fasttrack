@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.18 2004/04/14 21:21:08 mkern Exp $
+$Id: PROTOCOL,v 1.19 2004/07/27 20:40:10 hex Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -199,8 +199,8 @@ Message types
 
   This 8 bytes structure can be repeated several times within a single
   message. Kazaa appears always to send 200 nodes (i.e. a 1600 byte
-  message) when a connection has just been established, but it's
-  probably unwise to rely on this.
+  message) when a connection has just been established and every two
+  hours thereafter, but it's probably unwise to rely on this.
 
 0x01 Extended supernode information(?) [=]
 
@@ -312,9 +312,10 @@ Message types
   0x00. A special value of 0x02 somehow refers to earlier replies
   (just uses the user from the previous result? compares the IP with
   previous ones? FIXME!).
-  The file id is used when downloading the file with the old, gnutella like,
-  format. Kazaa uses a checksum of the hash for this but we think it's just an
-  arbitrary id at the protocol level.
+
+  The file id is used when downloading the file with the old,
+  gnutella-like, format. Kazaa uses a checksum of the hash for this
+  but we think it's just an arbitrary id at the protocol level.
 
   Then for each tag:
 
@@ -354,23 +355,6 @@ Message types
 0x0A Search forward request? [=]
 
   Bytes Desc
-  4     IPv4 address
-  2     port
-  4     IPv4 address
-  2     port
-  1     unknown (0x02)
-  4     unknown (some kind of ID?)
-  1     unknown (0x00)
-  1     unknown
-  1     unknown (0x01?)
-  1     search realm
-  1     number of search terms
-
-  Then follows a query in the usual format. See search query.
-
-0x800A Search forward request 2? [=]
-
-  Bytes Desc
   4     unknown
   1     unknown (0x00)
   1     unknown
@@ -379,9 +363,6 @@ Message types
   1     number of search terms
 
   Then follows a query in the usual format. See search query.
-
-  (Seemingly this is the same as the previous message except without
-  the addresses and ports.)
 
 0x0B ??? [=]
 
@@ -447,7 +428,9 @@ Message types
   n     Network name, no terminator
 
   Why this message exists is unclear, given that network names are
-  exchanged are part of handshaking.
+  exchanged are part of handshaking. Unusual values for this have been
+  observed (without apparent ill effect), suggesting it might actually
+  be "client software name" instead.
 
 0x1E ??? [->, <-]
 
@@ -612,7 +595,12 @@ Message types
 
   Sent after connect by supernode.
 
-0x24 ??? [=?]
+0x24 Stats? [=]
+
+  This appears to be the same as message 0x09 except that it's only
+  sent between supernodes, and it's always broadcast (0xC000). Thus
+  the boundary between the broadcast header and this message's
+  contents is currently unconfirmed.
 
 0x26 Protocol version? [->, <-]
 
@@ -620,10 +608,12 @@ Message types
   4     version?
   
   Exchanged after connect. Observed values:
-    kazaa 2.6.2:     0x00000022
-    kazaa-lite 2.02: 0x0000001F
-    imesh 4.2:       0x0000001A
-    kazaa 1.5        0x00000005
+    kazaa 2.6.2:     0x22
+    kazaa-lite 2.02: 0x1F
+    imesh 4.2:       0x1A
+    kazaa 1.5        0x05
+
+  Possibly the same as MinSupernodeLibVersion (see network config).
 
 0x2C External IP [<-]
 
@@ -631,6 +621,47 @@ Message types
   4     IPv4 address
 
   Your globally-visible IP.
+
+
+Message flags
+=============
+
+There are several flags which may be or'd with the message type, and
+which may prepend a header to the message itself.
+
+0x8000 Unicast forward [=]
+
+  Bytes Desc
+  4     source IPv4 address
+  2     source port
+  4     dest IPv4 address
+  2     dest port
+  1     hops so far
+  n     packet
+
+  Sends a packet to a given (super?)node.
+
+  Hops so far starts at 1. Packets with hops-so-far greater than 6 are
+  always dropped. Otherwise the hop count is incremented and the
+  packet may be forwarded to another, closer node. There appear to be
+  routing tables to determine closeness, but a random node is used if
+  no table entry can be found. (FIXME: this is all highly
+  speculative.)
+
+  The contents of packet are ignored unless we are the destination.
+
+0xC000 Broadcast [=]
+
+  Bytes Desc
+  4     source IPv4 address
+  2     source port
+  2     unknown
+  1     hop count?
+  n     packet
+
+  FIXME: this has only been observed with message type 0x24, the
+  contents of which are also unknown. So this is even more speculative
+  than unicast.
 
 UDP messages
 ============
