@@ -47,3 +47,10 @@ banlist_filter = 1
 # Don't overdo it! The supernode will disconnect you for excessive searching.
 #
 auto_search_more = 1
+
+#
+# Number of additional supernode connections we keep besides the main one.
+# Increases the search horizon though it is unclear by how much exactly.
+# Values above 10 are clipped to protect you from yourself.
+#
+additional_sessions = 3
