@@ -297,10 +297,12 @@ static void download_read_header(int fd, input_id input, FSTDownload *download)
 			return;
 		}
 	} else {
-		FST_DBG ("WARNING: server didn't sent content-range header");
+		FST_DBG ("WARNING: server didn't sent content-range header, file may end up corrupted");
+/*		
 		fst_http_reply_free (reply);
 		download_error_gift (download, TRUE, SOURCE_CANCELLED, "Missing Content-Range");
 		return;
+*/		
 	}
 
 	// update status
