@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.49 2004/03/03 16:57:07 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.50 2004/03/03 17:27:11 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -411,11 +411,11 @@ static int copy_default_file (const char *srcfile, const char *dstfile)
 /*****************************************************************************/
 
 /* allocate and init plugin */
-static int fst_giftcb_start (Protocol *p)
+static int fst_giftcb_start (Protocol *proto)
 {
 	FSTPlugin *plugin;
 	int i;
-	char *filepath, *p;
+	char *filepath, *;
 	in_port_t server_port;
 
 	FST_DBG ("starting up");
@@ -434,7 +434,7 @@ static int fst_giftcb_start (Protocol *p)
 	}
 
 	/* set protocol pointer */
-	p->udata = (void*)plugin;
+	proto->udata = (void*)plugin;
 
 	/* cache user name */
 	FST_PLUGIN->username = strdup (config_get_str (FST_PLUGIN->conf,
@@ -562,7 +562,7 @@ static int fst_giftcb_start (Protocol *p)
 }
 
 /* destroy plugin */
-static void fst_giftcb_destroy (Protocol *p)
+static void fst_giftcb_destroy (Protocol *proto)
 {
 	char *nodesfile;
 	int i;
