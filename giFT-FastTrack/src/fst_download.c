@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.12 2003/07/06 10:53:28 mkern Exp $
+ * $Id: fst_download.c,v 1.13 2003/07/07 22:22:06 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -38,13 +38,13 @@ void gift_cb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk, Sourc
 {
 	FSTDownload *download;
 
-	if(!chunk || !chunk->data)
+	if(!chunk || !chunk->udata)
 	{
-		FST_HEAVY_DBG ("gift_cb_download_stop: chunk->data == NULL, no action taken");
+		FST_HEAVY_DBG ("gift_cb_download_stop: chunk->udata == NULL, no action taken");
 		return;
 	}
 
-	download = (FSTDownload*)chunk->data;
+	download = (FSTDownload*)chunk->udata;
 
 	if (complete)
 	{
@@ -65,13 +65,13 @@ int gift_cb_source_remove (Protocol *p, Transfer *transfer, Source *source)
 {
 	FSTDownload *download;
 
-	if (!source || !source->chunk || !source->chunk->data)
+	if (!source || !source->chunk || !source->chunk->udata)
 	{
 		FST_DBG ("gift_cb_source_remove: invalid source, no action taken");
 		return FALSE;
 	}
 
-	download = (FSTDownload*)source->chunk->data;
+	download = (FSTDownload*)source->chunk->udata;
 
 	FST_DBG_2 ("removing source %s:%d", net_ip_str(download->ip), download->port);
 	FST_PROTO->source_status (FST_PROTO, source->chunk->source, SOURCE_CANCELLED, "Cancelled");
@@ -105,7 +105,7 @@ FSTDownload *fst_download_create (Chunk *chunk)
 	dl->uri = download_parse_url (chunk->source->url, &dl->ip, &dl->port);
 
 	/* make chunk refer back to us */
-	chunk->data = (void*)dl;
+	chunk->udata = (void*)dl;
 	
 	return dl;
 }
@@ -122,7 +122,7 @@ void fst_download_free (FSTDownload *download)
 
 	/* unref chunk */
 	if (download->chunk)
-		download->chunk->data = NULL;
+		download->chunk->udata = NULL;
 
 	free (download);
 }
@@ -386,7 +386,7 @@ static void download_error_gift (FSTDownload *download, int remove_source, unsig
 	else
 	{
 		FST_PROTO->source_status (FST_PROTO, download->chunk->source, klass, error);
-		download->chunk->data = NULL;
+		download->chunk->udata = NULL;
 
 		/* tell giFT an error occured with this download */
 		download_write_gift (download, NULL, 0);
