@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.18 2004/07/23 19:26:52 hex Exp $
+ * $Id: fst_node.c,v 1.19 2004/07/24 19:33:26 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -34,7 +34,10 @@ static int nodecache_cmp_nodes (FSTNode *a, FSTNode *b)
 	 * misslabeled and is actually the remaining capacity of the node. This
 	 * needs verification!
 	 */
-		return (a->load > b->load) ? -1 : (a->load < b->load);
+	{
+		int aa = a->load * (100 - a->load), bb = b->load * (100 - b->load);
+		return (aa > bb) ? -1 : (aa < bb);
+	}
 
 	else if (a->last_seen > b->last_seen)
 		return -1;
@@ -123,6 +126,7 @@ FSTNodeCache *fst_nodecache_create ()
 	FSTNodeCache *cache = malloc (sizeof (FSTNodeCache));
 
 	cache->list = NULL;
+	cache->last = NULL;
 	cache->hash = dataset_new (DATASET_HASH);
 
 	return cache;
@@ -214,29 +218,56 @@ void fst_nodecache_insert (FSTNodeCache *cache, FSTNode *node,
 		return;
 	}
 #endif
+
+	/* ickiness */
+	if (!cache->list)
+		pos = NodeInsertFront;
+	else
+		assert (cache->last);
+
 	/* insert into linked list */
 	switch (pos)
 	{
 	case NodeInsertFront:
 		cache->list = list_prepend (cache->list, node);
+
+		if (!cache->last)
+			cache->last = cache->list;
+		
+		node->link = cache->list;
 		break;
 
 	case NodeInsertBack:
-		/* this involves traversing the entire list! */
-		cache->list = list_append (cache->list, node);
+		/* ickiness to avoid traversing the entire list */
+		list_append (cache->last, node);
+
+		cache->last = list_last (cache->last);
+		assert (cache->last);
+		node->link = cache->last;
 		break;
 
 	case NodeInsertSorted:
 		cache->list = list_insert_sorted (cache->list,
 		                                  (CompareFunc) nodecache_cmp_nodes,
 		                                  node);
+
+		/* this is insane... despite having just inserted it, we have
+		 * no way of getting the link without searching the entire
+		 * list again! */
+		node->link = list_find (cache->list, node);
+
+		if (!node->link->next)
+			cache->last = node->link;
 		break;
 	}
+	
+#ifdef NODECACHE_DEBUG
+	assert (node->link->data == node);
+	assert (!cache->last->next);
+	assert (!cache->list || !cache->last ||
+		list_find (cache->list, cache->last->data));
+#endif
 
-	/* this is insane... despite having just inserted it, we have
-	 * no way of getting the link without searching the entire
-	 * list again! */
-	node->link = list_find (cache->list, node);
 #ifdef NODECACHE_DEBUG
 	FST_DBG_2("set %p->link to %p", node, node->link);
 #endif
@@ -257,6 +288,12 @@ void fst_nodecache_remove (FSTNodeCache *cache, FSTNode *node)
 	{
 		/* bleah, we don't get to know if this worked or not */
 		dataset_removestr (cache->hash, node->host);
+
+		/* more ickiness */
+		if (node->link == cache->last)
+			cache->last = node->link->prev;
+
+		assert (cache->last || !cache->list);
 
 		cache->list = list_remove_link (cache->list, node->link);
 #ifdef NODECACHE_DEBUG
@@ -320,6 +357,9 @@ unsigned int fst_nodecache_sort (FSTNodeCache *cache)
 		/* free node */
 		fst_node_free (node);
 	}
+
+	cache->last = list ? list : list_last (cache->list);
+	assert (cache->last && !cache->last->next);
 
 	return list_length (cache->list);
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.75 2004/07/23 20:45:14 hex Exp $
+ * $Id: fst_fasttrack.c,v 1.76 2004/07/24 19:33:26 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -119,8 +119,10 @@ static void fst_plugin_connect_next ()
 		/* don't connect to anywhere too close to an existing node */
 		if (dataset_lookup (FST_PLUGIN->peers, &node, sizeof(node)))
 		{
+#if 0
 			FST_DBG_2 ("not connecting to close node %s:%d",
 			           node->host, node->port);
+#endif
 
 			/* move node to back of cache so next loop
 			 * uses a different one */

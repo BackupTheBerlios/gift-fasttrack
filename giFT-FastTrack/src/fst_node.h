@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.h,v 1.10 2004/07/23 19:26:52 hex Exp $
+ * $Id: fst_node.h,v 1.11 2004/07/24 19:33:26 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -60,6 +60,9 @@ typedef struct
 					  * node the list contains to efficiently prevent
 					  * duplicates.
 	                  */
+
+	List *last; /* last entry of the list, to work around deficiencies
+		       in giFT's linked list implementation */
 } FSTNodeCache;
 
 typedef enum

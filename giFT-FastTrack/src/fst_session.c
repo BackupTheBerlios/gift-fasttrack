@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.30 2004/07/23 20:45:14 hex Exp $
+ * $Id: fst_session.c,v 1.31 2004/07/24 19:33:26 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -259,7 +259,7 @@ int fst_session_send_info (FSTSession *session)
 	else
 		port = 0;
 
-	FST_DBG_4 ("sending address: %s:%d, bandwidth: 0x%02x, username: %s",
+	FST_HEAVY_DBG_4 ("sending address: %s:%d, bandwidth: 0x%02x, username: %s",
 	           net_ip_str (ip), port, FST_ADVERTISED_BW, FST_USER_NAME);
 
 	/* send ip and port */
@@ -617,7 +617,7 @@ static int session_do_handshake (FSTSession *session)
 		return FALSE;
 	}
 
-	FST_DBG_2 ("outgoing enc_type: 0x%02X, incoming enc_type: 0x%02X",
+	FST_HEAVY_DBG_2 ("outgoing enc_type: 0x%02X, incoming enc_type: 0x%02X",
 			   session->out_cipher->enc_type, enc_type);
 
 	/* send network name */
