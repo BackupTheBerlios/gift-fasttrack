@@ -362,8 +362,8 @@ static void download_error_gift (FSTDownload *download, int remove_source, unsig
 	{
 		// hack to remove source from download
 		FST_PROTO->source_status (FST_PROTO, download->chunk->source, klass, error);
-		download_remove_source (download->chunk->transfer, download->chunk->source->url);
-		download->chunk->source = NULL;
+//		download_remove_source (download->chunk->transfer, download->chunk->source->url);
+//		download->chunk->source = NULL;
 		download->chunk->data = NULL;
 		// this makes giFT call gift_cb_download_stop()
 		download_write_gift (download, NULL, 0);
