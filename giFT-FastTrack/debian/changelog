@@ -1,3 +1,15 @@
+gift-fasttrack (0.8.5-2) unstable; urgency=low
+
+  * debian/README.Debian: Update with giFT's new binary name.
+
+ -- Goran Weinholt <weinholt@dtek.chalmers.se>  Fri,  9 Jan 2004 14:53:28 +0100
+
+gift-fasttrack (0.8.5-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Goran Weinholt <weinholt@dtek.chalmers.se>  Tue,  2 Dec 2003 21:49:00 +0100
+
 gift-fasttrack (0.8.4-1) unstable; urgency=low
 
   * New upstream release.
