@@ -1,6 +1,7 @@
 ;------------------------------------------------------------------------------------------
-; This file creates an installer for gift-fasttrack for use with KCeasy. It assumes
-; gift-fasttrack was build using the environment provided by giFT.
+; This file creates an installer for gift-fasttrack for use with KCeasy, giFTwin32 or
+; other installations of giFT on windows. It assumes gift-fasttrack was build using the
+; environment provided by giFT.
 ;------------------------------------------------------------------------------------------
 
 ; Compile time options
