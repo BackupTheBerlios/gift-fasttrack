@@ -1,5 +1,5 @@
 /*
- * $Id: sniff.c,v 1.1 2003/07/27 01:17:33 hex Exp $
+ * $Id: sniff.c,v 1.2 2003/08/02 22:32:03 hex Exp $
  *
  * Based on printall.c from libnids/samples, which is
  * copyright (c) 1999 Rafal Wojtczuk <nergal@avet.com.pl>. All rights reserved.
@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <netinet/in_systm.h>
 #include <arpa/inet.h>
 #include <string.h>
@@ -56,6 +57,7 @@
 
 #include "crypt/fst_crypt.c"
 
+extern char *nids_warnings[];
 
 #define EVIL /* mmm... evil... */
 
@@ -81,6 +83,7 @@ struct session {
 	int state;
 	unsigned long rand;
 	int id;
+	int push;
 };
 
 #define INT(x) ntohl(*((unsigned long*)(data+x)));
@@ -125,16 +128,17 @@ void print_bin_data(unsigned char * data, int len)
         }
 }
 
-int verify_port (int p) {
+int verify_port (int p)
+{
 	return !(p==1217 ||
 		 p==1216 ||
 		 p==1215 ||
 		 p>5000 ||
-		 p<1000);
+		 (p<1000 && p!=80));
 }
 
-
-void tcp_callback (struct tcp_stream *tcp, struct session **conn) {
+void tcp_callback (struct tcp_stream *tcp, struct session **conn)
+{
 	char buf[32];
 
 	struct session *c=*conn;
@@ -153,7 +157,8 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn) {
 		c->in_cipher=c->out_cipher=NULL;
 		c->state=STATE_CLIENT_KEY;
 		c->id=0;
-
+		c->push=0;
+		
 		*conn=c;
 		
 		tcp->client.collect++; // we want data received by a client
@@ -226,8 +231,12 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn) {
 			if (len>=5 && !server) {
 				/* first check if this looks like a transfer */
 				if (!memcmp(data, "GET ",4) ||
-				    !memcmp(data, "HEAD ",5)) {
-					c->state=STATE_HTTP;
+				     !memcmp(data, "HEAD ",5)) {
+					/* ignore HTTP stuff on port 80 */
+					if (tcp->addr.dest==80)
+						c->state=STATE_UNSUPPORTED;
+					else
+						c->state=STATE_HTTP;
 					break;
 				}
 				if (!memcmp(data, "GIVE ",5)) {
@@ -388,7 +397,7 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn) {
 			}
 			break;
 		case STATE_HTTP:
-			if (!server) {
+			if (!server ^ c->push) {
 				fprintf(stderr, "%s HTTP request:\n", buf);
 				fwrite(data, len, 1, stderr);
 				read=len;
@@ -412,8 +421,10 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn) {
 		case STATE_PUSH:
 			fprintf(stderr, "%s PUSH\n", buf);
 			print_bin_data (data, len);
+			c->push=1;
 			read=len;
 			done=1;
+			c->state=STATE_HTTP;
 			break;
 		default:
 			/* fprintf(stderr, "%s %d skipped\n", buf,len); */
@@ -435,22 +446,61 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn) {
 	return;
 }
 
-void udp_callback(struct tuple4 *addr, char *buf, int len, void* iph) {
-	if (verify_port (addr->dest)) {
-		fprintf(stderr, "%s [UDP]\n", adres (addr, 0));
+void udp_callback(struct tuple4 *addr, char *buf, int len, void* iph)
+{
+//	if (verify_port (addr->dest)) {
+		fprintf(stderr, "%s [UDP] (len %d)\n", adres (addr, 0), len);
 		print_bin_data (buf, len);
+//	}
+}
+
+void syslog (int type, int errnum, struct ip *iph, void *data)
+{
+	char saddr[20], daddr[20];
+	struct tcphdr {
+		u_int16_t th_sport;         /* source port */
+		u_int16_t th_dport;         /* destination port */
+	};
+
+	if (errnum==9)
+		return; /* ignore invalid TCP flags */
+
+	switch (type) {
+	case NIDS_WARN_IP:
+        if (errnum != NIDS_WARN_IP_HDR) {
+            strcpy(saddr, int_ntoa(iph->ip_src.s_addr));
+            strcpy(daddr, int_ntoa(iph->ip_dst.s_addr));
+            fprintf(stderr,
+                   "%s, packet (apparently) from %s to %s\n",
+                   nids_warnings[errnum], saddr, daddr);
+        } else
+            fprintf(stderr, "%s\n",
+                   nids_warnings[errnum]);
+        break;
+
+	case NIDS_WARN_TCP:
+		strcpy(saddr, int_ntoa(iph->ip_src.s_addr));
+		strcpy(daddr, int_ntoa(iph->ip_dst.s_addr));
+		if (errnum != NIDS_WARN_TCP_HDR)
+			fprintf(stderr,
+				"%s,from %s:%hu to  %s:%hu\n", nids_warnings[errnum],
+				saddr, ntohs(((struct tcphdr *) data)->th_sport), daddr,
+				ntohs(((struct tcphdr *) data)->th_dport));
+		else
+			fprintf(stderr, "%s, from %s to %s\n",
+				nids_warnings[errnum], saddr, daddr);
+		break;
 	}
 }
 
-void syslog (int type, int errnum, void *iph, void *data) {
-	/* TODO */
-}
-
-int main (int argc, char **argv) {
+int main (int argc, char **argv)
+{
 	if (argc>1)
 		nids_params.device=argv[1];
 
-	nids_params.syslog=syslog; /* don't flood syslog */
+	nids_params.n_tcp_streams=1<<20; /* default is *way* too small */
+	nids_params.syslog=syslog;
+	nids_params.scan_num_hosts=0;
 
 	if (!nids_init ()) {
 		fprintf(stderr,"%s\n",nids_errbuf);
