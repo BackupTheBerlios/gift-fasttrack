@@ -1,10 +1,8 @@
-$Id: TODO,v 1.12 2003/09/18 14:54:49 mkern Exp $
+$Id: TODO,v 1.13 2003/09/19 17:08:21 mkern Exp $
 
 - make node cache smarter / use udp discovery
 - implement sharing
 - make dowloading less greedy, custom throttle?
-- are searches really resent to new connections? (currently commented out)
 - automatically search more supernodes?
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
-- decompress user names from search results
