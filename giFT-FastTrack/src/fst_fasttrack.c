@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.65 2004/03/11 14:47:31 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.66 2004/03/20 13:08:55 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -645,6 +645,7 @@ static int fst_giftcb_start (Protocol *proto)
 	/* cache allow_sharing key */
 	FST_PLUGIN->allow_sharing = config_get_int (FST_PLUGIN->conf,
 	                                            "main/allow_sharing=0");
+	FST_PLUGIN->shared_files = 0;
 
 #if 0
 	/*

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.46 2004/03/11 14:05:00 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.47 2004/03/20 13:08:55 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -175,11 +175,11 @@ typedef uint32_t fst_uint32;
  */
 #define FST_ADVERTISED_BW 0x60
 
-/* The maximum number of file we share. It seems supernodes reject us if we try
- * to share too much. This is a workaround until we figure out the true reason
- * behind this.
+/* The maximum number of files we share. Kazaa has been observed to clip the
+ * number of shares at 51, 61 and 69. If we share too much the supernode
+ * becomes unresponsive and eventually disconnects us.
  */
-#define FST_MAX_SHARED_FILES 95
+#define FST_MAX_SHARED_FILES 50
 
 /* the amount of time we wait before retrying with another node 
  * after resolve/tcp_open failed
@@ -260,6 +260,7 @@ typedef struct
 									 */
 
 	int allow_sharing;				/* cache for allow_sharing config key */
+	int shared_files;               /* number of currently shared files */
 
 } FSTPlugin;
 
