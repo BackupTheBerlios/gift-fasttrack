@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.54 2004/11/10 20:00:57 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.55 2004/11/10 20:07:05 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -158,6 +158,8 @@ typedef uint32_t fst_uint32;
 /* Nodes with a load below FST_NODE_MIN_LOAD or above FST_NODE_MAX_LOAD are
  * thrown out. This is done because I'm not sure if we should connect to high
  * or low load nodes. Clipping the extremes is the safest approach.
+ *
+ * NOTE: Not implemented currently
  */
 #define FST_NODE_MIN_LOAD 10
 #define FST_NODE_MAX_LOAD 90
@@ -195,10 +197,10 @@ typedef uint32_t fst_uint32;
 /* the amount of time we wait before retrying with another node 
  * after resolve/tcp_open failed
  */
-#define FST_SESSION_NETFAIL_INTERVAL    (10*SECONDS)
+#define FST_SESSION_NETFAIL_INTERVAL    (20*SECONDS)
 
 /* timeout for sessions connects */
-#define FST_SESSION_CONNECT_TIMEOUT		(8*SECONDS)
+#define FST_SESSION_CONNECT_TIMEOUT		(15*SECONDS)
 
 /* timeout for sessions handshakes */
 #define FST_SESSION_HANDSHAKE_TIMEOUT	(10*SECONDS)

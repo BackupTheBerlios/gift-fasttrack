@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.h,v 1.5 2003/11/13 17:48:31 mkern Exp $
+ * $Id: fst_http_client.h,v 1.6 2004/11/10 20:07:05 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -26,8 +26,8 @@
 /*****************************************************************************/
 
 /* some time outs in ms */
-#define HTCL_CONNECT_TIMEOUT	(15*SECONDS)
-#define HTCL_REQUEST_TIMEOUT	(20*SECONDS)
+#define HTCL_CONNECT_TIMEOUT	(30*SECONDS)
+#define HTCL_REQUEST_TIMEOUT	(15*SECONDS)
 #define HTCL_DATA_TIMEOUT		(20*SECONDS)
 
 /* size of download data buffer,
