@@ -1,9 +1,9 @@
 gift-fasttrack for Debian
 -------------------------
 
-plugin location is located in /usr/lib/libFastTrack.so instead of /usr/lib/giFT/libFastTrack.so
+plugin location is located in /usr/lib/giFT/libFastTrack.so
 
-make sure you update your gift.conf or just run gift like this, "giFT -p /usr/lib/libFastTrack.so"
+make sure you update your gift.conf or just run gift like this, "giFT -p FastTrack"
 
 
  -- Dan Weber <knoppix@mirrorlynx.com>, Sat,  7 Jun 2003 13:50:27 -0400

@@ -157,8 +157,7 @@ dnl ###########################################################################
 
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
-AC_CHECK_FUNCS(ftruncate madvise mkstemp nice select poll signal socket socketpair strdup strstr)
-AC_CHECK_FUNCS(snprintf _snprintf vsnprintf _vsnprintf)
+AC_CHECK_FUNCS(strdup)
 
 dnl ###########################################################################
 dnl All of the lovely arguments
@@ -309,7 +308,7 @@ dnl ###########################################################################
 echo
 echo "$PACKAGE $VERSION"
 echo
-echo "-------------------- core ---"
+echo "------------ core ------------"
 echo
 echo "use ltdl................: $use_ltdl"
 echo
