@@ -1,7 +1,8 @@
-# $Id: Make.msvc,v 1.2 2003/10/23 18:37:31 mkern Exp $
+# $Id: Make.msvc,v 1.3 2003/12/12 13:29:18 mkern Exp $
 
-VERSION = 0.8.4
+VERSION = 0.8.5
 O = .obj
+
 
 # dynamic by default
 !if !defined(static) && !defined(STATIC)
@@ -60,6 +61,12 @@ CFLAGS   = $(CFLAGS) -MT$(D) -UUSE_LTDL
 # general
 ##########################
 
+# temporary till we don't require giFT symbols anymore
+GIFT_LIB      		= giFT$(DEXT).lib
+GIFT_DLL      		= giFT$(DEXT).dll
+GIFT_EXE   			= giFT$(DEXT).exe
+
+
 LIBGIFT_LIB      	= libgiFT$(DEXT).lib
 LIBGIFT_DLL      	= libgiFT$(DEXT).dll
 LIBGIFT_STATIC   	= libgiFTstatic$(DEXT).lib
@@ -72,6 +79,10 @@ FASTTRACK_STATIC       	= FastTrackstatic$(DEXT).lib
 
 CFLAGS   = $(CFLAGS) -nologo
 DEFS     = $(DEFS) -DHAVE_CONFIG_H -DWIN32 -DNO_STRICT
+
+# need this for building crypt lib for the plugin
+DEFS     = $(DEFS) -DGIFT_PLUGIN
+
 
 INCLUDES = -I$(BUILD_ROOT) -I$(BUILD_ROOT)\libgift\win32 $(INCLUDES)
 
