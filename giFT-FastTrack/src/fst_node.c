@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.7 2003/11/13 17:48:31 mkern Exp $
+ * $Id: fst_node.c,v 1.8 2004/01/01 22:45:18 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -150,7 +150,7 @@ static int nodecache_cmp_nodes (FSTNode *a, FSTNode *b)
 	if ( (a->last_seen / 180) == (b->last_seen / 180))
 		return (a->load < b->load) ? -1 : (a->load > b->load);
 
-	else if (a->last_seen < b->last_seen)
+	else if (a->last_seen > b->last_seen)
 		return -1;
 
 	else

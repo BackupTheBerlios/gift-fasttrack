@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.1 2004/01/01 21:44:43 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.2 2004/01/01 22:45:18 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -242,8 +242,7 @@ static void udp_discover_receive (int fd, input_id input,
 	/* find this udp node in list */
 	for (udp_node_link=discover->nodes; udp_node_link; udp_node_link=udp_node_link->next)
 	{
-		if ((((FSTUdpNode*)udp_node_link->data)->ip == addr.sin_addr.s_addr) &&
-			(((FSTUdpNode*)udp_node_link->data)->port == ntohs (addr.sin_port)))
+		if (((FSTUdpNode*)udp_node_link->data)->ip == addr.sin_addr.s_addr)
 		{
 			udp_node = udp_node_link->data;
 			break;
@@ -275,7 +274,7 @@ static void udp_discover_receive (int fd, input_id input,
 
 	if((len = fst_packet_strlen (packet, 0x00)) < 0)
 	{
-		FST_DBG_2 ("received corrupt udp reply from %s:%d",
+		FST_DBG_2 ("received corrupted udp reply from %s:%d",
 		            net_ip_str (udp_node->ip), udp_node->port);
 		/* remove udp_node from list */
 		discover->nodes = list_remove_link(discover->nodes, udp_node_link);
@@ -305,14 +304,14 @@ static void udp_discover_receive (int fd, input_id input,
 
 	if (type == UdpMsgPong)
 	{
-		FST_DBG_3 ("received udp pong from %s:%d, pinged nodes: %d",
-		           net_ip_str (udp_node->ip), udp_node->port,
+		FST_DBG_4 ("received udp reply 0x%02x (pong) from %s:%d, pinged nodes: %d",
+		           type, net_ip_str (udp_node->ip), udp_node->port,
 		           discover->pinged_nodes);
 		discover->callback (discover, node);
 	}
 	else
 	{
-		FST_DBG_4 ("received udp reply 0x%02x which is not a pong from %s:%d, pinged nodes: %d",
+		FST_DBG_4 ("received udp reply 0x%02x from %s:%d, pinged nodes: %d",
 		           type, net_ip_str (udp_node->ip), udp_node->port,
 		           discover->pinged_nodes);
 		/* remove udp_node from list */

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.36 2004/01/01 21:44:43 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.37 2004/01/01 22:45:18 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -46,8 +46,6 @@ int discover_callback (FSTUdpDiscover *discover, FSTNode *node)
 
 		return TRUE;
 	}	
-
-	FST_HEAVY_DBG ("discover_callback");
 
 	/* if there is no open session try to connect again */
 	if (!FST_PLUGIN->session)
@@ -502,6 +500,19 @@ static void fst_giftcb_destroy (Protocol *p)
 
 	/* shutdown http server */
 	fst_http_server_free (FST_PLUGIN->server);
+
+	/* put currently used supernode at the front of the node cache */
+	if (FST_PLUGIN->session && FST_PLUGIN->session->state == SessEstablished)
+	{
+		fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
+		                   FST_PLUGIN->session->node->host,
+		                   FST_PLUGIN->session->node->port,
+		                   0, time (NULL));
+
+		FST_DBG_2 ("added current supernode %s:%d back into node cache",
+		           FST_PLUGIN->session->node->host,
+		           FST_PLUGIN->session->node->port);
+	}
 
 	/* free session */
 	fst_session_free (FST_PLUGIN->session);
