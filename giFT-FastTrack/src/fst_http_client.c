@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.c,v 1.5 2003/12/23 18:04:38 mkern Exp $
+ * $Id: fst_http_client.c,v 1.6 2003/12/24 22:41:40 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -184,8 +184,9 @@ int fst_http_client_request (FSTHttpClient *client, FSTHttpHeader *request,
 		/* reuse connection */
 		assert (client->state == HTCL_CONNECTED);
 
-		FST_DBG_3 ("reusing connection to %s [%s]:%d",
-				   client->host, net_ip_str(client->ip), client->port);
+		FST_HEAVY_DBG_3 ("reusing connection to %s [%s]:%d",
+		                 client->host, net_ip_str(client->ip),
+		                 client->port);
 
 		client_connected (client->tcpcon->fd, 0, client);
 		return TRUE;

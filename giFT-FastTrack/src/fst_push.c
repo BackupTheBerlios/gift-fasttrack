@@ -1,5 +1,5 @@
 /*
- * $Id: fst_push.c,v 1.1 2003/09/18 14:54:50 mkern Exp $
+ * $Id: fst_push.c,v 1.2 2003/12/24 22:41:40 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -26,7 +26,8 @@ int fst_push_process_reply (FSTHttpServer *server, TCPC *tcpcon,
 {
 	FSTPush *push;
 
-	FST_DBG_1 ("received push reply with id %d, requesting download", push_id);
+	FST_HEAVY_DBG_1 ("received push reply with id %d, requesting download",
+	                 push_id);
 
 	if (! (push = fst_pushlist_lookup_id (FST_PLUGIN->pushlist, push_id)))
 	{
