@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.28 2004/12/28 16:34:57 mkern Exp $
+ * $Id: fst_download.c,v 1.29 2004/12/28 16:37:27 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -103,8 +103,8 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 			/* We are no longer connected to the supernode this push should go
 			 * to. Remove the source.
 			 */
-			FST_DBG_1 ("No supernode for sending push, removing source %s",
-			           source->url);
+			FST_HEAVY_DBG_1 ("No supernode for sending push, removing source %s",
+			                 source->url);
 
 			async_abort_source (source);
 			return FALSE;
