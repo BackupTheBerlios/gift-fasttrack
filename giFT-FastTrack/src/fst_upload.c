@@ -1,5 +1,5 @@
 /*
- * $Id: fst_upload.c,v 1.5 2003/11/29 13:33:30 mkern Exp $
+ * $Id: fst_upload.c,v 1.6 2003/12/02 19:50:34 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -62,16 +62,18 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 	/* if we don't share try no further */
 	if (!FST_PLUGIN->allow_sharing || FST_PLUGIN->hide_shares)
 	{
+		FST_DBG_1 ("rejecting http request from \"%s\" because we are not sharing",
+		           net_ip_str (tcpcon->host));
 		upload_send_error_reply (tcpcon, 404);
-		FST_DBG ("rejecting http request because we are not sharing");
 		return FALSE;
 	}
 
 	/* extract hash from URI and look up share */
 	if (strncmp (request->uri, "/.hash=", 7) != 0)
 	{
+		FST_DBG_2 ("Invalid uri \"%s\" from %s",
+		           request->uri, net_ip_str (tcpcon->host));
 		upload_send_error_reply (tcpcon, 400);
-		FST_DBG_1 ("Invalid uri %s", request->uri);
 		return FALSE;
 	}
 
@@ -79,8 +81,9 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 
 	if (!hash || hash_len != FST_HASH_LEN)
 	{
+		FST_DBG_2 ("Non-hash uri \"%s\" from %s",
+		           request->uri, net_ip_str (tcpcon->host));
 		upload_send_error_reply (tcpcon, 400);
-		FST_DBG_1 ("Non-hash uri %s", request->uri);
 		free (hash);
 		return FALSE;
 	}
@@ -91,16 +94,18 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 
 	if (!share)
 	{
+		FST_DBG_2 ("No file found for uri \"%s\" from %s",
+		           request->uri, net_ip_str (tcpcon->host));
 		upload_send_error_reply (tcpcon, 404);
-		FST_DBG_1 ("File not found for uri %s", request->uri);
 		return FALSE;
 	}
 
 	/* we found a share, create upload object */
 	if (! (upload = fst_upload_create (tcpcon, request)))
 	{
+		FST_ERR_2 ("fst_upload_create failed for uri \"%s\" from %s",
+		            request->uri, net_ip_str (tcpcon->host));
 		upload_send_error_reply (tcpcon, 500);
-		FST_ERR_1 ("fst_upload_create failed for uri %s", request->uri);
 		return FALSE;
 	}
 
@@ -109,8 +114,9 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 	/* parse necessary things out of header */
 	if (!upload_parse_request (upload))
 	{
+		FST_ERR_2 ("upload_parse_request failed for uri \"%s\" from %s",
+		           request->uri, net_ip_str (tcpcon->host));
 		upload_send_error_reply (tcpcon, 400);
-		FST_ERR_1 ("upload_parse_request failed for uri %s", request->uri);
 		fst_upload_free (upload);
 		return TRUE; /* fst_upload_free closed connection and freed request */
 	}
@@ -122,8 +128,9 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 		auth == UPLOAD_AUTH_HIDDEN ||
 		auth == UPLOAD_AUTH_STALE)
 	{
+		FST_DBG_2 ("File \"%s\" requested by %s not shared/hidden/stale",
+		           share->path, upload->user);
 		upload_send_error_reply (tcpcon, 404);
-		FST_DBG_1 ("File not shared/hidden/stale for uri %s", request->uri);
 		fst_upload_free (upload);
 		return TRUE;
 	}
@@ -131,17 +138,17 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 	if (auth == UPLOAD_AUTH_MAX ||
 		auth == UPLOAD_AUTH_MAX_PERUSER)
 	{
+		FST_DBG_1 ("No upload slot available for %s", upload->user);
 		upload_send_error_reply (tcpcon, 503);
-		FST_DBG_1 ("No upload slots for uri %s", request->uri);
 		fst_upload_free (upload);
 		return TRUE;
 	}
 
 	if (auth != UPLOAD_AUTH_ALLOW)
 	{
+		FST_ERR_3 ("Unknown reply code from upload_auth: %d for file \"%s\" to %s",
+		           auth, share->path, upload->user);
 		upload_send_error_reply (tcpcon, 404);
-		FST_ERR_2 ("Unknown reply code from upload_auth: %d for uri %s",
-		           auth, request->uri);
 		fst_upload_free (upload);
 		return TRUE;
 	}
@@ -149,9 +156,9 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 	/* open file for reading */
 	if (! (upload->file = upload_open_share (upload->share)))
 	{
+		FST_DBG_2 ("Unable to open file \"%s\" for %s",
+		           share->path, upload->user);
 		upload_send_error_reply (tcpcon, 404);
-		FST_DBG_2 ("Unable to open file %s for uri %s",
-		           upload->share->path, request->uri);
 		fst_upload_free (upload);
 		return TRUE;		
 	}
@@ -159,9 +166,9 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 	/* seek to start position */
 	if (fseek (upload->file, upload->start, SEEK_SET) != 0)
 	{
+		FST_DBG_3 ("seek to %d failed for file \"%s\" to %s",
+		           upload->start, share->path, upload->user);
 		upload_send_error_reply (tcpcon, 404);
-		FST_DBG_3 ("seek to %d failed for file %s from uri %s",
-		           upload->start, upload->share->path, request->uri);
 		fst_upload_free (upload);
 		return TRUE;		
 	}
@@ -173,8 +180,9 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 
 	if (!upload->transfer)
 	{
+		FST_ERR_2 ("upload_start failed for file \"%s\" to %s",
+		           share->path, upload->user);
 		upload_send_error_reply (tcpcon, 500);
-		FST_ERR_1 ("upload_start failed for uri %s", request->uri);
 		fst_upload_free (upload);
 		return TRUE;		
 	}
@@ -182,14 +190,15 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 	/* send success reply */
 	if (!upload_send_success_reply (upload))
 	{
-		FST_ERR_1 ("upload_send_success_reply failed for uri %s", request->uri);
+		FST_ERR_2 ("upload_send_success_reply failed for \"%s\" to %s",
+		           share->path, upload->user);
 		fst_upload_free (upload);
 		return TRUE;		
 	}
 
 	upload->chunk->udata = upload;
 
-	FST_DBG_2 ("started upload for uri %s (%s)", request->uri, share->path);
+	FST_DBG_2 ("started upload of \"%s\" to %s", share->path, upload->user);
 
 	/* send file */
 	input_add (upload->tcpcon->fd, (void*)upload, INPUT_WRITE,
@@ -208,13 +217,13 @@ void fst_giftcb_upload_stop (Protocol *p, Transfer *transfer,
 
 	if (!upload)
 	{
-		FST_DBG_1 ("chunk->udata == NULL for uri %s, doing nothing",
-		           upload->request->uri);
+		FST_DBG_1 ("chunk->udata == NULL for upload to %s, doing nothing",
+		           upload->user);
 		return;
 	}
 
-	FST_DBG_2 ("finished upload for uri %s, uploaded %d bytes",
-	           upload->request->uri, chunk->transmit);
+	FST_DBG_2 ("finished upload to %s, transferred %d bytes",
+	           upload->user, chunk->transmit);
 
 	fst_upload_free (upload);
 }
@@ -528,8 +537,8 @@ static void upload_send_file (int fd, input_id input, FSTUpload *upload)
 	if (net_sock_error (fd))
 	{
 		/* connection closed */
-		FST_HEAVY_DBG_1 ("net_sock_error(fd) for uri %s",
-		                 upload->request->uri);
+		FST_HEAVY_DBG_1 ("net_sock_error(fd) for %s",
+		                 upload->user);
 		input_remove (input);
 		upload_error_gift (upload, SOURCE_CANCELLED, "Remote cancelled");
 		return;
@@ -542,8 +551,8 @@ static void upload_send_file (int fd, input_id input, FSTUpload *upload)
 	/* read from the file the number of bytes we plan to send */
 	if ((read_len = fread (upload->data, 1, send_len, upload->file)) == 0)
 	{
-		FST_ERR_1 ("unable to read upload share for uri %s",
-		           upload->request->uri);
+		FST_ERR_1 ("unable to read upload share for %s",
+		           upload->user);
 		input_remove (input);
 		upload_error_gift (upload, SOURCE_CANCELLED, "Local read error");
 		return;
@@ -552,8 +561,8 @@ static void upload_send_file (int fd, input_id input, FSTUpload *upload)
 	/* write the block */
 	if ((sent_len = tcp_send (upload->tcpcon, upload->data, read_len)) <= 0)
 	{
-		FST_HEAVY_DBG_1 ("unable to send data for uri %s",
-		                 upload->request->uri);
+		FST_HEAVY_DBG_1 ("unable to send data for %s",
+		                 upload->user);
 		input_remove (input);
 		upload_error_gift (upload, SOURCE_CANCELLED, "Send error");
 		return;
@@ -562,12 +571,12 @@ static void upload_send_file (int fd, input_id input, FSTUpload *upload)
 	/* short write, rewind our fread to match */
 	if (sent_len < read_len)
 	{
-		FST_DBG_1 ("short write, rewinding read stream for uri %s",
-		           upload->request->uri);
+		FST_DBG_1 ("short write, rewinding read stream for %s",
+		           upload->user);
 
 		if ((fseek (upload->file, -((off_t)(read_len - sent_len)), SEEK_CUR)) != 0)
 		{
-			FST_ERR_1 ("unable to seek back for uri %s", upload->request->uri);
+			FST_ERR_1 ("unable to seek back for %s", upload->user);
 			input_remove (input);
 			upload_error_gift (upload, SOURCE_CANCELLED, "Local seek error");
 			return;

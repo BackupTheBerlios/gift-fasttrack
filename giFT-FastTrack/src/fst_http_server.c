@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_server.c,v 1.4 2003/11/28 17:09:40 mkern Exp $
+ * $Id: fst_http_server.c,v 1.5 2003/12/02 19:50:34 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -174,15 +174,15 @@ static void server_peek (int fd, input_id input, ServCon *servcon)
 
 	if (!strcmp (buf, "GET "))
 	{
-		FST_DBG_2 ("connection from %s is a http request [%s]",
-				   net_ip_str (servcon->remote_ip), buf);
+		FST_HEAVY_DBG_2 ("connection from %s is a http request [%s]",
+		                 net_ip_str (servcon->remote_ip), buf);
 		input_add (servcon->tcpcon->fd, (void *)servcon, INPUT_READ,
 				   (InputCallback)server_request, HTSV_REQUEST_TIMEOUT);
 	}
 	else if (!strcmp (buf, "GIVE"))
 	{
-		FST_DBG_2 ("connection from %s is a push reply [%s]",
-				   net_ip_str (servcon->remote_ip), buf);
+		FST_HEAVY_DBG_2 ("connection from %s is a push reply [%s]",
+		                 net_ip_str (servcon->remote_ip), buf);
 		input_add (servcon->tcpcon->fd, (void *)servcon, INPUT_READ,
 				   (InputCallback)server_push, HTSV_REQUEST_TIMEOUT);
 	}
