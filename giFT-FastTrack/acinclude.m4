@@ -53,16 +53,3 @@ AC_DEFUN(PKG_CHECK_MODULES, [
      ifelse([$4], , AC_MSG_ERROR([Library requirements ($2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them.]), [$4])
   fi
 ])
-
-dnl Fixed version of AC_PREFIX_PROGRAM from autoconf 2.57
-AC_DEFUN([FIXED_AC_PREFIX_PROGRAM],
-[if test "x$prefix" = xNONE; then
-dnl We reimplement AC_MSG_CHECKING (mostly) to avoid the ... in the middle.
-  _AS_ECHO_N([checking for prefix by ])
-  AC_PATH_PROG(ac_prefix_program, [$1])
-  if test -n "$ac_prefix_program"; then
-    prefix=`AS_DIRNAME(["$ac_prefix_program"])`
-    prefix=`AS_DIRNAME(["$prefix"])`
-  fi
-fi
-])# FIXED_AC_PREFIX_PROGRAM

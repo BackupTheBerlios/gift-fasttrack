@@ -1,3 +1,3 @@
-# $Id: Makefile.am,v 1.6 2003/07/27 15:12:53 weinholt Exp $
+# $Id: Makefile.am,v 1.7 2003/08/13 10:44:36 weinholt Exp $
 
-SUBDIRS = src data
+SUBDIRS = src data m4
