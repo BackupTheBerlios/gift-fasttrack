@@ -1,7 +1,8 @@
 /*
- * $Id: fst_utils.c,v 1.5 2003/07/04 19:36:47 mkern Exp $
+ * $Id: fst_utils.c,v 1.6 2003/08/13 21:15:06 weinholt Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
+ * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
  * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
