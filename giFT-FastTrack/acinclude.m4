@@ -54,5 +54,15 @@ AC_DEFUN(PKG_CHECK_MODULES, [
   fi
 ])
 
-
-
+dnl Fixed version of AC_PREFIX_PROGRAM from autoconf 2.57
+AC_DEFUN([FIXED_AC_PREFIX_PROGRAM],
+[if test "x$prefix" = xNONE; then
+dnl We reimplement AC_MSG_CHECKING (mostly) to avoid the ... in the middle.
+  _AS_ECHO_N([checking for prefix by ])
+  AC_PATH_PROG(ac_prefix_program, [$1])
+  if test -n "$ac_prefix_program"; then
+    prefix=`AS_DIRNAME(["$ac_prefix_program"])`
+    prefix=`AS_DIRNAME(["$prefix"])`
+  fi
+fi
+])# FIXED_AC_PREFIX_PROGRAM

@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.20 2003/07/27 02:29:06 weinholt Exp $
+# $Id: configure.ac,v 1.21 2003/07/27 17:24:33 weinholt Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -9,7 +9,7 @@ dnl ###########################################################################
 AC_PREREQ(2.52)
 
 AC_INIT(giFT-FastTrack, 0.8.2, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
-AC_REVISION($Revision: 1.20 $)
+AC_REVISION($Revision: 1.21 $)
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
 AM_INIT_AUTOMAKE
@@ -39,6 +39,7 @@ dnl Checks for libraries.
 dnl ###########################################################################
 
 # Add some nice paths to the search path for pkg-config
+FIXED_AC_PREFIX_PROGRAM([giftd])
 if test x$prefix != xNONE; then
 	PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$prefix/lib/pkgconfig
 fi
@@ -121,7 +122,6 @@ dnl ###########################################################################
 
 if test x$prefix = xNONE; then
     prefix=`pkg-config libgift --variable=prefix`
-    AC_SUBST(prefix)
 fi
 
 plugindir=${prefix}/lib/giFT
