@@ -1,4 +1,4 @@
-# $Id: Makefile.msvc,v 1.1 2003/10/14 16:47:47 mkern Exp $
+# $Id: Makefile.msvc,v 1.2 2004/03/11 16:47:53 mkern Exp $
 # Microsoft Visual C++ 6.0 makefile
 # see README.msvc for usage
 
@@ -24,9 +24,9 @@ clean:
 win32-dist: all
 	@-md $(BUILD_ROOT)\win32-dist\FastTrack
 	@-md $(BUILD_ROOT)\win32-dist\data\FastTrack
-	@copy data\FastTrack.conf $(BUILD_ROOT)\win32-dist\data\FastTrack\FastTrack.conf
-	@copy data\banlist        $(BUILD_ROOT)\win32-dist\data\FastTrack\banlist
-	@copy data\nodes          $(BUILD_ROOT)\win32-dist\data\FastTrack\nodes
+	@copy data\FastTrack.conf.template $(BUILD_ROOT)\win32-dist\data\FastTrack\FastTrack.conf
+	@copy data\banlist                 $(BUILD_ROOT)\win32-dist\data\FastTrack\banlist
+	@copy data\nodes                   $(BUILD_ROOT)\win32-dist\data\FastTrack\nodes
 !if defined(dynamic) || defined(DYNAMIC)
 # remove traling 'd' for debug builds in distro
 	@copy src\$(FASTTRACK_DLL) $(BUILD_ROOT)\win32-dist\FastTrack.dll

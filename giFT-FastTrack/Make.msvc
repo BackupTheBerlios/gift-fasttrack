@@ -1,6 +1,6 @@
-# $Id: Make.msvc,v 1.5 2004/02/28 16:54:31 mkern Exp $
+# $Id: Make.msvc,v 1.6 2004/03/11 16:47:52 mkern Exp $
 
-VERSION = 0.8.5
+VERSION = 0.8.6
 O = .obj
 
 
