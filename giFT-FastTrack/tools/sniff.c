@@ -1,16 +1,11 @@
 /*
- * $Id: sniff.c,v 1.3 2003/09/16 03:51:21 hex Exp $
+ * $Id: sniff.c,v 1.1 2003/11/28 23:33:55 hex Exp $
  *
  * Based on printall.c from libnids/samples, which is
  * copyright (c) 1999 Rafal Wojtczuk <nergal@avet.com.pl>. All rights reserved.
 */
 
 /* 
- * To compile:
- * 1. install libnids
- * 2. comment out line #include "fst_fasttrack.h" in crypt/fst_crypt.c
- * 3. gcc -g -Wall -o sniff sniff.c -I. -Icrypt crypt/enc_type_*.c md5.c -lnids -lnet -lpcap
- *
  * To run (as root):
  * ./sniff [interface]
  *
@@ -30,32 +25,6 @@
 #include <nids.h>
 
 #include "crypt/fst_crypt.h"
-
-#define FST_WARN(fmt)
-#define FST_WARN_1(fmt,a)
-#define FST_WARN_2(fmt,a,b)
-#define FST_WARN_3(fmt,a,b,c)
-#define FST_ERR(fmt)
-#define FST_ERR_1(fmt,a)
-#define FST_ERR_2(fmt,a,b)
-#define FST_ERR_3(fmt,a,b,c)
-#define FST_DBG(fmt)
-#define FST_DBG_1(fmt,a)
-#define FST_DBG_2(fmt,a,b)
-#define FST_DBG_3(fmt,a,b,c)
-#define FST_DBG_4(fmt,a,b,c,d)
-#define FST_DBG_5(fmt,a,b,c,d,e)
-#define FST_HEAVY_DBG(fmt)
-#define FST_HEAVY_DBG_1(fmt,a)
-#define FST_HEAVY_DBG_2(fmt,a,b)
-#define FST_HEAVY_DBG_3(fmt,a,b,c)
-#define FST_HEAVY_DBG_4(fmt,a,b,c,d)
-#define FST_HEAVY_DBG_5(fmt,a,b,c,d,e)
-
-#define TRUE 1
-#define FALSE 0
-
-#include "crypt/fst_crypt.c"
 
 extern char *nids_warnings[];
 
@@ -258,7 +227,7 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 
 				//for(i=0;i<len;i++)
 				//	fprintf(stderr, "%02x ",data[i]);
-				c->out_cipher->enc_type=fst_cipher_decode_enc_type(seed, enc_type);
+				c->out_cipher->enc_type=fst_cipher_mangle_enc_type(seed, enc_type);
 				c->out_cipher->seed=seed;
 				
 				if (c->out_cipher->enc_type & ~0xff) {
@@ -282,7 +251,7 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 				enc_type=INT(4);
 				c->out_cipher->seed^=seed;
 				c->in_cipher=fst_cipher_create();
-				enc_type=fst_cipher_decode_enc_type(seed, enc_type);
+				enc_type=fst_cipher_mangle_enc_type(seed, enc_type);
 				/* FIXME: if incoming != outgoing,  then what? OR the two?
 				   currently we just use incoming, which seems to
                                    work when out=29,in=a9 */
@@ -361,25 +330,45 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 				if (len>=5) {
 					unsigned int *xinu = server?&c->in_xinu:&c->out_xinu;
 					int xtype = *xinu % 3;
-					int type, msglen;
+					int type, msglen, unk;
+
+#if 0
+					if (data[1]==0x80) {
+						if (data[3]==0) {
+							fprintf(stderr, "%s guessing no_x xtype 2 (was %d)\n", buf, xtype);
+							xtype=2;
+						} else if (data[2]==0) {
+							fprintf(stderr, "%s guessing no_x xtype 1 (was %d)\n", buf, xtype);
+							xtype=1;
+						}
+					} else if (data[2]==0x80) {
+						fprintf(stderr, "%s guessing no_x xtype 0 (was %d)\n", buf, xtype);
+						xtype=0;
+					}
+#endif
+
 					switch(xtype) {
 					case 0:
 						type=data[1];
 						msglen=(data[3]<<8)+data[4];
+						unk=data[2];
 						break;
 					case 1:
 						type=data[3];
 						msglen=(data[2]<<8)+data[4];
+						unk=data[1];
 						break;
 					case 2:
 						type=data[4];
 						msglen=(data[3]<<8)+data[2];
+						unk=data[1];
 						break;
 					}
+
 					if (len>=msglen+5) {
 						read=msglen+5;
-						fprintf(stderr, "%s message type %02x, len %d\n", buf, type, msglen);
-						*xinu ^= ~(type + msglen);
+						fprintf(stderr, "%s message type %02x, len %d unk=%02x [%d: %02x %02x %02x %02x]\n", buf, type, msglen, unk, xtype, data[1], data[2], data[3], data[4]);
+						*xinu ^= ~(type + msglen + (unk<<8));
 						print_bin_data(data+5,msglen);
 					} else {
 						fprintf(stderr, "%s (%02x %d/%d... [%d: %02x %02x %02x %02x])\n", buf, type, len, msglen, xtype, data[1], data[2], data[3], data[4]);
@@ -390,11 +379,7 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 				break;
 			default:
 				fprintf(stderr, "%s unknown packet type %x [len %d]\n", buf, *data, len);
-				{
-					int i;
-					for(i=0;i<len;i++)
-						fprintf(stderr, "%02x ",data[i]);
-				}
+				print_bin_data(data, len);
 				c->state=STATE_UNSUPPORTED;
 				break;
 			}
@@ -509,6 +494,7 @@ int main (int argc, char **argv)
 		fprintf(stderr,"%s\n",nids_errbuf);
 		exit(1);
 	}
+	fprintf(stderr, "listening on %s\n", nids_params.device);
 	nids_register_tcp (tcp_callback);
 	nids_register_udp (udp_callback);
 	nids_run ();
