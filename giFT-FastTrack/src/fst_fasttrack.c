@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.67 2004/04/08 01:05:29 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.68 2004/06/16 01:06:15 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -71,8 +71,15 @@ static void fst_plugin_connect_next ()
 		if (!(node = fst_nodecache_get_front (FST_PLUGIN->nodecache)))
 		{
 			/* node cache empty */
-			FST_ERR ("All attempts at contacting peers have failed. Get a new nodes file.");
-			return;
+			FST_ERR ("All attempts at contacting peers have failed. Trying default nodes file.");
+			
+			if (fst_nodecache_load (FST_PLUGIN->nodecache, 
+						stringf ("%s/FastTrack/nodes", platform_data_dir())) <= 0 ||
+			    !(node = fst_nodecache_get_front (FST_PLUGIN->nodecache)))
+			{
+				FST_ERR ("Failed to load default nodes file. Perhaps your installation is corrupt?");
+				return;
+			}
 		}
 
 		/* don't connect to banned ips */
