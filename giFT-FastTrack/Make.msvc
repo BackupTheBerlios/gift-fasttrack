@@ -1,4 +1,4 @@
-# $Id: Make.msvc,v 1.4 2004/01/15 15:40:38 mkern Exp $
+# $Id: Make.msvc,v 1.5 2004/02/28 16:54:31 mkern Exp $
 
 VERSION = 0.8.5
 O = .obj
@@ -91,7 +91,7 @@ INCLUDES = -I$(BUILD_ROOT) -I$(BUILD_ROOT)\libgift\win32 $(INCLUDES)
 LDFLAGS  = $(LDFLAGS) -nologo -version:$(VERSION)
 LDFLAGS  = $(LDFLAGS) -libpath:"$(BUILD_ROOT)\libgift" -libpath:"$(BUILD_ROOT)\libgift\proto"
 
-LIBS     = $(LIBS) ws2_32.lib
+LIBS     = $(LIBS) wsock32.lib
 
 DEFS     = $(DEFS) -D_WINDOWS -U_CONSOLE
 LDFLAGS  = $(LDFLAGS) /subsystem:windows
