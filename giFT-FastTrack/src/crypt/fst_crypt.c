@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.c,v 1.11 2003/11/28 23:11:08 hex Exp $
+ * $Id: fst_crypt.c,v 1.12 2003/11/28 23:15:33 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -119,8 +119,6 @@ void enc_type_80 (unsigned int *key, unsigned int seed);
 /*****************************************************************************/
 
 static int pad_init (unsigned int *pseed, unsigned int enc_type, unsigned char* pad, unsigned int pad_size);
-static unsigned char clock_cipher (FSTCipher *cipher);
-static unsigned int calculate_num_xor (unsigned int seed);
 static int calculate_num (unsigned int *num, int val);
 static unsigned int seed_step (unsigned int seed);
 static int qsort_cmp_func (const void *ap, const void *bp);
@@ -154,7 +152,7 @@ void fst_cipher_crypt (FSTCipher *cipher, unsigned char *data, int len)
 {
 	for ( ; len > 0; len--, data++)
 	{
-		*data ^= clock_cipher (cipher); 
+		*data ^= fst_cipher_clock (cipher); 
 	}
 }
 
@@ -379,7 +377,7 @@ static int pad_init (unsigned int *pseed, unsigned int enc_type, unsigned char* 
  * will be XOR'ed with the plaintext to produce the ciphertext, or with
  * the ciphertext to produce the plaintext.
  */
-static unsigned char clock_cipher (FSTCipher *cipher)
+unsigned char fst_cipher_clock (FSTCipher *cipher)
 {
 	unsigned char xor;
 	unsigned char temp;

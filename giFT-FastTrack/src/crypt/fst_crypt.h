@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.h,v 1.6 2003/11/28 23:11:08 hex Exp $
+ * $Id: fst_crypt.h,v 1.7 2003/11/28 23:15:33 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -47,6 +47,9 @@ void fst_cipher_free (FSTCipher *cipher);
 /* initialize cipher state */
 /* returns FALSE if enc_type is not supported, TRUE otherwise */
 int fst_cipher_init (FSTCipher *cipher, unsigned int seed, unsigned int enc_type);
+
+/* encrypt / decrypt a byte of data with cipher */
+unsigned char fst_cipher_clock (FSTCipher *cipher);
 
 /* encrypt / decrypt a block of data with cipher */
 void fst_cipher_crypt (FSTCipher *cipher, unsigned char *data, int len);
