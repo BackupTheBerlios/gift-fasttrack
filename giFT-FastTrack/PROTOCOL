@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.3 2003/09/06 03:16:28 hex Exp $
+$Id: PROTOCOL,v 1.4 2003/11/20 19:38:25 mkern Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -258,12 +258,12 @@ Message types
 
   Search id is a unique identifier to refer to this search. Realm may
   be one of:
-    0x21  Audio
-    0x22  Video
-    0x23  Images
-    0x24  Documents
-    0x25  Software
-    0x3F  Everything
+    0xA1  Audio
+    0xA2  Video
+    0xA3  Images
+    0xA4  Documents
+    0xA5  Software
+    0xBF  Everything
 
   Then, for each search term:
 
