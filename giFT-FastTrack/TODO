@@ -1,4 +1,4 @@
-$Id: TODO,v 1.19 2004/02/08 10:24:56 mkern Exp $
+$Id: TODO,v 1.20 2004/02/10 10:49:48 mkern Exp $
 
 - redo udp discovery, only use it as a supplemental to tcp
 - make dowloading less greedy, custom throttle?
@@ -13,4 +13,5 @@ $Id: TODO,v 1.19 2004/02/08 10:24:56 mkern Exp $
 - create a FastTrack.conf.template, modify auto default copy routine
 - do we really upload shares which get added not at startup but later?
 - does kazaa use the same fst_id for searchin again?
+- make use of country code in nodes file
 
