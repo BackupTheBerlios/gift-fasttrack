@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.4 2003/06/21 16:18:42 mkern Exp $
+ * $Id: fst_download.c,v 1.5 2003/06/21 16:30:36 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
