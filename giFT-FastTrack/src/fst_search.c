@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.17 2004/03/03 16:13:03 mkern Exp $
+ * $Id: fst_search.c,v 1.18 2004/03/03 19:56:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -322,8 +322,7 @@ int fst_searchlist_send_queries (FSTSearchList *searchlist,
 	FSTSearch *search;
 	int i=0;
 
-	FST_HEAVY_DBG_1 ("resending pending searches to supernode, resent = %d",
-					 resent);
+	FST_DBG_1 ("resending pending searches to supernode, resent = %d", resent);
 
 	for (; node; node = node->next)
 	{

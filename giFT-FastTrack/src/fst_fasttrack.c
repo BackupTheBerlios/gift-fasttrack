@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.51 2004/03/03 17:34:46 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.52 2004/03/03 19:56:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -124,6 +124,8 @@ static void fst_plugin_connect_next ()
 			item = item->next;
 			i++;
 		}
+
+		FST_DBG_1 ("discovery cycle started with %d UDP pings", i);
 	}
 }
 
@@ -187,6 +189,19 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 #endif
 
 		break;
+	}
+
+	/* print out some stats if all pings have come back / timed out */
+	if (FST_PLUGIN->discover->pinged_nodes == 0)
+	{
+		FST_DBG_3 ("discovery cycle complete: %d pings, %d pongs, %d others",
+		           discover->sent_pings,
+		           discover->received_pongs,
+		           discover->received_others);
+
+		discover->sent_pings = 0;
+		discover->received_pongs = 0;
+		discover->received_others = 0;
 	}
 }
 

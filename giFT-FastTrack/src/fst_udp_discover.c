@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.14 2004/03/02 23:14:38 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.15 2004/03/03 19:56:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -102,8 +102,10 @@ FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback)
 
 	discover->nodes = NULL;
 	discover->pinged_nodes = 0;
-	discover->sent_packets = 0;
 	discover->udp_working = FALSE;
+	discover->sent_pings = 0;
+	discover->received_pongs = 0;
+	discover->received_others = 0;
 	discover->callback = callback;
 	discover->timer = 0;
 
@@ -233,11 +235,11 @@ int fst_udp_discover_ping_node (FSTUdpDiscover *discover, FSTNode *node)
 	/* add node to list */
 	discover->nodes = list_append (discover->nodes, udp_node);
 	discover->pinged_nodes++;
-	discover->sent_packets++;
+	discover->sent_pings++;
 
-	FST_DBG_3 ("sent udp ping to %s:%d, pinged nodes: %d",
-	           net_ip_str (udp_node->ip), udp_node->node->port,
-	           discover->pinged_nodes);
+	FST_HEAVY_DBG_3 ("sent udp ping to %s:%d, pinged nodes: %d",
+	                 net_ip_str (udp_node->ip), udp_node->node->port,
+	                 discover->pinged_nodes);
 
 	return TRUE;
 }
@@ -332,10 +334,11 @@ static void udp_discover_receive (int fd, input_id input,
 		/* this node is up and has free child slots */
 		udp_node->node->last_seen = time (NULL);
 		discover->pinged_nodes--;
+		discover->received_pongs++;
 
-		FST_DBG_4 ("received udp reply 0x%02x (pong) from %s:%d, pinged nodes: %d",
-		           type, net_ip_str (udp_node->ip), udp_node->node->port,
-		           discover->pinged_nodes);
+		FST_HEAVY_DBG_4 ("received udp reply 0x%02x (pong) from %s:%d, pinged nodes: %d",
+		                 type, net_ip_str (udp_node->ip), udp_node->node->port,
+		                 discover->pinged_nodes);
 
 		/* raise callback */
 		discover->callback (discover, UdpNodeStateFree, udp_node->node);
@@ -350,10 +353,11 @@ static void udp_discover_receive (int fd, input_id input,
 		/* this node is up but has no child slot for us */
 		udp_node->node->last_seen = time (NULL);
 		discover->pinged_nodes--;
+		discover->received_others++;
 
-		FST_DBG_4 ("received udp reply 0x%02x from %s:%d, pinged nodes: %d",
-					type, net_ip_str (udp_node->ip), udp_node->node->port,
-					discover->pinged_nodes);
+		FST_HEAVY_DBG_4 ("received udp reply 0x%02x from %s:%d, pinged nodes: %d",
+		                 type, net_ip_str (udp_node->ip), udp_node->node->port,
+					     discover->pinged_nodes);
 
 		/* raise callback */
 		discover->callback (discover, UdpNodeStateFree, udp_node->node);
