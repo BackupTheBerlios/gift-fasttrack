@@ -1,5 +1,5 @@
 /*
- * $Id: fst_ipset.c,v 1.3 2003/10/23 19:05:18 mkern Exp $
+ * $Id: fst_ipset.c,v 1.4 2004/11/11 17:24:38 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -108,8 +108,10 @@ int fst_ipset_contains (FSTIpSet *ipset, in_addr_t ip)
 	{
 		if (hip >= ipset->items[i].first && hip <= ipset->items[i].last)
 		{
+#if 0
 			FST_HEAVY_DBG_3 ("ip 0x%08X matching range 0x%08X-0x%08X",
 							 hip, ipset->items[i].first, ipset->items[i].last);
+#endif
 
 			return TRUE;
 		}

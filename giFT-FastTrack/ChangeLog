@@ -1,6 +1,11 @@
- $Id: ChangeLog,v 1.25 2004/09/03 11:36:39 mkern Exp $
+ $Id: ChangeLog,v 1.26 2004/11/11 17:24:38 mkern Exp $
 
-2004-09-03 Markus Kern <mkern@users.berlios.de>
+2004-11-11  Markus Kern <mkern@users.berlios.de>
+
+	* Finalized multi-supernode connection code.
+	* Fixed NULL pointer crash on some corrupt search results.
+
+2004-09-03  Markus Kern <mkern@users.berlios.de>
 
 	* Fixed abuse of gethostbyname in HTTP client.
 

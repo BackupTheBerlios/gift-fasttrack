@@ -1,4 +1,4 @@
-$Id: TODO,v 1.42 2004/11/11 14:31:54 mkern Exp $
+$Id: TODO,v 1.43 2004/11/11 17:24:38 mkern Exp $
 
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
@@ -14,5 +14,3 @@ $Id: TODO,v 1.42 2004/11/11 14:31:54 mkern Exp $
 - do clients signal to the supernode when their b/w is maxed out?
 - does kazaa supernode tell us how many shares we can upload?
 - is the SWAP32 in fst_download.c correct?
-
-- downloads of files > ~1GB don't work.

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.78 2004/11/11 14:31:56 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.79 2004/11/11 17:24:38 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -1026,8 +1026,11 @@ static void fst_plugin_setup_functbl (Protocol *p)
 int FastTrack_init (Protocol *p)
 {
 	/* make sure we're loaded with the correct plugin interface version */
-	if (protocol_compat (p, LIBGIFTPROTO_MKVERSION (0, 11, 6)) != 0)
+	if (protocol_compat (p, LIBGIFTPROTO_MKVERSION (0, 11, 8)) != 0)
+	{
+		FST_ERR ("libgift version mismatch. Need at least version 0.11.8.");
 		return FALSE;
+	}
 	
 	/* tell giFT about our version
 	 * VERSION is defined in config.h. e.g. "0.8.2"
