@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.24 2003/10/14 16:47:02 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.25 2003/10/18 18:23:31 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -207,7 +207,7 @@ typedef struct
 extern Protocol *fst_proto;			// global pointer to plugin struct
 
 // called by gift to init plugin
-PLUGIN_EXPORT
+GIFT_PLUGIN_EXPORT
   int FastTrack_init (Protocol *p);
 
 /*****************************************************************************/
