@@ -1,5 +1,5 @@
 /*
- * $Id: fst_meta.c,v 1.13 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_meta.c,v 1.14 2004/11/18 18:16:48 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -75,6 +75,9 @@ MediaTable[] =
 	{ "application/wordperfect5.1",    MEDIA_TYPE_DOCUMENT },
 	{ "application/x-latex",           MEDIA_TYPE_DOCUMENT },
 	{ "application/x-star-office",     MEDIA_TYPE_DOCUMENT },
+
+	/* fake software category for MS executables */
+	{ "application/x-msdos-program",   MEDIA_TYPE_SOFTWARE },
 
 	/* general cases */
 	{ "audio/", MEDIA_TYPE_AUDIO },
