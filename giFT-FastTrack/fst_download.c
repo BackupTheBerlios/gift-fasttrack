@@ -323,6 +323,7 @@ static void download_read_body(int fd, input_id input, FSTDownload *download)
 	if (net_sock_error (download->tcpcon->fd))
 	{
 		FST_DBG_2 ("read error while downloading from %s:%d -> aborting", net_ip_str(download->ip), download->port);
+		input_remove (input);
 		// this makes giFT call gift_cb_download_stop(), which closes connection and frees download
 		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Download Failed");
 		return;
@@ -332,7 +333,8 @@ static void download_read_body(int fd, input_id input, FSTDownload *download)
 
 	if((len = tcp_recv (download->tcpcon, data, DOWNLOAD_BUF_SIZE)) <= 0)
 	{
-		FST_DBG ("download_read_body: tcp_recv() <= 0");
+		FST_DBG_2 ("download_read_body: tcp_recv() <= 0 for %s:%d", net_ip_str(download->ip), download->port);
+		input_remove (input);
 		// this makes giFT call gift_cb_download_stop(), which closes connection and frees download
 		download_error_gift (download, FALSE, SOURCE_CANCELLED, "Download Error");
 		return;
