@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.c,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_utils.c,v 1.3 2003/06/21 16:18:42 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -196,6 +196,46 @@ char *fst_utils_url_encode (char *decoded)
 
 	return encoded;
 }
+
+/*****************************************************************************/
+
+// caller frees returned string
+char *fst_utils_base64_encode (unsigned char *data, int len)
+{
+	static const char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	unsigned char *dst, *out;
+
+	if((out = dst = malloc((len + 4) * 2)) == NULL)
+		return NULL;
+
+	for (; len > 2; len-=3, dst+=4, data+=3)
+	{
+		dst[0] = base64[data[0] >> 2];
+		dst[1] = base64[((data[0] & 0x03) << 4) + (data[1] >> 4)];
+		dst[2] = base64[((data[1] & 0x0f) << 2) + (data[2] >> 6)];
+		dst[3] = base64[data[2] & 0x3f];
+	}
+
+	dst[0] = '\0';
+
+	if (len > 0)
+	{
+		dst[0] = base64[data[0] >> 2];
+		if(len == 1) {
+			dst[1] = base64[((data[0] & 0x03) << 4)];
+			dst[2] = '=';
+		} else {
+			dst[1] = base64[((data[0] & 0x03) << 4) + (data[1] >> 4)];
+			dst[2] = base64[((data[1] & 0x0f) << 2)];
+		}
+		dst[3] = '=';
+		dst[4] = '\0';
+	}
+
+	return out;
+}
+
+/*****************************************************************************/
 
 // returns TRUE if ip in reserved private space, ip is big endian
 int fst_utils_ip_private (unsigned int ip)

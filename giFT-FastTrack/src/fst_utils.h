@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.h,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_utils.h,v 1.3 2003/06/21 16:18:42 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -29,6 +29,13 @@ char *fst_utils_url_decode (char *encoded);
 
 // caller frees returned string
 char *fst_utils_url_encode (char *decoded);
+
+/*****************************************************************************/
+
+// caller frees returned string
+char *fst_utils_base64_encode (unsigned char *data, int len);
+
+/*****************************************************************************/
 
 // returns TRUE if ip in reserved private space, ip is big endian
 int fst_utils_ip_private (unsigned int ip);

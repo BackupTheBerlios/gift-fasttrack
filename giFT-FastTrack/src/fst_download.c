@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.3 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_download.c,v 1.4 2003/06/21 16:18:42 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -87,6 +87,7 @@ static void download_read_body(int fd, input_id input, FSTDownload *download);
 static void download_write_gift (FSTDownload *download, unsigned char *data, unsigned int len);
 static void download_error_gift (FSTDownload *download, int remove_source, unsigned short klass, char *error);
 static char *download_parse_url (char *url, unsigned int *ip, unsigned short *port);
+static char *download_calc_xfer_uid(char *uri);
 
 /*****************************************************************************/
 
@@ -187,8 +188,9 @@ static void download_connected(int fd, input_id input, FSTDownload *download)
 	fst_http_request_set_header (request, "Connection", "close");
 	fst_http_request_set_header (request, "X-Kazaa-Network", FST_NETWORK_NAME);
 	fst_http_request_set_header (request, "X-Kazaa-Username", FST_USER_NAME);
-	// participation level testing
-//	fst_http_request_set_header (request, "X-Kazaa-Xfer-Uid", "tT0kQl2MowSPzOeAySiXxpmLVdzyQN9sxn6aUnDNxmM=");
+#ifdef FST_DOWNLOAD_BOOST_PL
+	fst_http_request_set_header (request, "X-Kazaa-Xfer-Uid", download_calc_xfer_uid(download->uri));
+#endif
 	// host
 	sprintf (buf, "%s:%d", net_ip_str (download->ip), download->port);
 	fst_http_request_set_header (request, "Host", buf);
@@ -419,6 +421,100 @@ static char *download_parse_url (char *url, unsigned int *ip, unsigned short *po
 
 	free (tmp);
 	return NULL;
+}
+
+/*****************************************************************************/
+
+#define SWAPU32(x) ( ((((( \
+((fst_uint8*)&(x))[0] << 8) | \
+((fst_uint8*)&(x))[1]) << 8) | \
+((fst_uint8*)&(x))[2]) << 8) | \
+((fst_uint8*)&(x))[3])
+
+// returns static base64 encoded string for X-Kazaa-Xfer-Uid http header
+static char *download_calc_xfer_uid(char *uri)
+{
+/*
+	static const unsigned char last_search_hash[32] = {
+		0xbd, 0x48, 0xa4, 0x20, 0x85, 0x4c, 0x2d, 0x30,
+		0xee, 0x07, 0xfd, 0x6c, 0x0f, 0x0b, 0x7c, 0xf7,
+		0x7a, 0xe5, 0x86, 0x41, 0xf8, 0x29, 0x28, 0xbc,
+		0x78, 0xd4, 0xc5, 0x86, 0x6a, 0xd5, 0xde, 0xc7
+	};
+*/
+	static const unsigned char last_search_hash[32] = {
+		0x34, 0x1c, 0x58, 0x01, 0x4d, 0x32, 0xda, 0xeb,
+		0xae, 0xe7, 0x32, 0xdc, 0x60, 0xe8, 0x31, 0x76,
+		0x1d, 0x47, 0xd7, 0x40, 0x0b, 0x82, 0x4e, 0x41,
+		0xe7, 0xef, 0x5c, 0xd1, 0xc0, 0xa7, 0xd0, 0x79
+	};
+
+	static const unsigned int VolumeId = 0xB080A125;
+
+	FSTCipher *cipher;
+	unsigned int buf[8]; 
+	static char base64[40], *base64_ptr;
+	unsigned int uri_smhash, smhash;
+	unsigned int seed;
+
+	if(uri == NULL)
+		return NULL;
+
+	if(*uri == '/')
+		uri++;
+
+	uri_smhash = fst_hash_small (uri, strlen(uri), 0xFFFFFFFF);
+
+	memcpy(buf, last_search_hash, 32);
+	seed = SWAPU32(buf[0]);
+
+	cipher = fst_cipher_create ();
+	fst_cipher_init (cipher, seed, 0xB0);
+	fst_cipher_crypt (cipher, (unsigned char*)(buf+1), 28); 
+	fst_cipher_free (cipher);
+
+	seed = SWAPU32(buf[1]);
+
+	buf[1] = 0;
+	smhash = fst_hash_small ((unsigned char*)(buf+1), 28, 0xFFFFFFFF);
+
+	// weird
+	if((seed != smhash) ||
+	   (SWAPU32(buf[2]) != VolumeId) ||
+	   (SWAPU32(buf[6]) >= 0x3B9ACA00) ||
+	   (SWAPU32(buf[7]) >= 0x3B9ACA00) ||
+	   (SWAPU32(buf[4]) >= 0x3B9ACA00) ||
+	   (SWAPU32(buf[5]) >= 0x3B9ACA00))
+	{
+		memset(buf, 0, 32);
+	}
+
+	seed = SWAPU32(buf[3]) - time(NULL);	// hmm
+
+	buf[3] = SWAPU32(seed);
+	buf[2] = SWAPU32(uri_smhash);
+
+	buf[1] = 0;
+	smhash = fst_hash_small ((unsigned char*)(buf+1), 28, 0xFFFFFFFF);
+	buf[1] = SWAPU32(smhash);
+
+	seed = SWAPU32(buf[3]);
+	seed ^= smhash;
+
+	buf[0] = SWAPU32(seed);
+	
+	cipher = fst_cipher_create ();
+	fst_cipher_init (cipher, seed, 0xB0);
+	fst_cipher_crypt (cipher, (unsigned char*)(buf+1), 28); 
+	fst_cipher_free (cipher);
+
+	// base64 encode		
+	base64_ptr = fst_utils_base64_encode ((unsigned char*)buf, 32);
+	strncpy (base64, base64_ptr, 40);
+	base64[39] = '\0';
+	free (base64_ptr);
+	
+	return base64;
 }
 
 /*****************************************************************************/

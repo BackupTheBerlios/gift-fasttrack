@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.c,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_crypt.c,v 1.3 2003/06/21 16:18:42 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -127,7 +127,17 @@ void fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type
 
 	if(enc_type & 0x10)
 	{
-		FST_DBG ("init_cipher: enc_type & 0x10, WARNING: not implemented");
+		FST_HEAVY_DBG ("init_cipher: enc_type & 0x10");
+
+		for(seed=cipher->pos, i=0; i<20; i++)
+		{
+			seed = seed_step(seed);
+			cipher->pad16[i] = seed;
+		}		
+		
+		seed = seed_step(seed);
+		// CHECKME: endianess?
+		enc_type_2 (cipher->pad16, seed);
 	}
 
 
@@ -208,8 +218,8 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 		if(enc_type & 0x02)
 		{
 			FST_HEAVY_DBG ("pad_init: enc_type & 0x02");
-			seed = seed_step(seed);
 
+			seed = seed_step(seed);
 			enc_type_2 (key_80, seed);
 		}
 
@@ -222,8 +232,8 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 		if(enc_type & 0x20)
 		{
 			FST_HEAVY_DBG ("pad_init: enc_type & 0x20");
-			seed = seed_step(seed);
 
+			seed = seed_step(seed);
 			enc_type_20 (key_80, seed);
 		}
 
@@ -315,51 +325,37 @@ static unsigned char clock_cipher(FSTCipher *cipher)
 			cipher->add_to_lookup++;
 		}
 
-/*
 		if (cipher->enc_type & 0x10)
 		{
+			int i;
 			unsigned int val;
-			char i;
-			unsigned char temp2;
-			char pointer = cipher->pad[0x20] & 0x1f;
-			temp = cipher->pad[0x1f] & 0x0f;
+			unsigned char shift_factor = cipher->pad[0x18] & 0x0f;
+			unsigned char pad_offset = cipher->pad[0x19] & 0x1f;
 
-			FST_DBG ("clock_cipher: check me 1");
-
-			for (i = 0; i < 6; i++)
+			for (i=0; i<6; i++)
 			{
-				val = ((unsigned int *)(cipher->buf))[i];
-				val = val >> temp;
-				temp2 = cipher->pad[i + pointer];
-				temp2 = temp2 ^ (unsigned char)val;
-				cipher->pad[i+pointer] = temp2;
+				val = cipher->pad16[i] >> shift_factor;
+				cipher->pad[pad_offset + i] ^= (unsigned char)val;
 			}
-			temp = cipher->pad[0x0A] & 7;
-			temp2 = cipher->pad[pointer + 4];
-			temp = 1 << temp;
-			temp2 = temp2 | temp;
-			cipher->pad[pointer + 4] = temp2;
 
-			if (!(cipher->wrapcount & 15))
+			cipher->pad[pad_offset + 4] |= (unsigned char)1 << (cipher->pad[0x0A] & 7);
+
+			if ((cipher->wrapcount & 15) == 0)
 			{
 				unsigned int seed = cipher->wrapcount;
-				unsigned char *p_key = cipher->buf;
 
-				FST_DBG ("clock_cipher: improve me 2");
 				for(i=0; i<20; i++)
 				{
 					seed = seed_step(seed);
-					((unsigned int *)cipher->buf)[i] = seed;
-				}
-				
+					cipher->pad16[i] = seed;
+				}			
 				seed = seed_step(seed);
-
-				enc_type_2 (p_key, seed);
+				// CHECKME: endianess?
+				enc_type_2 (cipher->pad16, seed);
 			}
-			// recalculate
 		}
-*/
 	}
+
 	temp = cipher->add_to_lookup + xor;
 	xor = cipher->lookup[temp];
 	return xor;

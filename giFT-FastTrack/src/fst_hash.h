@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.h,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_hash.h,v 1.3 2003/06/21 16:18:42 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -36,6 +36,10 @@ char *gift_cb_FTH_human (unsigned char *FTH);
 
 // hash file
 int fst_hash_file (unsigned char *fth, char *file);
+
+// updates 4 byte small hash that is concatenated to the md5 of the first
+// 307200 bytes of the file. set hash to 0xffffffff for first run
+unsigned int fst_hash_small (unsigned char* data, unsigned int len, unsigned int smallhash);
 
 // produce 2 byte checksum used in the URL from 20 byte hash
 unsigned short fst_hash_checksum (unsigned char *hash);

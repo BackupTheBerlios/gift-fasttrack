@@ -1,5 +1,5 @@
 /*
- * $Id: fst_crypt.h,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_crypt.h,v 1.3 2003/06/21 16:18:42 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -31,9 +31,8 @@ typedef struct
 	unsigned int enc_type;
 	unsigned char pad[63];
 	unsigned char lookup[256];
+	unsigned int pad16[20];
 	unsigned int seed;
-	
-	unsigned char buf[80];	// used in clock_cipher?
 } FSTCipher;
 
 /*****************************************************************************/

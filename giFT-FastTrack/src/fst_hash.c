@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.c,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_hash.c,v 1.3 2003/06/21 16:18:42 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -141,20 +141,6 @@ static const unsigned short checksumtable[256]={
 
 /*****************************************************************************/
 
-// updates 4 byte small hash that is concatenated to the md5 of the first
-// 307200 bytes of the file. set hash to 0xffffffff for first run
-static unsigned int fst_hash_small (unsigned char* data, unsigned int len, unsigned int smallhash)
-{
-    unsigned int i;
-
-    for(i=0; i<len; ++i)
-		smallhash = smalltable[data[i] ^ (smallhash & 0xff)] ^ (smallhash >> 8);
-
-    return smallhash;
-}
-
-/*****************************************************************************/
-
 // hash file
 int fst_hash_file (unsigned char *fth, char *file)
 {
@@ -234,6 +220,18 @@ int fst_hash_file (unsigned char *fth, char *file)
 	fclose (fp);
 	
 	return TRUE;
+}
+
+// updates 4 byte small hash that is concatenated to the md5 of the first
+// 307200 bytes of the file. set hash to 0xffffffff for first run
+unsigned int fst_hash_small (unsigned char* data, unsigned int len, unsigned int smallhash)
+{
+    unsigned int i;
+
+    for(i=0; i<len; ++i)
+		smallhash = smalltable[data[i] ^ (smallhash & 0xff)] ^ (smallhash >> 8);
+
+    return smallhash;
 }
 
 // produce 2 byte checksum used in the URL from 20 byte hash
