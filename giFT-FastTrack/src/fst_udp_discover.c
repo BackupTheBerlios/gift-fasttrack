@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.12 2004/03/02 18:30:51 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.13 2004/03/02 20:03:32 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -102,6 +102,7 @@ FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback)
 
 	discover->nodes = NULL;
 	discover->pinged_nodes = 0;
+	discover->sent_packets = 0;
 	discover->udp_working = FALSE;
 	discover->callback = callback;
 	discover->timer = 0;
@@ -232,6 +233,7 @@ int fst_udp_discover_ping_node (FSTUdpDiscover *discover, FSTNode *node)
 	/* add node to list */
 	discover->nodes = list_append (discover->nodes, udp_node);
 	discover->pinged_nodes++;
+	discover->sent_packets++;
 
 	FST_DBG_3 ("sent udp ping to %s:%d, pinged nodes: %d",
 	           net_ip_str (udp_node->ip), udp_node->node->port,

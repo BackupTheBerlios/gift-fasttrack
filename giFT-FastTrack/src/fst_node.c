@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.9 2004/01/02 14:04:03 mkern Exp $
+ * $Id: fst_node.c,v 1.10 2004/03/02 20:03:32 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -183,10 +183,19 @@ unsigned int fst_nodecache_sort (FSTNodeCache *cache)
 	list = list_nth (cache->list, FST_MAX_NODESFILE_SIZE - 1);
 	while (list && list->next)
 	{
+		FSTNode *node = (FSTNode*)list->next->data;
+
+		/* don't remove index nodes */
+		if (node->klass == NodeKlassIndex)
+		{
+			list = list->next;
+			continue;
+		}
+
 		/* remove node from hash table */
-		dataset_removestr (cache->hash, ( (FSTNode*)list->next->data)->host);
+		dataset_removestr (cache->hash, node->host);
 		/* free node */
-		fst_node_free ( (FSTNode*)list->next->data);
+		fst_node_free (node);
 		/* remove list entry */
 		cache->list = list_remove_link (cache->list, list->next);
 	}

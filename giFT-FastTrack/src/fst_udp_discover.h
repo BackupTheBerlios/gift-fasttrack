@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.h,v 1.7 2004/03/02 18:30:51 mkern Exp $
+ * $Id: fst_udp_discover.h,v 1.8 2004/03/02 20:03:32 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -51,6 +51,7 @@ struct _FSTUdpDiscover
 	List *nodes;				/* the list we store currently pinged nodes in */
 	int pinged_nodes;			/* number of outstanding ping replies */
 
+	int sent_packets;			/* total number of udp packets sent out */
 	int udp_working;			/* initially 0, set to 1 upon reception of
 								 * first udp packet */
 
