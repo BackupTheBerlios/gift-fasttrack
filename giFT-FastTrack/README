@@ -1,4 +1,4 @@
- $Id: README,v 1.17 2003/07/27 14:54:19 weinholt Exp $
+ $Id: README,v 1.18 2003/07/28 20:46:42 weinholt Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
@@ -23,7 +23,6 @@ autoconf    >= 2.5 (not if you use the tarball release)
 libtool     >= 1.4 (not if you use the tarball release)
 pkg-config
 giFT
-ltdl        (required for giFT to be able to load giFT-Fasttrack)
 
 
 Next run './configure' in the top source dir if you are using a TARBALL release.
@@ -70,12 +69,6 @@ The plugin will copy the configuration files from the
 $PREFIX/share/giFT/FastTrack/ directory if necessary.
 
 
-
-There is currently one configure option, --disable-ltdl, if you do not
-want to build libtool libs (*.la). (but non-ltdl builds are currently
-broken)
-
-
 Common Problems
 ---------------
 
@@ -89,19 +82,11 @@ Symptoms: During ./autogen.sh you get the error:
 Solution: Move the plugin somewhere outside the giFT source tree, or update
 	  to the newest cvs version.
 
-
-Problem:  You do not have ltdl libs installed.
-Symptoms: during make you get the error:
-	  libtool: link: cannot find the library `../../src/libFastTrack.la'
-Solution: install ltdl (apt-get install libltdl3-dev in debian) and remove
-	  config.cache, then rerun autogen.sh
-
-
 Problem:  giFT was not built with ltdl support
 Symptoms: *** GIFT-FATAL: couldn't load protocol /usr/lib/giFT/libFastTrack.la
 	  in file : binary does not support this protocol, consider ltdl support
-Solution: Make sure libltdl is installed (see previous problem) and
-	  rm config.cache && ./autogen.sh
+Solution: Make sure libltdl is installed (apt-get install libltdl3-dev in
+	  debian) and rm config.cache && ./autogen.sh
 
 
 Contact
