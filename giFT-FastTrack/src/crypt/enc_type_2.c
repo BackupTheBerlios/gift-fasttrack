@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_2.c,v 1.5 2003/06/28 17:07:54 beren12 Exp $
+ * $Id: enc_type_2.c,v 1.6 2003/06/28 18:27:10 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -974,7 +974,7 @@ u32 mix_major1 (u32 *state, u32 extra_state)
 }
 
 
-u32 mix_major2(u32 *state, u32 extra_state)
+u32 mix_major2 (u32 *state, u32 extra_state)
 {
 	u32	eax;
 	u32	ebx;
@@ -1388,7 +1388,7 @@ u32 mix_major2(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_major3(u32 *state, u32 extra_state)
+u32 mix_major3 (u32 *state, u32 extra_state)
 {
         u32	eax;
         u32	ebx;
@@ -2552,6 +2552,15 @@ u32 mix_major6 (u32 *state, u32 extra_state)
 {
 	u32 eax, ebx, ecx, edx, edi;
 	u32 local_u32_0, local_u32_2;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	edi;
+
+        u32	local_u32_0;
+        u32	local_u32_2;
+
 	edx = state[5];
 	local_u32_0 = edx;
 	ecx = state[3];
@@ -2914,10 +2923,19 @@ u32 mix_major6 (u32 *state, u32 extra_state)
 }
 
 
-u32 mix_major7(u32 *state, u32 extra_state)
+u32 mix_major7 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, edi;
-	u32 local_u32_0, local_u32_1, local_u32_2, local_u32_3;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	edi;
+
+        u32	local_u32_0;
+        u32	local_u32_1;
+        u32	local_u32_2;
+        u32	local_u32_3;
+
 	edi = extra_state;
 	eax = state[6];
 	eax = eax ^ state[3];
@@ -3297,10 +3315,19 @@ u32 mix_major7(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_major8(u32 *state, u32 extra_state)
+u32 mix_major8 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, edi;
-	u32 local_u32_0, local_u32_1, local_u32_2, local_u32_5;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	edi;
+
+        u32	local_u32_0;
+        u32	local_u32_1;
+        u32	local_u32_2;
+        u32	local_u32_5;
+
 	eax = state[5];
 	local_u32_5 = eax;
 	ecx = state[9];
@@ -3594,10 +3621,18 @@ u32 mix_major8(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_major9(u32 *state, u32 extra_state)
+u32 mix_major9 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, edi;
-	u32 local_u32_0, local_u32_1, local_u32_2;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	edi;
+
+        u32	local_u32_0;
+        u32	local_u32_1;
+        u32	local_u32_2;
+
 	eax = state[15];
 	eax = eax ^ state[1];
 	edx = state[19];
@@ -3993,8 +4028,17 @@ u32 mix_major9(u32 *state, u32 extra_state)
 
 u32 mix_major10 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, edi;
-	u32 local_u32_0, local_u32_1, local_u32_2, local_u32_3;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	edi;
+
+        u32	local_u32_0;
+        u32	local_u32_1;
+        u32	local_u32_2;
+        u32	local_u32_3;
+
 	edi = extra_state;
 	edx = state[5] % 0x0B;
 	local_u32_0 = edx;
@@ -4387,9 +4431,20 @@ u32 mix_major10 (u32 *state, u32 extra_state)
 
 u32 mix_major11 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, edi;
-	u32 local_u32_0, local_u32_1, local_u32_5;
-	u32 local_u32_6, local_u32_7, local_u32_8, local_u32_10;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	edi;
+
+        u32	local_u32_0;
+        u32	local_u32_1;
+        u32	local_u32_5;
+        u32	local_u32_6;
+        u32	local_u32_7;
+        u32	local_u32_8;
+        u32	local_u32_10;
+
 	eax = state[11];
 	eax = eax ^ state[3];
 	ecx = state[17];
@@ -4767,8 +4822,14 @@ u32 mix_major11 (u32 *state, u32 extra_state)
 
 u32 mix_major12 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, edi;
-	u32 local_u32_0;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	edi;
+
+        u32	local_u32_0;
+
 	edi = extra_state;
 	ebx = edi;
 	ebx = ebx ^ state[7];
@@ -5038,8 +5099,16 @@ u32 mix_major12 (u32 *state, u32 extra_state)
 
 u32 mix_major13 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, edi;
-	u32 local_u32_0, local_u32_2, local_u32_3;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	edi;
+
+        u32	local_u32_0;
+        u32	local_u32_2;
+        u32	local_u32_3;
+
 	edi = extra_state;
 	eax = state[1];
 	eax = eax ^ state[18];
@@ -5427,8 +5496,16 @@ u32 mix_major13 (u32 *state, u32 extra_state)
 
 u32 mix_major14 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, edi;
-	u32 local_u32_0, local_u32_2, local_u32_3;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	edi;
+
+        u32	local_u32_0;
+        u32	local_u32_2;
+        u32	local_u32_3;
+
 	edi = extra_state;
 	eax = state[6];
 	eax = eax ^ state[8];
@@ -5821,8 +5898,17 @@ u32 mix_major14 (u32 *state, u32 extra_state)
 
 u32 mix_major15 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, esi;
-	u32 local_u32_0, local_u32_1, local_u32_3, local_u32_5;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	esi;
+
+        u32	local_u32_0;
+        u32	local_u32_1;
+        u32	local_u32_3;
+        u32	local_u32_5;
+
 	edx = state[15];
 	local_u32_1 = edx;
 	ecx = extra_state;
@@ -6106,9 +6192,19 @@ u32 mix_major15 (u32 *state, u32 extra_state)
 
 u32 mix_major16 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, esi;
-	u32 local_u32_0, local_u32_1, local_u32_2, local_u32_3;
-	u32 local_u32_4, local_u32_5;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	esi;
+
+        u32	local_u32_0;
+        u32	local_u32_1;
+        u32	local_u32_2;
+        u32	local_u32_3;
+        u32	local_u32_4;
+        u32	local_u32_5;
+
 	esi = extra_state;
 	ecx = state[12] % 0x03;
 	local_u32_0 = ecx;
@@ -6351,9 +6447,21 @@ u32 mix_major16 (u32 *state, u32 extra_state)
 
 u32 mix_major17 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, esi;
-	u32 local_u32_0, local_u32_1, local_u32_2, local_u32_3;
-	u32 local_u32_8, local_u32_7, local_u32_6, local_u32_5;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	esi;
+
+        u32	local_u32_0;
+        u32	local_u32_1;
+        u32	local_u32_2;
+        u32	local_u32_3;
+        u32	local_u32_5;
+        u32	local_u32_6;
+        u32	local_u32_7;
+        u32	local_u32_8;
+
 	esi = extra_state;
 	local_u32_0 = esi;
 	local_u32_0 = local_u32_0 & 0x1;
@@ -6576,8 +6684,16 @@ u32 mix_major17 (u32 *state, u32 extra_state)
 
 u32 mix_major18 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, esi;
-	u32 local_u32_0, local_u32_1, local_u32_3;
+        u32	eax;
+        u32	ebx;
+        u32	ecx;
+        u32	edx;
+        u32	esi;
+
+        u32	local_u32_0;
+        u32	local_u32_1;
+        u32	local_u32_3;
+
 	eax = state[17];
 	eax = eax ^ state[16];
 	edx = state[13];
@@ -6918,14 +7034,41 @@ u32 mix_major18 (u32 *state, u32 extra_state)
 
 u32 mix_major19 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, edi, esi;
-	u32 local_u32_0, local_u32_2, local_u32_3;
-	u32 local_u32_21, local_u32_22, local_u32_23, local_u32_9;
-	u32 local_u32_24, local_u32_11, local_u32_25, local_u32_12;
-	u32 local_u32_26, local_u32_13, local_u32_14, local_u32_15;
-	u32 local_u32_16, local_u32_17, local_u32_28, local_u32_18;
-	u32 local_u32_19, local_u32_20, local_u32_4, local_u32_10;
-	u32 local_u32_6, local_u32_7, local_u32_8, local_u32_5;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+	u32	edi;
+	u32	esi;
+
+	u32	local_u32_0;
+	u32	local_u32_2;
+	u32	local_u32_3;
+	u32	local_u32_4;
+	u32	local_u32_5;
+	u32	local_u32_6;
+	u32	local_u32_7;
+	u32	local_u32_8;
+	u32	local_u32_9;
+	u32	local_u32_10;
+	u32	local_u32_11;
+	u32	local_u32_12;
+	u32	local_u32_13;
+	u32	local_u32_14;
+	u32	local_u32_15;
+	u32	local_u32_16;
+	u32	local_u32_17;
+	u32	local_u32_18;
+	u32	local_u32_19;
+	u32	local_u32_20;
+	u32	local_u32_21;
+	u32	local_u32_22;
+	u32	local_u32_23;
+	u32	local_u32_24;
+	u32	local_u32_25;
+	u32	local_u32_26;
+	u32	local_u32_28;
+
 	edi = extra_state;
 	ecx = 0xd2670e69 + edi;
 	ebx = state[3];
@@ -7156,13 +7299,30 @@ u32 mix_major19 (u32 *state, u32 extra_state)
 }
 
 
-u32 mix_major20(u32 *state, u32 extra_state)
+u32 mix_major20 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, edi, esi;
-	u32 local_u32_0, local_u32_1, local_u32_2, local_u32_3;
-	u32 local_u32_9, local_u32_10, local_u32_4, local_u32_11;
-	u32 local_u32_12, local_u32_13, local_u32_6, local_u32_7;
-	u32 local_u32_8, local_u32_5;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+	u32	edi;
+	u32	esi;
+
+	u32	local_u32_0;
+	u32	local_u32_1;
+	u32	local_u32_2;
+	u32	local_u32_3;
+	u32	local_u32_4;
+	u32	local_u32_5;
+	u32	local_u32_6;
+	u32	local_u32_7;
+	u32	local_u32_8;
+	u32	local_u32_9;
+	u32	local_u32_10;
+	u32	local_u32_11;
+	u32	local_u32_12;
+	u32	local_u32_13;
+
 	eax = extra_state;
 	eax = eax & 0xce;
 	edx = state[14];
@@ -7352,10 +7512,18 @@ u32 mix_major20(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_major21(u32 *state, u32 extra_state)
+u32 mix_major21 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, esi;
-	u32 local_u32_0, local_u32_1, local_u32_2;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+	u32	esi;
+
+	u32	local_u32_0;
+	u32	local_u32_1;
+	u32	local_u32_2;
+
 	eax = state[11];
 	eax = eax ^ state[2];
 	edx = state[15];
@@ -7773,8 +7941,18 @@ u32 mix_major21(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_major22(u32 *state, u32 extra_state)
+u32 mix_major22 (u32 *state, u32 extra_state)
 {
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+	u32	esi;
+
+	u32	local_u32_0;
+	u32	local_u32_1;
+	u32	local_u32_2;
+
 	u32 eax, ebx, ecx, edx, esi;
 	u32 local_u32_0, local_u32_1, local_u32_2;
 	ebx = extra_state;
@@ -8179,11 +8357,20 @@ u32 mix_major22(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_major23(u32 *state, u32 extra_state)
+u32 mix_major23 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, esi;
-	u32 local_u32_0, local_u32_1, local_u32_3;
-	u8 local_u8_17;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+	u32	esi;
+
+	u32	local_u32_0;
+	u32	local_u32_1;
+	u32	local_u32_3;
+
+	u8	local_u8_17;
+
 	ebx = extra_state;
 	esi = ebx % 0x0B;
 	eax = state[5];
@@ -8598,10 +8785,18 @@ u32 mix_major23(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_major24(u32 *state, u32 extra_state)
+u32 mix_major24 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, esi;
-	u32 local_u32_0, local_u32_2, local_u32_3;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+	u32	esi;
+
+	u32	local_u32_0;
+	u32	local_u32_2;
+	u32	local_u32_3;
+
 	eax = state[17];
 	eax = eax ^ state[8];
 	edx = state[10];
@@ -9019,9 +9214,12 @@ u32 mix_major24(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor0(u32 *state, u32 extra_state)
+u32 mix_minor0 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	ecx = state[14] * 0x56be2363;
 	edx = state[12];
 	edx = ROR (edx, ecx);
@@ -9033,9 +9231,12 @@ u32 mix_minor0(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor1(u32 *state, u32 extra_state)
+u32 mix_minor1 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	ecx = extra_state;
 	edx = state[14];
 	edx = edx ^ 0x363a614;
@@ -9049,9 +9250,10 @@ u32 mix_minor1(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor2(u32 *state, u32 extra_state)
+u32 mix_minor2 (u32 *state, u32 extra_state)
 {
-	u32 eax;
+	u32	eax;
+
 	eax = state[12] * 0x4b4f2e1;
 	eax = eax * state[1];
 	state[12] = eax;
@@ -9062,9 +9264,12 @@ u32 mix_minor2(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor3(u32 *state, u32 extra_state)
+u32 mix_minor3 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[10];
 	edx = edx + 0xfa1f1e0b;
 	edx = edx * state[2];
@@ -9077,9 +9282,12 @@ u32 mix_minor3(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor4(u32 *state, u32 extra_state)
+u32 mix_minor4 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	ecx = extra_state;
 	edx = state[0];
 	edx = edx + 0x4c3ef3f1;
@@ -9093,9 +9301,11 @@ u32 mix_minor4(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor5(u32 *state, u32 extra_state)
+u32 mix_minor5 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[19];
 	edx = edx ^ 0x43b6b05;
 	state[19] = state[19] + edx;
@@ -9106,9 +9316,12 @@ u32 mix_minor5(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor6(u32 *state, u32 extra_state)
+u32 mix_minor6 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[4];
 	ecx = 0x12;
 	edx = ROR (edx, ecx);
@@ -9120,9 +9333,11 @@ u32 mix_minor6(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor7(u32 *state, u32 extra_state)
+u32 mix_minor7 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[10];
 	edx = edx + 0xfc9be92d;
 	state[0] = state[0] & edx;
@@ -9133,9 +9348,13 @@ u32 mix_minor7(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor8(u32 *state, u32 extra_state)
+u32 mix_minor8 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+
 	edx = extra_state;
 	ecx = edx;
 	ecx = ecx + 0x8;
@@ -9149,9 +9368,12 @@ u32 mix_minor8(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor9(u32 *state, u32 extra_state)
+u32 mix_minor9 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+
 	ebx = extra_state;
 	eax = ebx;
 	eax = eax ^ 0x3d1f0efd;
@@ -9164,9 +9386,12 @@ u32 mix_minor9(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor10(u32 *state, u32 extra_state)
+u32 mix_minor10 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[3];
 	edx = edx + 0xbe5fec7d;
 	state[9] = state[9] ^ edx;
@@ -9178,9 +9403,12 @@ u32 mix_minor10(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor11(u32 *state, u32 extra_state)
+u32 mix_minor11 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[15];
 	edx = edx | 0x46afede0;
 	edx = edx * state[6];
@@ -9193,9 +9421,11 @@ u32 mix_minor11(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor12(u32 *state, u32 extra_state)
+u32 mix_minor12 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[6] * 0x1b677cc8;
 	state[17] = state[17] - edx;
 	eax = 0x35973850;
@@ -9205,9 +9435,14 @@ u32 mix_minor12(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor13(u32 *state, u32 extra_state)
+u32 mix_minor13 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx, esi;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+	u32	esi;
+
 	edx = extra_state;
 	ebx = edx;
 	ecx = 0xd;
@@ -9224,9 +9459,12 @@ u32 mix_minor13(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor14(u32 *state, u32 extra_state)
+u32 mix_minor14 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+
 	ebx = extra_state;
 	eax = ebx;
 	ecx = 0x17;
@@ -9239,9 +9477,13 @@ u32 mix_minor14(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor15(u32 *state, u32 extra_state)
+u32 mix_minor15 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+
 	ebx = extra_state;
 	edx = 0x20c85ea + ebx;
 	state[4] = state[4] ^ edx;
@@ -9254,9 +9496,11 @@ u32 mix_minor15(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor16(u32 *state, u32 extra_state)
+u32 mix_minor16 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[15];
 	edx = edx + 0xfc471d2b;
 	state[14] = state[14] & edx;
@@ -9267,9 +9511,12 @@ u32 mix_minor16(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor17(u32 *state, u32 extra_state)
+u32 mix_minor17 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[19];
 	edx = edx + 0x24a7d94d;
 	edx = edx + state[16];
@@ -9282,9 +9529,12 @@ u32 mix_minor17(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor18(u32 *state, u32 extra_state)
+u32 mix_minor18 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[0];
 	edx = edx ^ 0x48ad05f2;
 	edx = edx * state[15];
@@ -9297,9 +9547,11 @@ u32 mix_minor18(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor19(u32 *state, u32 extra_state)
+u32 mix_minor19 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx;
+	u32	eax;
+	u32	ecx;
+
 	ecx = extra_state;
 	eax = state[9];
 	eax = eax + 0x14035bf;
@@ -9312,9 +9564,12 @@ u32 mix_minor19(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor20(u32 *state, u32 extra_state)
+u32 mix_minor20 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	ecx = extra_state;
 	edx = ecx;
 	edx = edx ^ 0x1aff70c8;
@@ -9328,9 +9583,12 @@ u32 mix_minor20(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor21(u32 *state, u32 extra_state)
+u32 mix_minor21 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[16];
 	edx = edx + 0xbb834311;
 	edx = edx - state[4];
@@ -9343,9 +9601,12 @@ u32 mix_minor21(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor22(u32 *state, u32 extra_state)
+u32 mix_minor22 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[4];
 	ecx = 0x1a;
 	edx = ROL (edx, ecx);
@@ -9358,9 +9619,11 @@ u32 mix_minor22(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor23(u32 *state, u32 extra_state)
+u32 mix_minor23 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[18];
 	edx = edx + 0xac048a2;
 	edx = edx * state[13];
@@ -9372,9 +9635,13 @@ u32 mix_minor23(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor24(u32 *state, u32 extra_state)
+u32 mix_minor24 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+
 	ebx = extra_state;
 	edx = 0xd14ae1a1 + ebx;
 	state[1] = state[1] & edx;
@@ -9387,9 +9654,11 @@ u32 mix_minor24(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor25(u32 *state, u32 extra_state)
+u32 mix_minor25 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[18];
 	edx = edx + 0xe832eb88;
 	state[16] = state[16] & edx;
@@ -9400,9 +9669,12 @@ u32 mix_minor25(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor26(u32 *state, u32 extra_state)
+u32 mix_minor26 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[4];
 	edx = edx + 0xe6f17893;
 	edx = edx - state[1];
@@ -9415,9 +9687,10 @@ u32 mix_minor26(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor27(u32 *state, u32 extra_state)
+u32 mix_minor27 (u32 *state, u32 extra_state)
 {
-	u32 eax;
+	u32	eax;
+
 	eax = state[7];
 	eax = eax | 0x17b60bb5;
 	eax = eax * state[6];
@@ -9429,9 +9702,13 @@ u32 mix_minor27(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor28(u32 *state, u32 extra_state)
+u32 mix_minor28 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[12];
 	ecx = 0x10;
 	edx = ROL (edx, ecx);
@@ -9444,9 +9721,12 @@ u32 mix_minor28(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor29(u32 *state, u32 extra_state)
+u32 mix_minor29 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[10];
 	edx = edx + 0xfd7af7e;
 	state[6] = state[6] & edx;
@@ -9458,9 +9738,13 @@ u32 mix_minor29(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor30(u32 *state, u32 extra_state)
+u32 mix_minor30 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+
 	ebx = state[18];
 	ebx = ebx & 0x82;
 	edx = state[7];
@@ -9475,9 +9759,12 @@ u32 mix_minor30(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor31(u32 *state, u32 extra_state)
+u32 mix_minor31 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	ecx = state[7];
 	ecx = ecx ^ 0x43;
 	edx = state[17];
@@ -9490,9 +9777,12 @@ u32 mix_minor31(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor32(u32 *state, u32 extra_state)
+u32 mix_minor32 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+
 	ebx = extra_state;
 	eax = ebx;
 	eax = eax ^ 0x1f99dc87;
@@ -9505,9 +9795,11 @@ u32 mix_minor32(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor33(u32 *state, u32 extra_state)
+u32 mix_minor33 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx;
+	u32	eax;
+	u32	ecx;
+
 	ecx = extra_state;
 	eax = state[8];
 	eax = eax + 0x5a7c4580;
@@ -9520,9 +9812,12 @@ u32 mix_minor33(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor34(u32 *state, u32 extra_state)
+u32 mix_minor34 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[8];
 	edx = edx + 0xeee530d5;
 	state[0] = state[0] ^ edx;
@@ -9534,9 +9829,11 @@ u32 mix_minor34(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor35(u32 *state, u32 extra_state)
+u32 mix_minor35 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[10];
 	edx = edx + 0xc484cfa2;
 	edx = edx + state[1];
@@ -9548,9 +9845,11 @@ u32 mix_minor35(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor36(u32 *state, u32 extra_state)
+u32 mix_minor36 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[5];
 	edx = edx ^ 0x19a836dc;
 	state[16] = state[16] + edx;
@@ -9561,9 +9860,13 @@ u32 mix_minor36(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor37(u32 *state, u32 extra_state)
+u32 mix_minor37 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+
 	ebx = extra_state;
 	edx = ebx;
 	edx = edx & 0x21e847a;
@@ -9577,9 +9880,12 @@ u32 mix_minor37(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor38(u32 *state, u32 extra_state)
+u32 mix_minor38 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[17];
 	edx = edx + 0xd68a11c3;
 	edx = edx + state[7];
@@ -9592,9 +9898,12 @@ u32 mix_minor38(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor39(u32 *state, u32 extra_state)
+u32 mix_minor39 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[7];
 	ecx = 0x13;
 	edx = ROL (edx, ecx);
@@ -9606,9 +9915,12 @@ u32 mix_minor39(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor40(u32 *state, u32 extra_state)
+u32 mix_minor40 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+
 	ebx = extra_state;
 	eax = state[14];
 	eax = eax + 0xe6f27e4;
@@ -9622,9 +9934,12 @@ u32 mix_minor40(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor41(u32 *state, u32 extra_state)
+u32 mix_minor41 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[6] * 0x368eaf4e;
 	state[18] = state[18] - edx;
 	eax = extra_state;
@@ -9635,9 +9950,13 @@ u32 mix_minor41(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor42(u32 *state, u32 extra_state)
+u32 mix_minor42 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+
 	ebx = state[7];
 	ebx = ebx ^ 0xc3;
 	edx = state[2];
@@ -9652,9 +9971,12 @@ u32 mix_minor42(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor43(u32 *state, u32 extra_state)
+u32 mix_minor43 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	ecx = extra_state;
 	edx = ecx;
 	edx = edx & 0x9706840;
@@ -9667,9 +9989,11 @@ u32 mix_minor43(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor44(u32 *state, u32 extra_state)
+u32 mix_minor44 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[5];
 	edx = edx + 0xda7c6c8e;
 	state[19] = state[19] | edx;
@@ -9680,9 +10004,11 @@ u32 mix_minor44(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor45(u32 *state, u32 extra_state)
+u32 mix_minor45 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx;
+	u32	eax;
+	u32	ecx;
+
 	eax = state[2];
 	ecx = 0xc;
 	eax = ROR (eax, ecx);
@@ -9695,9 +10021,12 @@ u32 mix_minor45(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor46(u32 *state, u32 extra_state)
+u32 mix_minor46 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[14];
 	edx = edx + 0xf655a040;
 	edx = edx + state[18];
@@ -9710,9 +10039,13 @@ u32 mix_minor46(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor47(u32 *state, u32 extra_state)
+u32 mix_minor47 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+
 	ebx = extra_state;
 	edx = ebx;
 	ecx = 0x1e;
@@ -9726,9 +10059,11 @@ u32 mix_minor47(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor48(u32 *state, u32 extra_state)
+u32 mix_minor48 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[19] * 0x251df1bd;
 	state[11] = state[11] + edx;
 	eax = extra_state;
@@ -9738,9 +10073,13 @@ u32 mix_minor48(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor49(u32 *state, u32 extra_state)
+u32 mix_minor49 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+
 	ebx = extra_state;
 	edx = state[3];
 	edx = edx + 0x1805a906;
@@ -9755,9 +10094,12 @@ u32 mix_minor49(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor50(u32 *state, u32 extra_state)
+u32 mix_minor50 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[0];
 	edx = edx ^ 0x51a859c;
 	state[11] = state[11] - edx;
@@ -9769,9 +10111,11 @@ u32 mix_minor50(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor51(u32 *state, u32 extra_state)
+u32 mix_minor51 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[18];
 	edx = edx + 0xdcccfc5;
 	edx = edx + state[6];
@@ -9783,9 +10127,11 @@ u32 mix_minor51(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor52(u32 *state, u32 extra_state)
+u32 mix_minor52 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[18];
 	edx = edx ^ 0x39848960;
 	state[16] = state[16] - edx;
@@ -9796,9 +10142,11 @@ u32 mix_minor52(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor53(u32 *state, u32 extra_state)
+u32 mix_minor53 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[19];
 	edx = edx + 0x1a6f3b29;
 	state[14] = state[14] ^ edx;
@@ -9809,9 +10157,13 @@ u32 mix_minor53(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor54(u32 *state, u32 extra_state)
+u32 mix_minor54 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+
 	edx = extra_state;
 	ecx = edx;
 	ecx = ecx ^ 0xe1;
@@ -9825,9 +10177,11 @@ u32 mix_minor54(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor55(u32 *state, u32 extra_state)
+u32 mix_minor55 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[5];
 	edx = edx + 0x4ef1335a;
 	state[12] = state[12] & edx;
@@ -9838,9 +10192,10 @@ u32 mix_minor55(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor56(u32 *state, u32 extra_state)
+u32 mix_minor56 (u32 *state, u32 extra_state)
 {
-	u32 eax;
+	u32	eax;
+
 	eax = state[13];
 	eax = eax + 0xdb61abf8;
 	eax = eax * state[14];
@@ -9852,9 +10207,11 @@ u32 mix_minor56(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor57(u32 *state, u32 extra_state)
+u32 mix_minor57 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[19] * 0x378f67;
 	state[18] = state[18] ^ edx;
 	eax = 0x794c54;
@@ -9864,9 +10221,11 @@ u32 mix_minor57(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor58(u32 *state, u32 extra_state)
+u32 mix_minor58 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[4] * 0x2dd2a2fe;
 	state[18] = state[18] ^ edx;
 	eax = extra_state;
@@ -9876,9 +10235,12 @@ u32 mix_minor58(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor59(u32 *state, u32 extra_state)
+u32 mix_minor59 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	ecx = extra_state;
 	edx = state[14];
 	edx = edx + 0x49fa4a75;
@@ -9892,9 +10254,11 @@ u32 mix_minor59(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor60(u32 *state, u32 extra_state)
+u32 mix_minor60 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[16];
 	edx = edx + 0xe357b476;
 	edx = edx - state[4];
@@ -9906,9 +10270,12 @@ u32 mix_minor60(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor61(u32 *state, u32 extra_state)
+u32 mix_minor61 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[6];
 	eax = 8 * edx;
 	eax = eax - edx;
@@ -9928,9 +10295,12 @@ u32 mix_minor61(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor62(u32 *state, u32 extra_state)
+u32 mix_minor62 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[11];
 	ecx = 0x18;
 	edx = ROR (edx, ecx);
@@ -9943,9 +10313,11 @@ u32 mix_minor62(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor63(u32 *state, u32 extra_state)
+u32 mix_minor63 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[5];
 	edx = edx + 0x147c80d5;
 	state[10] = state[10] ^ edx;
@@ -9956,9 +10328,12 @@ u32 mix_minor63(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor64(u32 *state, u32 extra_state)
+u32 mix_minor64 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[3] * 0x27139980;
 	state[16] = state[16] ^ edx;
 	eax = extra_state;
@@ -9969,9 +10344,12 @@ u32 mix_minor64(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor65(u32 *state, u32 extra_state)
+u32 mix_minor65 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+
 	ebx = extra_state;
 	eax = 0xc5c4d698 + ebx;
 	eax = eax * state[4];
@@ -9984,9 +10362,13 @@ u32 mix_minor65(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor66(u32 *state, u32 extra_state)
+u32 mix_minor66 (u32 *state, u32 extra_state)
 {
-	u32 eax, ebx, ecx, edx;
+	u32	eax;
+	u32	ebx;
+	u32	ecx;
+	u32	edx;
+
 	ebx = state[17];
 	ebx = ebx & 0x7f;
 	edx = state[15];
@@ -10001,9 +10383,12 @@ u32 mix_minor66(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor67(u32 *state, u32 extra_state)
+u32 mix_minor67 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[19];
 	ecx = 0x6;
 	edx = ROL (edx, ecx);
@@ -10015,9 +10400,11 @@ u32 mix_minor67(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor68(u32 *state, u32 extra_state)
+u32 mix_minor68 (u32 *state, u32 extra_state)
 {
-	u32 eax, edx;
+	u32	eax;
+	u32	edx;
+
 	edx = state[8] * 0x1a4c02dd;
 	edx = edx * state[0];
 	state[8] = edx;
@@ -10028,9 +10415,12 @@ u32 mix_minor68(u32 *state, u32 extra_state)
 }
 
 
-u32 mix_minor69(u32 *state, u32 extra_state)
+u32 mix_minor69 (u32 *state, u32 extra_state)
 {
-	u32 eax, ecx, edx;
+	u32	eax;
+	u32	ecx;
+	u32	edx;
+
 	edx = state[14];
 	edx = edx + 0xfddb63a2;
 	state[16] = state[16] ^ edx;
@@ -10043,7 +10433,7 @@ u32 mix_minor69(u32 *state, u32 extra_state)
 
 u32 call (u32 addr, u32 *state, u32 extra_state)
 {
-	switch(addr)
+	switch (addr)
 	{
 		case 0x080846e8:
 			return mix_major0 (state, extra_state);
