@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.c,v 1.13 2004/03/24 12:16:29 mkern Exp $
+ * $Id: fst_hash.c,v 1.14 2004/04/06 13:35:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -67,62 +67,149 @@ uint32 fst_hash_small (uint32 smallhash, const uint8 *data, size_t len)
  * These two calls occur right after another so we cache the result and if
  * it's the same file use the hash from the cache. Yes, hash and path are not
  * freed before shutdown.
+ * To further complicate things this is also called by the main thread for 
+ * verifying files. Since this can happen while the hashing thread is using
+ * the cache bad things may ensue. When forking this is not a problem, on
+ * windows we are using a mutex to protect the cache.
  */
 static struct _hcache
 {
 	FSTHash *hash;
 	char *path;
-} hcache = { NULL, NULL };
 
+#ifdef WIN32
+	HANDLE hMutex;
+#endif
+}
+#ifdef WIN32
+hcache = { NULL, NULL, NULL };
+#else
+hcache = { NULL, NULL };
+#endif
+
+
+static FSTHash *cache_get_hash (const char* path)
+{
+	FSTHash *hash;
+
+#ifdef WIN32
+	/* create mutex if not created, potential race condition here */
+	if (!hcache.hMutex)
+	{
+		FST_HEAVY_DBG ("creating hash cache mutex");
+
+		hcache.hMutex = CreateMutex (NULL, FALSE, NULL);
+		if (hcache.hMutex == ERROR_INVALID_HANDLE)
+		{
+			hcache.hMutex = NULL;
+			return NULL; /* oh my */
+		}
+	}
+#endif
+
+#ifdef WIN32
+	if (WaitForSingleObject (hcache.hMutex, INFINITE) == WAIT_FAILED)
+		return NULL;
+#endif
+
+	if (!hcache.path || strcmp (path, hcache.path))
+	{
+#ifdef WIN32
+		ReleaseMutex (hcache.hMutex);
+#endif
+		return NULL;
+	}
+
+	hash = hcache.hash;
+	hcache.hash = NULL;
+	free (hcache.path);
+	hcache.path = NULL;
+
+#ifdef WIN32
+	ReleaseMutex (hcache.hMutex);
+#endif
+
+	return hash;
+}
+
+static BOOL cache_set_hash (const char* path, FSTHash *hash)
+{
+#ifdef WIN32
+	/* create mutex if not created, potential race condition here */
+	if (!hcache.hMutex)
+	{
+		FST_HEAVY_DBG ("creating hash cache mutex");
+
+		hcache.hMutex = CreateMutex (NULL, FALSE, NULL);
+		if (hcache.hMutex == ERROR_INVALID_HANDLE)
+		{
+			hcache.hMutex = NULL;
+			return FALSE; /* oh my */
+		}
+	}
+#endif
+
+
+#ifdef WIN32
+	if (WaitForSingleObject (hcache.hMutex, INFINITE) == WAIT_FAILED)
+		return NULL;
+#endif
+
+	fst_hash_free (hcache.hash);
+	hcache.hash = hash;
+	free (hcache.path);
+	hcache.path = strdup (path);
+
+#ifdef WIN32
+	ReleaseMutex (hcache.hMutex);
+#endif
+
+	return TRUE;
+}
 
 /* our primary hash is the kzhash... */
 unsigned char *fst_giftcb_kzhash (const char *path, size_t *len)
 {
 	unsigned char *data;
+	FSTHash *hash;
 
 	if (!(data = malloc (FST_KZHASH_LEN)))
 		return NULL;
 
-	if (hcache.path && !strcmp (path, hcache.path))
+	if ((hash = cache_get_hash (path)))
 	{
 		/* cache hit */
 		FST_HEAVY_DBG_1 ("cache hit: %s", path);
-		memcpy (data, FST_KZHASH (hcache.hash), FST_KZHASH_LEN);
+		memcpy (data, FST_KZHASH (hash), FST_KZHASH_LEN);
 
-		fst_hash_free (hcache.hash);
-		hcache.hash = NULL;
-		free (hcache.path);
-		hcache.path = NULL;
+		fst_hash_free (hash);
+		*len = FST_KZHASH_LEN;
+		return data;
 	}
-	else
+
+	/* cache miss */
+	FST_HEAVY_DBG_1 ("cache miss: %s", path);
+
+	/* calculate the hash */
+	if (!(hash = fst_hash_create ()))
 	{
-		/* cache miss */
-		FST_HEAVY_DBG_1 ("cache miss: %s", path);
-		fst_hash_free (hcache.hash);
-		hcache.hash = NULL;
-		free (hcache.path);
-		hcache.path = NULL;
-
-		if (!(hcache.hash = fst_hash_create ()))
-		{
-			free (data);
-			return NULL;
-		}
-
-		if (!fst_hash_file (hcache.hash, path))
-		{
-			free (data);
-			fst_hash_free (hcache.hash);
-			hcache.hash = NULL;
-			return NULL;
-		}
-
-		memcpy (data, FST_KZHASH (hcache.hash), FST_KZHASH_LEN);
-		hcache.path = strdup (path);
+		free (data);
+		return NULL;
 	}
+
+	if (!fst_hash_file (hash, path))
+	{
+		free (data);
+		fst_hash_free (hash);
+		return NULL;
+	}
+
+	memcpy (data, FST_KZHASH (hash), FST_KZHASH_LEN);
+
+	/* write hash to cache */
+	cache_set_hash (path, hash);
 
 	*len = FST_KZHASH_LEN;
-
 	return data;
 }
 
@@ -145,51 +232,47 @@ char *fst_giftcb_kzhash_encode (unsigned char *data)
 unsigned char *fst_giftcb_fthash (const char *path, size_t *len)
 {
 	unsigned char *data;
+	FSTHash *hash;
 
 	if (!(data = malloc (FST_FTHASH_LEN)))
 		return NULL;
 
-	if (hcache.path && !strcmp (path, hcache.path))
+	if ((hash = cache_get_hash (path)))
 	{
 		/* cache hit */
 		FST_HEAVY_DBG_1 ("cache hit: %s", path);
-		memcpy (data, FST_FTHASH (hcache.hash), FST_FTHASH_LEN);
+		memcpy (data, FST_KZHASH (hash), FST_FTHASH_LEN);
 
-		fst_hash_free (hcache.hash);
-		hcache.hash = NULL;
-		free (hcache.path);
-		hcache.path = NULL;
+		fst_hash_free (hash);
+		*len = FST_FTHASH_LEN;
+		return data;
 	}
-	else
+
+	/* cache miss */
+	FST_HEAVY_DBG_1 ("cache miss: %s", path);
+
+	/* calculate the hash */
+	if (!(hash = fst_hash_create ()))
 	{
-		/* cache miss */
-		FST_HEAVY_DBG_1 ("cache miss: %s", path);
-		fst_hash_free (hcache.hash);
-		hcache.hash = NULL;
-		free (hcache.path);
-		hcache.path = NULL;
-
-		if (!(hcache.hash = fst_hash_create ()))
-		{
-			free (data);
-			return NULL;
-		}
-
-		if (!fst_hash_file (hcache.hash, path))
-		{
-			free (data);
-			fst_hash_free (hcache.hash);
-			hcache.hash = NULL;
-			return NULL;
-		}
-
-		memcpy (data, FST_FTHASH (hcache.hash), FST_FTHASH_LEN);
-		hcache.path = strdup (path);
+		free (data);
+		return NULL;
 	}
+
+	if (!fst_hash_file (hash, path))
+	{
+		free (data);
+		fst_hash_free (hash);
+		return NULL;
+	}
+
+	memcpy (data, FST_FTHASH (hash), FST_FTHASH_LEN);
+
+	/* write hash to cache */
+	cache_set_hash (path, hash);
 
 	*len = FST_FTHASH_LEN;
-
 	return data;
+
 }
 
 char *fst_giftcb_fthash_encode (unsigned char *data)
