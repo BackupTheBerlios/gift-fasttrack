@@ -1,4 +1,4 @@
- $Id: README,v 1.7 2003/06/20 18:57:30 beren12 Exp $
+ $Id: README,v 1.8 2003/06/20 19:33:33 beren12 Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
@@ -16,22 +16,52 @@ Compilation & Installation
 First put the sources you got somewhere outside the giFT source tree
 (note: this is contrary to previous versions of the plugin).
 
+Needed toold to build giFT-Fastrack are as follows:
+
+automake    >= 1.5
+autoconf    >= 2.5
+libtool     >= 1.4
+pkg-config
+giFT
+
+
 Then run './autogen.sh' in the top source dir.
 
 Mac OS X users should run sh -c 'LIBTOOL=glibtool LIBTOOLIZE=glibtoolize ./autogen.sh'
 (or if use fink to install it, if you have it)
 
+If you have giFT installed in a non-standard location (according to pkg-config,
+you must make sure that PKG_CONFIG_PATH is set to the directory where libgift.pc
+is located. Ex. export PKG_CONFIG_PATH=/usr/local/bin (for bash).
+
+
 The next step is to run 'make' and 'make install' which will compile
 and install the plugin.
 
-Finally add 'FastTrack' to your gift.conf file like so:
+Then add FastTrack to the [main]/plugins line in ~/.giFT/gift.conf,
+like so:
 
-old: 'plugins = OpenFT:Gnutella'
-new: 'plugins = OpenFT:Gnutella:FastTrack'
+old:
+	[main]
+	plugins = OpenFT:Gnutella
+
+new:
+	[main]
+	plugins = OpenFT:Gnutella:FastTrack
+
+You may also use a fully qualified path to the plugin filename:
+ 
+	[main]
+	plugins = OpenFT:/usr/local/lib/giFT/libFastTrack.la
+ 
+The plugin will copy the configuration files from the
+$PREFIX/share/giFT/FastTrack/ directory if necessary.
+
+
 
 
 There is currently one configure option, --disable-ltdl, if you do not
-want to build libtool libs.
+want to build libtool libs (*.la).
 
 
 Common Problems
@@ -79,4 +109,3 @@ Thanks to weinholt for reverse engineering most parts of enc_type_1.c
 enc_type_2.c is the work of Raimar Falke, I merely cleaned it up a bit.
 
 buildsystem based on giFT, rewritten by beren12@users.berlios.de
-
