@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.35 2004/11/20 21:37:43 mkern Exp $
+ * $Id: fst_search.c,v 1.36 2004/11/23 17:46:01 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -773,19 +773,23 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 void fst_searchlist_session_disconnected (FSTSearchList *searchlist,
                                           FSTSession *session)
 {
-	List *l;
+	List *l, *next;
 	
-	for (l = searchlist->searches; l; l = l->next)
+	for (l = searchlist->searches; l; l = next)
 	{
 		FSTSearch *search = l->data;
 		FSTNode *node;
+
+		next = l->next;
 
 		if ((node = dataset_lookup (search->sent_nodes, &session->node,
 		                            sizeof(session->node))))
 		{
 			assert (node == session->node);
 
-			/* Remove supernode from sent_nodes set */
+			/* Remove supernode from sent_nodes set. This may remove the
+			 * current search from the search list.
+			 */
 			end_of_results (searchlist, search, session);
 		}
 	}
