@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.13 2003/09/19 21:15:48 mkern Exp $
+ * $Id: fst_search.c,v 1.14 2003/11/05 16:43:13 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -55,7 +55,7 @@ int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hash)
 {
 	FSTSearch *search;
 
-	if (strcmp (htype, "FTH"))
+	if (!htype || !hash || strcmp (htype, "FTH"))
 		return FALSE;
 	
 	search = fst_search_create (event, SearchTypeLocate, hash, NULL, NULL);
