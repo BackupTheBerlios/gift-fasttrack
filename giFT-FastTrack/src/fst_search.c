@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.22 2004/03/08 18:21:37 mkern Exp $
+ * $Id: fst_search.c,v 1.23 2004/03/08 18:28:24 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -208,6 +208,12 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 	switch (search->type)
 	{
 	case  SearchTypeSearch:
+		if (!search->query || strlen (search->query) < 1)
+		{
+			fst_packet_free (packet);
+			return FALSE;
+		}
+
 		fst_packet_put_uint8 (packet, (fst_uint8)QUERY_CMP_SUBSTRING);
 		fst_packet_put_uint8 (packet, (fst_uint8)FILE_TAG_ANY);
 		fst_packet_put_dynint (packet, strlen(search->query));
@@ -215,7 +221,6 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 		break;
 
 	case SearchTypeLocate:
-	{
 		assert (search->hash);
 
 		fst_packet_put_uint8 (packet, (fst_uint8)QUERY_CMP_EQUALS);
@@ -223,7 +228,6 @@ int fst_search_send_query (FSTSearch *search, FSTSession *session)
 		fst_packet_put_dynint (packet, FST_FTHASH_LEN);
 		fst_packet_put_ustr (packet, FST_FTHASH (search->hash), FST_FTHASH_LEN);
 		break;
-	}
 
 	default:
 		fst_packet_free (packet);
