@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.37 2004/11/25 14:33:11 mkern Exp $
+ * $Id: fst_search.c,v 1.38 2004/11/27 10:09:10 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -191,7 +191,13 @@ FSTSearch *fst_search_create (IFEvent *event, FSTSearchType type, char *query,
 	return search;
 }
 
-// free search
+static void release_nodes (ds_data_t *key, ds_data_t *value, void *udata)
+{
+	assert (*((void **)key->data) == value->data);
+	fst_node_release (value->data);
+}
+
+/* free search */
 void fst_search_free (FSTSearch *search)
 {
 	if(!search)
@@ -201,6 +207,8 @@ void fst_search_free (FSTSearch *search)
 	free (search->exclude);
 	free (search->realm);
 	fst_hash_free (search->hash);
+
+	dataset_foreach (search->sent_nodes, release_nodes, NULL);
 	dataset_clear (search->sent_nodes);
 
 	free (search);
