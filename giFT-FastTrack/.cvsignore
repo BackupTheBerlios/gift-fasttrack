@@ -1,3 +1,10 @@
+config.guess
+config.sub
+depcomp
+install-sh
+ltmain.sh
+missing
+mkinstalldirs
 Makefile
 Makefile.in
 aclocal.m4

@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.21 2003/07/27 17:24:33 weinholt Exp $
+# $Id: configure.ac,v 1.22 2003/07/28 21:03:38 beren12 Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -9,7 +9,7 @@ dnl ###########################################################################
 AC_PREREQ(2.52)
 
 AC_INIT(giFT-FastTrack, 0.8.2, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
-AC_REVISION($Revision: 1.21 $)
+AC_REVISION($Revision: 1.22 $)
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
 AM_INIT_AUTOMAKE
@@ -24,7 +24,7 @@ dnl ###########################################################################
 AC_DEFINE_UNQUOTED(BUILD_DATE, "`date`", [Build date])
 
 dnl ###########################################################################
-dnl Checks for programs.
+dnl Checks for build tools and configure libtool.
 dnl ###########################################################################
 
 AC_PROG_CC
@@ -33,6 +33,9 @@ AC_PROG_INSTALL
 
 AM_DISABLE_STATIC
 AC_PROG_LIBTOOL
+
+PLUGIN_LDFLAGS="-module -avoid-version"
+AC_SUBST(PLUGIN_LDFLAGS)
 
 dnl ###########################################################################
 dnl Checks for libraries.
@@ -72,29 +75,16 @@ dnl ###########################################################################
 dnl All of the lovely arguments
 dnl ###########################################################################
 
-AC_ARG_ENABLE(debug,
-  AC_HELP_STRING([--disable-debug], [do not create debug messages]),
-  [], [enable_debug=yes])
+AC_ARG_ENABLE(debug,              [  --disable-debug         do not create debug messages],,[enable_debug=yes])
+AM_CONDITIONAL(DEBUG,              test x$enable_debug    = xyes)
 
-AC_ARG_ENABLE(heavy_debug,
-  AC_HELP_STRING([--enable-heavy-debug], [create _lots_ debug messages]),
-  [], [enable_heavy_debug=no])
+AC_ARG_ENABLE(heavy_debug,        [  --enable-heavy-debug    create _lots_ debug messages],,[enable_heavy_debug=no])
+AM_CONDITIONAL(HEAVY_DEBUG,        test x$enable_heavy_debug    = xyes)
 
 dnl ###########################################################################
 dnl Architecture specific stuff
 dnl ###########################################################################
 
-dnl AC_CANONICAL_HOST
-
-case "${host}" in
-  *-*-linux* )
-    LIBS="$LIBS -rdynamic"
-  ;;
-  *-*-darwin* )
-    dnl PowerPC & x86 Darwin based distributions (including Mac OS X)
-    LIBS="$LIBS -dynamic"
-  ;;
-esac
 
 dnl ###########################################################################
 dnl normal debug
