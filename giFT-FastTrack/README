@@ -1,4 +1,4 @@
- $Id: README,v 1.9 2003/06/22 18:49:12 mkern Exp $
+ $Id: README,v 1.10 2003/06/26 23:06:45 beren12 Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
@@ -32,7 +32,8 @@ Mac OS X users should run sh -c 'LIBTOOL=glibtool LIBTOOLIZE=glibtoolize ./autog
 
 If you have giFT installed in a non-standard location (according to pkg-config,
 you must make sure that PKG_CONFIG_PATH is set to the directory where libgift.pc
-is located. Ex. export PKG_CONFIG_PATH=/usr/local/bin (for bash).
+is located. Ex. export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+(for bash).
 
 
 The next step is to run 'make' and 'make install' which will compile
