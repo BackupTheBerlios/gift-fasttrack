@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.41 2004/01/03 22:44:07 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.42 2004/01/04 22:57:24 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -338,8 +338,9 @@ static int fst_plugin_session_callback (FSTSession *session,
 
 int copy_default_file (const char *filename)
 {
-	char *local_path, *default_path;
+	char *local_path, *default_path, *target_dir;
 
+	target_dir = stringf_dup ("%s/FastTrack", platform_local_dir());
 	local_path = stringf_dup ("%s/FastTrack/%s", platform_local_dir(), filename);
 	default_path = stringf_dup ("%s/FastTrack/%s", platform_data_dir(), filename);
 
@@ -348,16 +349,30 @@ int copy_default_file (const char *filename)
 		FST_WARN_2 ("Local file \"%s\" does not exist, copying default from \"%s\"",
 					local_path, default_path);
 
+		/* make sure the target directory exists */
+		if (!file_mkdir (target_dir, 0777))
+		{
+			FST_ERR_1 ("Unable to create directory \"%s\"", target_dir);
+
+			free (target_dir);
+			free (local_path);
+			free (default_path);
+			return FALSE;
+		}
+
+
 		if (!file_cp (default_path, local_path))
 		{		
 			FST_ERR_1 ("Unable to copy default file \"%s\"", default_path);
 
+			free (target_dir);
 			free (local_path);
 			free (default_path);
 			return FALSE;
 		}
 	}
 
+	free (target_dir);
 	free (local_path);
 	free (default_path);
 	return TRUE;
