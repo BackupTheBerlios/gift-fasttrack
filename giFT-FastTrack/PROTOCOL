@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.12 2004/03/07 23:16:30 mkern Exp $
+$Id: PROTOCOL,v 1.13 2004/03/08 14:00:54 mkern Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -650,8 +650,14 @@ The first byte is the message type:
   1     0x28
   4     minimum encryption type
   1     unknown (0x00)
-  1     ???
-  4     unknown
+  1     unknown (Incremented by 1 approx every 30 minutes, stays within +/-1 at
+                 any given time for a sample of 200 nodes.)
+  2     unknown (In a 200 node sample 81 were 0x3c13, 40 were 0x5d06,
+                 11 were 0x800e, 10 were 0xc005.)
+  1     load? (Between 0 and 99.)
+  1     number of children? (Majority evenly destributed below 15. About 15 per
+                             cent above 220. Large gap in between. Changes too
+                             fast to be uptime in minutes.)
   n     zero-terminated network name
 
   Kazaa only seems to connect to nodes that return 0x28 in response to a ping,
