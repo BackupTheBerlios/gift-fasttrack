@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.c,v 1.9 2004/03/08 21:09:57 mkern Exp $
+ * $Id: fst_http_client.c,v 1.10 2004/09/03 11:36:40 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -162,8 +162,6 @@ void fst_http_client_free (FSTHttpClient *client)
 int fst_http_client_request (FSTHttpClient *client, FSTHttpHeader *request,
 							 int persistent)
 {
-	struct hostent *he;
-
 	assert (client);
 	assert (request);
 	assert (client->state == HTCL_DISCONNECTED ||
@@ -193,15 +191,22 @@ int fst_http_client_request (FSTHttpClient *client, FSTHttpHeader *request,
 	}
 
 	/* resolve host */
-	if (! (he = gethostbyname (client->host)))
+	if ((client->ip = net_ip (client->host)) == INADDR_NONE)
 	{
-		FST_WARN_1 ("gethostbyname failed for host %s", client->host);
-		client_reset (client, FALSE);
-		return FALSE;
+		struct hostent *he;
+	
+		/* TODO: make this non-blocking */
+		if (! (he = gethostbyname (client->host)))
+		{
+			AS_WARN_1 ("gethostbyname failed for host %s", client->host);
+			client_reset (client, FALSE);
+			return FALSE;
+		}
+		
+		/* hmm */
+		client->ip = *((in_addr_t*)he->h_addr_list[0]);
 	}
-
-	client->ip = *((in_addr_t*)he->h_addr_list[0]);
-
+		
 	/* connect */
 	FST_HEAVY_DBG_3 ("opening new tcp connection to %s [%s]:%d",
 					 client->host, net_ip_str(client->ip), client->port);

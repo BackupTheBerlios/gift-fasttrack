@@ -1,4 +1,8 @@
- $Id: ChangeLog,v 1.24 2004/06/19 19:53:55 mkern Exp $
+ $Id: ChangeLog,v 1.25 2004/09/03 11:36:39 mkern Exp $
+
+2004-09-03 Markus Kern <mkern@users.berlios.de>
+
+	* Fixed abuse of gethostbyname in HTTP client.
 
 2004-06-19  Markus Kern <mkern@users.berlios.de>
 	
