@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.23 2004/04/08 01:05:29 mkern Exp $
+ * $Id: fst_session.c,v 1.24 2004/04/08 01:12:30 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -235,7 +235,7 @@ int fst_session_send_info (FSTSession *session)
 		return FALSE;
 
 	/* send outside ip if available, local ip otherwise. */
-	if (FST_PLUGIN->external_ip)
+	if (FST_PLUGIN->external_ip && FST_PLUGIN->forwarding)
 		ip = FST_PLUGIN->external_ip;
 	else
 		ip = FST_PLUGIN->local_ip;
