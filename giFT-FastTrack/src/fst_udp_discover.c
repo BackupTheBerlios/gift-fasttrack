@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.4 2004/01/02 21:50:27 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.5 2004/01/03 13:34:59 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -20,10 +20,14 @@
 
 /*****************************************************************************/
 
+#define UDP_BUFFER_LEN 1024 /* length of udp packet buffer */
+
+/*****************************************************************************/
+
 static void udp_discover_receive (int fd, input_id input,
                                   FSTUdpDiscover *discover);
 static int udp_discover_timeout (FSTUdpDiscover *discover);
-static int udp_discover_ping_nodes (FSTUdpDiscover *discover);
+static int udp_discover_ping_nodes (FSTUdpDiscover *discover, int max_pings);
 static int udp_discover_send_ping (FSTUdpDiscover *discover, FSTNode *node);
 
 static int udpsock_bind (in_port_t port, int blocking);
@@ -104,7 +108,7 @@ FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback,
 	/* sort the cache so we start with the best nodes */
 	fst_nodecache_sort (discover->cache);
 
-	if (udp_discover_ping_nodes (discover) == -2)
+	if (udp_discover_ping_nodes (discover, 0) == -2)
 	{
 		/* callback freed us */
 		return NULL;
@@ -204,7 +208,7 @@ static void udp_discover_receive (int fd, input_id input,
 	FSTUdpNode *udp_node = NULL;
 	List *udp_node_link = NULL;
 	FSTNode *node;
-	unsigned char buf[256]; /* more than enough for the packet we want */
+	unsigned char buf[UDP_BUFFER_LEN];
 	struct sockaddr_in addr;
 	int addr_len = sizeof(addr);
 	int len, type;
@@ -218,10 +222,24 @@ static void udp_discover_receive (int fd, input_id input,
 		return;
 	}
 
-	if ((len = recvfrom (fd, buf, 256, 0, (struct sockaddr*)&addr, &addr_len)) < 0)
+	if ((len = recvfrom (fd, buf, UDP_BUFFER_LEN, 0, (struct sockaddr*)&addr, &addr_len)) < 0)
 	{
+#ifdef WIN32
+		if (WSAGetLastError () == WSAEMSGSIZE)
+		{
+			FST_DBG_1 ("udp_discover_receive: packet larger than %d bytes",
+			           UDP_BUFFER_LEN);
+			len = UDP_BUFFER_LEN;			
+		}
+		else
+		{
+			FST_ERR ("udp_discover_receive: recvfrom failed");
+			return;
+		}
+#else
 		FST_ERR ("udp_discover_receive: recvfrom failed");
 		return;
+#endif
 	}
 
 	/* find this udp node in list */
@@ -318,7 +336,7 @@ static void udp_discover_receive (int fd, input_id input,
 	fst_udp_node_free (udp_node);
 
 	/* callback may free us */
-	udp_discover_ping_nodes (discover);
+	udp_discover_ping_nodes (discover, 1);
 
 	/* wait for next packet */
 	return;
@@ -328,6 +346,8 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 {
 	List *item;
 	unsigned int now = time (NULL);
+
+	FST_HEAVY_DBG ("timer raised");
 
 	/* check all pending udp nodes for timeout */
 	for (item=discover->nodes; item; item=item->next)
@@ -354,7 +374,7 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 		item = discover->nodes;
 	}
 	
-	if (udp_discover_ping_nodes (discover) == -2)
+	if (udp_discover_ping_nodes (discover, 0) == -2)
 	{
 		/* callback freed us */
 		return FALSE;
@@ -371,9 +391,14 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
  * returns number of currently pinged nodes, -1 if network is down and -2 if
  * callback freed us.
  */
-static int udp_discover_ping_nodes (FSTUdpDiscover *discover)
+static int udp_discover_ping_nodes (FSTUdpDiscover *discover, int max_pings)
 {
-	while (discover->pinged_nodes < FST_UDP_DISCOVER_MAX_PINGS)
+	if (max_pings == 0)
+		max_pings = FST_UDP_DISCOVER_MAX_PINGS;
+	else
+		max_pings = discover->pinged_nodes + max_pings;	
+
+	while (discover->pinged_nodes < max_pings)
 	{
 		FSTNode *node = fst_nodecache_get_front (discover->cache);
 		
