@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.17 2004/03/10 20:51:40 mkern Exp $
+ * $Id: fst_search.h,v 1.18 2004/03/20 14:26:34 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -60,6 +60,7 @@ typedef struct
 	unsigned int sent;			/* number of times a query for this search has
 								 * been sent to supernodes
 								 */
+	unsigned int search_more;   /* auto search more count down */
 
 	int banlist_filter;			/* cache for config key main/banlist_filter */
 

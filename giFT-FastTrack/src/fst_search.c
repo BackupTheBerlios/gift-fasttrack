@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.26 2004/03/11 14:05:00 mkern Exp $
+ * $Id: fst_search.c,v 1.27 2004/03/20 14:26:34 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -164,9 +164,11 @@ FSTSearch *fst_search_create (IFEvent *event, FSTSearchType type, char *query,
 	search->fst_id = 0x0000;
 	search->type = type;
 	search->sent = 0;
+	search->search_more = config_get_int (FST_PLUGIN->conf,
+	                                      "main/auto_search_more=0");
 
 	search->banlist_filter = config_get_int (FST_PLUGIN->conf,
-											 "main/banlist_filter=0");
+	                                         "main/banlist_filter=0");
 
 	search->replies = 0;
 	search->fw_replies = 0;
@@ -423,8 +425,28 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			return FALSE;
 		}
 
-		FST_DBG_4 ("received end of search for fst_id = %d, %d replies, %d firewalled, %d banned",
+		FST_DBG_4 ("received end of search for fst_id %d, %d replies, %d firewalled, %d banned",
 				   fst_id, search->replies, search->fw_replies, search->banlist_replies);
+
+		/* check if we need to auto search more */
+		if (search->search_more > 0)
+		{
+			/* send off another query */
+			FST_DBG_2 ("auto searching more (%d) for fst_id %d",
+			           search->search_more - 1, search->fst_id);
+
+			if (!fst_search_send_query (search, FST_PLUGIN->session))
+			{
+				FST_DBG_2 ("fst_search_send_query failed for \"%s\", fst_id = %d",
+						search->query, search->fst_id);
+				/* return, we will search again on next supernode */
+				return FALSE;
+			}
+
+			search->search_more--;
+
+			return TRUE;
+		}
 
 		/* remove search from list */
 		fst_searchlist_remove (searchlist, search);

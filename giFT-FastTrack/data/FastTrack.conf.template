@@ -38,3 +38,12 @@ allow_sharing = 1
 # ips matching the ranges specified in the file ~/.giFT/FastTrack/banlist
 #
 banlist_filter = 1
+
+#
+# Number of times the plugin will search again after a search has completed.
+# Setting it to 2, for exmaple, will search two times after the original
+# search, that is three times total. Zero means there will be no additional
+# search after the initial one.
+# Don't overdo it! The supernode will disconnect you for excessive searching.
+#
+auto_search_more = 1

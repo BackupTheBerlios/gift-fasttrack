@@ -1,4 +1,9 @@
- $Id: ChangeLog,v 1.21 2004/03/11 12:05:48 mkern Exp $
+ $Id: ChangeLog,v 1.22 2004/03/20 14:28:33 mkern Exp $
+
+2004-03-20  Markus Kern <mkern@users.berlios.de>
+
+	* Added auto_search_more config option.
+	* Tweaked supernode disvocery.
 
 2004-03-11  Markus Kern <mkern@users.berlios.de>
 
