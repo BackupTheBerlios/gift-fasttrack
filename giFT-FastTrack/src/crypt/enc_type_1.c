@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_1.c,v 1.8 2003/07/23 17:10:32 weinholt Exp $
+ * $Id: enc_type_1.c,v 1.9 2003/11/23 17:33:12 weinholt Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -74,10 +74,7 @@ void enc_type_1 (u8 *out_key, u8 *in_key)
 	num2[255] = 1;
 
 	big_letoh (num1, num2);
-
-	if (big_getbit (modulus, 2047) != 0)	/* always true */
-		big_expmod (num1, exp, modulus);
-
+	big_expmod (num1, exp, modulus);
 	big_htole (out_key, num1, 256);
 }
 
@@ -104,9 +101,6 @@ void big_htole (u8 *dst, u32 *src, int cnt)
 {
 	int i;
 
-	if (cnt == 0)
-		return;
-
 	for (i = 0; i < cnt; i++)
 		dst[i] = (src[i >> 2] >> ((i & 3) << 3)) & 0xff;
 }
@@ -127,14 +121,10 @@ void big_expmod (u32 *num, u32 *exp, u32 *mod)
 
 	big_set (lnum, 1);
 
-	if (i > 0)
+	for (j = 0; j < i; j++)
 	{
-		for (j = 0; j < i; j++)
-		{
-			if (big_getbit (exp, j) != 0)
-				big_mulmod (lnum, num, mod);
-			big_mulmod (num, num, mod);
-		}
+		big_mulmod (lnum, num, mod);
+		big_mulmod (num, num, mod);
 	}
 
 	memcpy (num, lnum, 64 * 4);
@@ -147,9 +137,6 @@ void big_mulmod (u32 *num1, u32 *num2, u32 *mod)
 
 	big_mul (len, lnum, num1, num2);
 	big_mod (len, num1, lnum, mod);
-
-	if (len == 32)
-		memset (num1 + 32, 0, 32 * 4);
 }
 
 void big_mul (int cnt, u32 *out, u32 *in1, u32 *in2)
@@ -157,10 +144,7 @@ void big_mul (int cnt, u32 *out, u32 *in1, u32 *in2)
 	int i, j;
 	u64 k;
 
-	if (cnt == 0)
-		return;
-
-	memset (out, 0, 2 * cnt * 4);
+	memset (out, 0, cnt * 8);
 
 	for (i = 0; i < cnt; i++)
 	{
@@ -176,9 +160,6 @@ void big_mul (int cnt, u32 *out, u32 *in1, u32 *in2)
 
 int big_isless (int cnt, u32 *num1, u32 *num2)
 {
-	if (cnt == 0)
-		return 0;
-
 	for (cnt--; cnt >= 0; cnt--)
 	{
 		if (num1[cnt] < num2[cnt])
@@ -196,18 +177,10 @@ void big_mod (int cnt, u32 *out, u32 *in1, u32 *in2)
 	u32 k, l;
 	int i, j;
 
-	if (cnt == 0)
-		return;
-
 	for (i = cnt - 1; i >= 0; i--)
 	{
-		k = in1[cnt + i];
-		if (in2[cnt - 1] != 0xffffffff)
-		{
-			x = (((u64) in1[cnt + i] << 32) +
-				 (u64) in1[cnt + i - 1]) / ((u64) in2[cnt - 1] + 1);
-			k = x;
-		}
+		k = x = (((u64) in1[cnt + i] << 32) +
+			 (u64) in1[cnt + i - 1]) / ((u64) in2[cnt - 1] + 1);
 
 		for (j = 0, l = 0; j < cnt; j++)
 		{
@@ -224,14 +197,8 @@ void big_mod (int cnt, u32 *out, u32 *in1, u32 *in2)
 		{
 			for (j = 0, l = 0; j < cnt; j++)
 			{
-				if (in1[i + j] != 0 || in2[j] == 0)
-				{
-					in1[i + j] -= l;
-					l = (in1[i + j] < in2[j]);
-				} else
-				{
-					in1[i + j] = 0xffffffff;
-				}
+				in1[i + j] -= l;
+				l = in1[i + j] < in2[j];
 				in1[i + j] -= in2[j];
 			}
 			in1[cnt + i] -= l;
