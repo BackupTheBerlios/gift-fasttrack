@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.27 2004/03/20 14:26:34 mkern Exp $
+ * $Id: fst_search.c,v 1.28 2004/03/24 14:27:41 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -429,7 +429,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 				   fst_id, search->replies, search->fw_replies, search->banlist_replies);
 
 		/* check if we need to auto search more */
-		if (search->search_more > 0)
+		if (search->search_more > 0 && search->type == SearchTypeSearch)
 		{
 			/* send off another query */
 			FST_DBG_2 ("auto searching more (%d) for fst_id %d",
