@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.25 2004/03/10 02:07:01 mkern Exp $
+ * $Id: fst_search.c,v 1.26 2004/03/11 14:05:00 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -72,6 +72,16 @@ int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hstr)
 
 	if (!htype || !hstr)
 		return FALSE;
+
+	/* BEGIN HACK: magic search causes supernode jump */
+	if (!gift_strcasecmp (htype, FST_KZHASH_NAME) &&
+	    !gift_strcasecmp (hstr, "dance"))
+	{
+		FST_DBG ("jumping supernode");
+		fst_session_disconnect (FST_PLUGIN->session);
+		return FALSE;
+	}
+	/* END HACK */
 
 	if (!(hash = fst_hash_create ()))
 		return FALSE;

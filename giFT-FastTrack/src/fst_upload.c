@@ -1,5 +1,5 @@
 /*
- * $Id: fst_upload.c,v 1.11 2004/03/11 12:05:49 mkern Exp $
+ * $Id: fst_upload.c,v 1.12 2004/03/11 14:05:00 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -18,9 +18,9 @@
 #include "fst_fasttrack.h"
 #include "fst_upload.h"
 
-
+/*
 #define LOG_HTTP_HEADERS
-
+*/
 
 /*****************************************************************************/
 
