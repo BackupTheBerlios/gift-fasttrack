@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.10 2003/06/22 12:21:18 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.11 2003/06/24 15:20:59 rasa Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project http://developer.berlios.de/projects/gift-fasttrack
  *
@@ -70,14 +70,26 @@
 # endif
 #endif /* TIME_WITH_SYS_TIME */
 
-#include <stdint.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
 
+// Just a hack 'til we fix it properly
+#ifndef _MSC_VER
 typedef int8_t   fst_int8;
 typedef uint8_t  fst_uint8;
 typedef int16_t  fst_int16;
 typedef uint16_t fst_uint16;
 typedef int32_t  fst_int32;
 typedef uint32_t fst_uint32;
+#else
+#define fst_int8 int8_t
+#define fst_uint8 uint8_t
+#define fst_int16 int16_t
+#define fst_uint16 uint16_t
+#define fst_int32 int32_t
+#define fst_uint32 uint32_t
+#endif
 
 /*****************************************************************************/
 
