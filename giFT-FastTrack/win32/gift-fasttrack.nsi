@@ -2,6 +2,10 @@
 ; This file creates an installer for gift-fasttrack for use with KCeasy, giFTwin32 or
 ; other installations of giFT on windows. It assumes gift-fasttrack was build using the
 ; environment provided by giFT.
+;
+; This installer expects two FastTrack DLLs:
+; - A FastTrack.dll compiled with RELEASE=1 for giFTwin32 and custom installs.
+; - A FastTrack-Loader.dll compiled with RELEASE=1 and USE_LOADER=1 for KCeasy.
 ;------------------------------------------------------------------------------------------
 
 ; Compile time options
@@ -125,7 +129,7 @@ Section "gift-fasttrack for KCeasy" SEC_KCEASY
 FoundInstallPath:
 	StrCpy $INSTDIR $R1
 	SetOutPath $INSTDIR\giFT\plugins
-	File FastTrack.dll
+	File /oname=FastTrack.dll FastTrack-Loader.dll
 
 	SetOutPath $INSTDIR\giFT\conf\FastTrack
 	File ${TMP_DIR}\FastTrack.conf
@@ -168,7 +172,7 @@ Section "gift-fasttrack for giFTwin32" SEC_GIFTWIN32
 FoundInstallPath:
 	StrCpy $INSTDIR $R1
 	SetOutPath $INSTDIR
-	File FastTrack.dll
+	File /oname=FastTrack.dll FastTrack.dll
 
 	SetOutPath $INSTDIR\FastTrack
 	File ${TMP_DIR}\FastTrack.conf
@@ -202,7 +206,7 @@ Section /o "gift-fasttrack in custom directory" SEC_CUSTOM
 FoundInstallPath:
 	StrCpy $INSTDIR $CUSTOM_PLUGIN_FOLDER
 	SetOutPath $INSTDIR
-	File FastTrack.dll
+	File /oname=FastTrack.dll FastTrack.dll
 
 	SetOutPath $INSTDIR\FastTrack
 	File ${TMP_DIR}\FastTrack.conf

@@ -1,4 +1,8 @@
- $Id: ChangeLog,v 1.26 2004/11/11 17:24:38 mkern Exp $
+ $Id: ChangeLog,v 1.27 2004/11/27 10:36:18 mkern Exp $
+
+2004-11-27  Markus Kern <mkern@users.berlios.de>
+
+	* Added windows installer.
 
 2004-11-11  Markus Kern <mkern@users.berlios.de>
 

@@ -1,4 +1,4 @@
-# $Id: Make.msvc,v 1.9 2004/11/19 19:35:03 mkern Exp $
+# $Id: Make.msvc,v 1.10 2004/11/27 10:36:18 mkern Exp $
 
 VERSION = 0.8.8
 O = .obj
@@ -76,7 +76,7 @@ LIBGIFTPROTO_LIB	= libgiFTproto$(DEXT).lib
 LIBGIFTPROTO_DLL	= libgiFTproto$(DEXT).dll
 LIBGIFTPROTO_STATIC	= libgiFTprotostatic$(DEXT).lib
 FASTTRACK_LIB         	= FastTrack$(DEXT).lib
-FASTTRACK_DLL         	= FastTrack.dll
+FASTTRACK_DLL         	= FastTrack$(DEXT).dll
 FASTTRACK_STATIC       	= FastTrackstatic$(DEXT).lib
 
 CFLAGS   = $(CFLAGS) -nologo
