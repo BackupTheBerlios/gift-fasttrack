@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.15 2003/11/28 23:11:08 hex Exp $
+ * $Id: fst_session.c,v 1.16 2003/12/02 18:45:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -580,7 +580,7 @@ static int session_greet_suppernode (FSTSession *session)
 	 * 1680 kbps).  The value is approximately 14*log_2(x)+59, where
 	 * x is the bandwidth in kbps.
 	 */
-	fst_packet_put_uint8 (packet, 0xb0);
+	fst_packet_put_uint8 (packet, 0x50);
 
 	/* 1 byte: dunno. */
 	fst_packet_put_uint8 (packet, 0x00);
