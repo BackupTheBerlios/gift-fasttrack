@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# $Id: autogen.sh,v 1.4 2003/08/01 14:54:59 weinholt Exp $
+# $Id: autogen.sh,v 1.5 2003/09/06 21:50:26 weinholt Exp $
 # Run this to generate all the initial makefiles, etc.
 
 # Stolen from the GNU Midnight Commander. Customized for giFTcurs. Stolen from
@@ -43,7 +43,6 @@ $AUTOCONF || exit 1
 test -f configure || \
   { echo "autoconf failed to generate configure" 2>&1; exit 1; }
 
-# hack hack hack...i hate autotools.
 echo "Running $LIBTOOLIZE --automake..."
 $LIBTOOLIZE --automake || exit 1
 test -f ltmain.sh || \
