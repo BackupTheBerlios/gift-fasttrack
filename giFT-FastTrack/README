@@ -14,23 +14,11 @@ Then again, running KaZaA in wine may destroy all of the above.
 Compilation & Installation
 --------------------------
 
-Currently there is only a simple make file.
-(You're welcome to provide something better)
+run ./autogen.sh and this will run automake and friends, then configure.
+All that is left to do is run make
 
-So just copy everything into giFT/FastTrack (the giFT source dir
-you got from cvs) and run "make" and "make install" there.
-
-NOTE: If you are using MAC OSX please use "make mac" and
-      "make install" instead.
-
-Maybe look at the Makefile first since it makes some
-stupid assumptions about your system.
-
-To test it run "giFT -p /usr/local/lib/giFT/FastTrack.so"
-Or you can add the path to your gift.conf like so:
-
-plugin = OpenFT:/usr/local/lib/giFT/FastTrack.so
-
+There is currently one configure option, --disable-ltdl, if you do not
+want to build libtool libs.
 
 Contact
 -------
@@ -51,3 +39,5 @@ as such is copyrighted by the gift project.
 Thanks to weinholt for reverse engineering most parts of enc_type_1.c
 
 enc_type_2.c is the work of Raimar Falke, I merely cleaned it up a bit.
+
+buildsystem based on giFT, by beren12@users.berlios.de
