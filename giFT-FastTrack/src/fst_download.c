@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.24 2004/03/10 02:07:01 mkern Exp $
+ * $Id: fst_download.c,v 1.25 2004/03/10 20:51:40 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -509,7 +509,8 @@ static void download_error_gift (Source *source, int remove_source,
  */
 static char *download_calc_xferuid (char *uri)
 {
-	/* This search hash was provided by ashton.
+	/* This search hash was provided by the guy who also insisted that the
+	 * below time(NULL) MUST be time(0) to work correctly.
 	 * The PL changes based on system time of uploading host.
 	 * I presume current time is used in creation of last_search_hash.
 	 * This hash was created in the distant future and seems to give

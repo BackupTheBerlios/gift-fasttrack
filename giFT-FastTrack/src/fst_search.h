@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.16 2004/03/10 02:07:01 mkern Exp $
+ * $Id: fst_search.h,v 1.17 2004/03/10 20:51:40 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -24,14 +24,6 @@
 #include "fst_meta.h"
 
 /*****************************************************************************/
-
-/* 20.11.03
- * XORed all realm vlaues with 0x80 after observing search traffic from
- * Kazaa Lite which had the most significant bit always set.
- * The previous values were taken from Givers code and not verified.
- * Ashton pointed out that searching for AUDIO never returns files with
- * bitrates above 128 and IMAGES returns EVERYTHING. This should be fixed now.
- */
 
 typedef enum
 {	QUERY_REALM_EVERYTHING = 0xbf,
