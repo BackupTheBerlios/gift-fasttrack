@@ -8,23 +8,12 @@ extern void enc_type_1 (unsigned char *out_key, unsigned char *in_key);
 extern void enc_type_2 (unsigned int *key, unsigned int seed);
 extern void enc_type_20 (unsigned int *key, unsigned int seed);
 
-unsigned char enc_1_md5_in[]   = "\x13\x33\x0c\xaa\x86\xd9\xed\x56\x4c\x1c\x17\xc1\xc2\x6d\x38\xc5";
-unsigned char enc_1_md5_out[]  = "\x44\x3a\xf2\xf6\x2c\xd3\x30\xd1\x00\x6a\xb8\x9a\x1f\xe9\x1e\x4d";
+unsigned char enc_1_md5_in[]   = "\x28\x5f\x6e\x27\xf0\x42\xca\x78\x5a\x0b\x21\x4b\x21\x78\x3a\x78";
+unsigned char enc_1_md5_out[]  = "\xfc\x2f\x97\xe5\x04\xf5\x43\x0b\xd6\x10\x45\x00\x82\x71\x82\x12";
 unsigned char enc_2_md5_in[]   = "\x9d\x2a\x30\xae\x28\xc1\x3e\x3b\x91\x88\x4d\xfb\xf3\x98\x65\x61";
 unsigned char enc_2_md5_out[]  = "\xd3\x10\xb6\x45\x9a\x86\x88\x4a\xac\x6c\x43\x66\xc8\xf0\xa6\x19";
 unsigned char enc_20_md5_in[]  = "\x9d\x2a\x30\xae\x28\xc1\x3e\x3b\x91\x88\x4d\xfb\xf3\x98\x65\x61";
 unsigned char enc_20_md5_out[] = "\x44\x29\x82\x10\xa3\x6e\x14\x3a\xd2\x8a\xa2\x82\x6d\xe7\x11\xe6";
-
-static void reverse_bytes (unsigned int *buf, unsigned int longs)
-{
-	unsigned char *cbuf = (unsigned char*)buf;
-
-	for ( ; longs; longs--, buf++, cbuf += 4)
-	{
-		*buf = ( (unsigned int) cbuf[3] << 8 | cbuf[2]) << 16 |
-			   ( (unsigned int) cbuf[1] << 8 | cbuf[0]);
-	}
-}
 
 /* rndlcg            Linear Congruential Method, the "minimal standard generator"
                      Park & Miller, 1988, Comm of the ACM, 31(10), pp. 1192-1201
@@ -129,6 +118,17 @@ static unsigned int r250()		/* returns a random unsigned integer */
 
 }
 
+static void reverse_bytes (unsigned int *buf, unsigned int longs)
+{
+	unsigned char *cbuf = (unsigned char*)buf;
+
+	for ( ; longs; longs--, buf++, cbuf += 4)
+	{
+		*buf = ( (unsigned int) cbuf[3] << 8 | cbuf[2]) << 16 |
+			   ( (unsigned int) cbuf[1] << 8 | cbuf[0]);
+	}
+}
+
 static char *md5_get_str (unsigned char *hash)
 {
 	static const char hex_string[] = "0123456789abcdef";
@@ -182,9 +182,10 @@ int main (int argc, char* argv[])
 			for (i=0; i<64; i++)
 				key_256_in[i] = r250();
 			reverse_bytes (key_256_in, 64);
-			MD5Update (&in_md5_ctx, (unsigned char*)key_256_in, 256);
+			MD5Update (&in_md5_ctx, (unsigned char*)key_256_in, 255);
+			// only 255 bytes are used by enc_type_1
 			enc_type_1 ((unsigned char*)key_256_out, (unsigned char*)key_256_in);
-			MD5Update (&out_md5_ctx, (unsigned char*)key_256_out, 256);		
+			MD5Update (&out_md5_ctx, (unsigned char*)key_256_out, 255);		
 		}
 
 		MD5Final (in_hash, &in_md5_ctx);
