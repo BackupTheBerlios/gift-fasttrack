@@ -157,7 +157,15 @@ SOURCE=..\src\fst_session.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\fst_share.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\fst_stats.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\fst_upload.c
 # End Source File
 # Begin Source File
 
@@ -229,7 +237,15 @@ SOURCE=..\src\fst_session.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\fst_share.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\fst_stats.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\fst_upload.h
 # End Source File
 # Begin Source File
 
