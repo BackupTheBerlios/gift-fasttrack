@@ -1,4 +1,4 @@
-$Id: TODO,v 1.18 2004/01/28 17:07:29 mkern Exp $
+$Id: TODO,v 1.19 2004/02/08 10:24:56 mkern Exp $
 
 - redo udp discovery, only use it as a supplemental to tcp
 - make dowloading less greedy, custom throttle?
@@ -11,4 +11,6 @@ $Id: TODO,v 1.18 2004/01/28 17:07:29 mkern Exp $
 - add meta tags to http reply
 - remove firewalled sources from incomplete downloads on shutdown
 - create a FastTrack.conf.template, modify auto default copy routine
+- do we really upload shares which get added not at startup but later?
+- does kazaa use the same fst_id for searchin again?
 
