@@ -29,5 +29,5 @@ crypt/enc_type_20.c \
 crypt/fst_crypt.c	crypt/fst_crypt.h
 
 libFastTrack_la_LIBADD = \
-	$(prefix)/lib/libgiFT.la \
-	$(prefix)/lib/libgiFTproto.la
+	$(prefix)/lib/libgift.la \
+	$(prefix)/lib/libgiftproto.la
