@@ -54,8 +54,8 @@ FSTMetaTag *fst_metatag_create_from_filetag (FSTFileTag filetag, FSTPacket *data
 		value = strdup(buf);
 		break;
 	case FILE_TAG_QUALITY:
-		name = "quality";
-		sprintf (buf, "%d kbps", fst_packet_get_dynint (data));
+		name = "bitrate";
+		sprintf (buf, "%d", fst_packet_get_dynint (data) * 1000);
 		value = strdup(buf);
 		break;
 	case FILE_TAG_RESOLUTION:
