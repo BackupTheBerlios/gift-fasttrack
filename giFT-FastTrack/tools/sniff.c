@@ -1,5 +1,5 @@
 /*
- * $Id: sniff.c,v 1.4 2004/03/04 10:18:39 mkern Exp $
+ * $Id: sniff.c,v 1.5 2004/03/10 19:03:36 mkern Exp $
  *
  * Based on printall.c from libnids/samples, which is
  * copyright (c) 1999 Rafal Wojtczuk <nergal@avet.com.pl>. All rights reserved.
@@ -444,10 +444,67 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 
 void udp_callback(struct tuple4 *addr, char *buf, int len, void* iph)
 {
-//	if (verify_port (addr->dest)) {
-		fprintf(stderr, "%s [UDP] (len %d)\n", adres (addr, 0), len);
+	unsigned char type;
+	
+	if (!verify_port (addr->dest) && !verify_port (addr->source))
+		return;
+
+	if (!verify_ip (addr))
+		return;
+
+	/* ignore dns */
+	if (addr->dest == 53 || addr->source == 53)
+		return;
+
+	type = ((unsigned char*)buf)[0];
+
+	switch (type)
+	{
+	case 0x27: /* ping */
+	{
+		unsigned int enc_type = ntohl(*((unsigned int*)(buf+1)));
+		unsigned char unknown1 = *((unsigned char*)(buf+5));
+		char netname[64];
+		strncpy (netname, buf+6, 64);
+		netname[63] = 0;
+
+		fprintf(stderr, "%s [UDP] (PING, len %d)\n", adres (addr, 0), len);
+		fprintf(stderr, "    enc_type: 0x%02X, unk1: 0x%02X, netname: %s\n",
+		        enc_type, unknown1, netname);
+		break;
+	}
+
+	case 0x28: /* supernode pong */
+	{
+		unsigned int enc_type = ntohl(*((unsigned int*)(buf+1)));
+		unsigned char unknown1 = *((unsigned char*)(buf+5));
+		unsigned char unknown2 = *((unsigned char*)(buf+6));
+		unsigned char unknown3 = *((unsigned char*)(buf+7));
+		unsigned char unknown4 = *((unsigned char*)(buf+8));
+		unsigned char load = *((unsigned char*)(buf+9));
+		unsigned char unknown5 = *((unsigned char*)(buf+10));
+
+		fprintf(stderr, "%s [UDP] (PONG, len %d)\n", adres (addr, 0), len);
+		fprintf(stderr, "    enc_type: 0x%02X, unk1: 0x%02X, unk2: 0x%02X "
+		        "unk3: 0x%02X, unk4: 0x%02X, load: %d, unk5: %d\n",
+		        enc_type, unknown1, unknown2, unknown3, unknown4, load, unknown5);
+		break;
+	}
+
+	case 0x29: /* client pong */
+	{
+		fprintf(stderr, "%s [UDP] (PONG_2, len %d)\n", adres (addr, 0), len);
 		print_bin_data (buf, len);
-//	}
+		break;
+	}
+
+	default:
+	{
+		fprintf(stderr, "%s [UDP] (type 0x%02X, len %d)\n", adres (addr, 0), type, len);
+		print_bin_data (buf, len);
+		break;
+	}
+	}
 }
 
 void syslog (int type, int errnum, struct ip *iph, void *data)
