@@ -1,5 +1,5 @@
 /*
- * $Id: fst_peer.c,v 1.3 2004/11/10 20:00:57 mkern Exp $
+ * $Id: fst_peer.c,v 1.4 2004/11/11 14:31:56 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -72,7 +72,7 @@ static void remove_global (Dataset *gpeers, FSTNode *peer, List *nodelink)
 }
 
 static int remove_peer (ds_data_t *key, ds_data_t *value,
-			 void *udata)
+                        void *udata)
 {
 	remove_global ((Dataset *)udata, *(FSTNode **)key->data,
 	               (List *)value->data);

@@ -1,4 +1,4 @@
-$Id: TODO,v 1.41 2004/11/10 21:46:34 mkern Exp $
+$Id: TODO,v 1.42 2004/11/11 14:31:54 mkern Exp $
 
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
@@ -16,5 +16,3 @@ $Id: TODO,v 1.41 2004/11/10 21:46:34 mkern Exp $
 - is the SWAP32 in fst_download.c correct?
 
 - downloads of files > ~1GB don't work.
-
-giftd: fst_node.c:110: fst_node_release: Assertion `node->link == ((void *)0)' failed.

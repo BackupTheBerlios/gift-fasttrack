@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.32 2004/11/10 20:00:57 mkern Exp $
+ * $Id: fst_session.c,v 1.33 2004/11/11 14:31:56 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -79,19 +79,16 @@ void fst_session_free (FSTSession *session)
 
 	fst_cipher_free (session->in_cipher);
 	fst_cipher_free (session->out_cipher);
-	
-	fst_peer_remove (FST_PLUGIN->peers,
-			 session->node,
-			 session->peers);
-	
+
 	fst_packet_free (session->in_packet);
-
 	tcp_close (session->tcpcon);
-
+	
+	fst_peer_remove (FST_PLUGIN->peers, session->node, session->peers);
+	
 	if (session->node)
 		session->node->session = NULL;
-
 	fst_node_release (session->node);
+
 	timer_remove (session->ping_timer);
 
 	free (session);
@@ -145,7 +142,6 @@ int fst_session_connect (FSTSession *session, FSTNode *node)
 	fst_node_addref (session->node);
 
 	session->node->session = session;
-
 
 	input_add (session->tcpcon->fd, (void*) session, INPUT_WRITE,
 			   (InputCallback) session_connected, FST_SESSION_CONNECT_TIMEOUT);

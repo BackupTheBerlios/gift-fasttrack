@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.h,v 1.12 2004/11/10 20:00:57 mkern Exp $
+ * $Id: fst_node.h,v 1.13 2004/11/11 14:31:56 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -61,8 +61,8 @@ typedef struct
 					  * duplicates.
 	                  */
 
-	List *last; /* last entry of the list, to work around deficiencies
-		       in giFT's linked list implementation */
+	List *last;      /* last entry of the list, to work around deficiencies
+	                  * in giFT's linked list implementation */
 } FSTNodeCache;
 
 typedef enum
@@ -100,18 +100,17 @@ void fst_nodecache_free (FSTNodeCache *cache);
 
 /*****************************************************************************/
 
-/* Create and add node to front of cache. If node with the same ip is already
- * present it is updated and returned in which case the reference count is
- * not changed.
+/* Create and add node to front of cache. If node with the same ip already
+ * present it is updated and returned. Refcount is not incremented.
  */
 FSTNode *fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
                             unsigned short port, unsigned int load,
                             unsigned int last_seen);
 
-/* Move node already in cache to new pos or add node not yet in cache.
- * Refcount is unchanged in either case.
+/* Move node already in cache to new pos. Returns FALSE if node is not in
+ * cache. Refcount remains unchanged.
  */
-void fst_nodecache_move (FSTNodeCache *cache, FSTNode *node,
+BOOL fst_nodecache_move (FSTNodeCache *cache, FSTNode *node,
                          FSTNodeInsertPos pos);
 
 /* Remove node from node cache and release it. */

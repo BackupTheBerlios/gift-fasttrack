@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.21 2004/11/10 21:46:35 mkern Exp $
+ * $Id: fst_node.c,v 1.22 2004/11/11 14:31:56 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -83,13 +83,14 @@ int fst_node_addref (FSTNode *node)
 	if (!node)
 		return 0;
 
+	assert (node->ref > 0);
+	node->ref++;
+
 #ifdef NODECACHE_DEBUG
-	FST_DBG_3("ref'd %p, ref=%d, link=%p", node, node->ref, node->link);
+	FST_DBG_3("addref'd %p, ref=%d, link=%p", node, node->ref, node->link);
 #endif
 
-	assert (node->ref > 0);
-
-	return (++node->ref);
+	return node->ref;
 }
 
 /* Decrement node's reference count and free if it goes to zero. Returns new
@@ -100,20 +101,25 @@ int fst_node_release (FSTNode *node)
 	if (!node)
 		return 0;
 
-#ifdef NODECACHE_DEBUG
-	FST_DBG_3("released'd %p, ref=%d, link=%p", node, node->ref, node->link);
-#endif
 	assert (node->ref > 0);
 
 	if (--node->ref == 0)
 	{
 		assert (node->link == NULL);
 
+#ifdef NODECACHE_DEBUG
+	FST_DBG_3("freed %p, ref=%d, link=%p", node, node->ref, node->link);
+#endif
+
 		if (node->host)
 			free (node->host);
 		free (node);
 		return 0;
 	}
+
+#ifdef NODECACHE_DEBUG
+	FST_DBG_3("released %p, ref=%d, link=%p", node, node->ref, node->link);
+#endif
 	
 	return node->ref;
 }
@@ -148,8 +154,8 @@ void fst_nodecache_free (FSTNodeCache *cache)
 		return;
 
 	cache->list = list_foreach_remove (cache->list,
-					   (ListForeachFunc)nodecache_free_node,
-					   NULL);
+	                                   (ListForeachFunc)nodecache_free_node,
+	                                   NULL);
 	dataset_clear (cache->hash);
 	free (cache);
 }
@@ -157,8 +163,7 @@ void fst_nodecache_free (FSTNodeCache *cache)
 /*****************************************************************************/
 
 /* Create and add node to front of cache. If node with the same ip already
- * present it is updated and returned in which case the reference count is
- * not changed.
+ * present it is updated and returned. Refcount is not incremented.
  */
 FSTNode *fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
                             unsigned short port, unsigned int load,
@@ -168,16 +173,39 @@ FSTNode *fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
 
 	node = dataset_lookupstr (cache->hash, host);
 
-	if (!node)
-		node = fst_node_create ();
+	if (node)
+	{
+		/* update old node */
+		fst_node_init (node, klass, host, port, load, last_seen);
 
-	fst_node_init (node, klass, host, port, load, last_seen);
+		/* move to new position */
+		fst_nodecache_move (cache, node, NodeInsertFront);
+	}
+	else
+	{
+		/* create new node */
+		if (!(node = fst_node_create ()))
+			return NULL;
+	
+		fst_node_init (node, klass, host, port, load, last_seen);
+
+		/* insert node at front */
+		cache->list = list_prepend (cache->list, node);
+		node->link = cache->list;
+
+		if (!cache->last)
+			cache->last = cache->list;	
+
+		/* insert node into hash table */
+		dataset_insert (&cache->hash, node->host, strlen (node->host) + 1,
+		                node, 0);
+
+	}
 
 #ifdef NODECACHE_DEBUG
-	FST_DBG_5("cache_add: %s:%d node=%p, link=%p, ref=%p", host, port, node, node->link, node->ref);
+	FST_DBG_5("cache_add: %s:%d node=%p, link=%p, ref=%p", host, port, node,
+	          node->link, node->ref);
 #endif
-
-	fst_nodecache_move (cache, node, NodeInsertFront);
 
 	return node;
 }
@@ -191,27 +219,30 @@ static int cmp_hosts (FSTNode *a, FSTNode *b)
 }
 #endif
 
-/* Move node already in cache to new pos or add node not yet in cache.
- * Refcount is unchanged in either case.
+/* Move node already in cache to new pos. Returns FALSE if node is not in
+ * cache. Refcount remains unchanged.
  */
-void fst_nodecache_move (FSTNodeCache *cache, FSTNode *node,
+BOOL fst_nodecache_move (FSTNodeCache *cache, FSTNode *node,
                          FSTNodeInsertPos pos)
 {
 #ifdef NODECACHE_DEBUG
 	FSTNode *org_node;
 	List *l;
-
-	org_node = dataset_lookupstr (cache->hash, node->host);
-	assert (!org_node || node == org_node);
-	l = list_find_custom (cache->list, node, (CompareFunc)cmp_hosts);
-	assert ((!org_node && !l) || (org_node == l->data));
 #endif
 
-	if (node->link)
-	{
-		fst_node_addref (node); /* still need it after fst_nodecache_remove */
-		fst_nodecache_remove (cache, node);
-	}
+	if (!node->link)
+		return FALSE;
+
+#ifdef NODECACHE_DEBUG
+	org_node = dataset_lookupstr (cache->hash, node->host);
+	assert (org_node);
+	assert (node == org_node);
+	l = list_find_custom (cache->list, node, (CompareFunc)cmp_hosts);
+	assert (l && org_node == l->data);
+#endif
+
+	fst_node_addref (node); /* still need it after fst_nodecache_remove */
+	fst_nodecache_remove (cache, node);
 
 	/* ickiness */
 	if (!cache->list)
@@ -249,6 +280,7 @@ void fst_nodecache_move (FSTNodeCache *cache, FSTNode *node,
 		 * no way of getting the link without searching the entire
 		 * list again! */
 		node->link = list_find (cache->list, node);
+		assert (node->link);
 
 		if (!node->link->next)
 			cache->last = node->link;
@@ -259,17 +291,18 @@ void fst_nodecache_move (FSTNodeCache *cache, FSTNode *node,
 	assert (node->link->data == node);
 	assert (!cache->last->next);
 	assert (!cache->list || !cache->last ||
-		list_find (cache->list, cache->last->data));
-#endif
+	        list_find (cache->list, cache->last->data));
 
-#ifdef NODECACHE_DEBUG
 	FST_DBG_2("set %p->link to %p", node, node->link);
 #endif
-	/* insert link into hash table */
-	dataset_insert (&cache->hash, node->host, strlen (node->host) + 1,
-	                node, 0);	
 
-	assert (node->ref);
+	/* insert node into hash table */
+	dataset_insert (&cache->hash, node->host, strlen (node->host) + 1,
+	                node, 0);
+
+	assert (node->ref > 0);
+
+	return TRUE;
 }
 
 /* Remove node from node cache and release it. */

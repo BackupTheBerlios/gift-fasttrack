@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.77 2004/11/10 20:00:57 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.78 2004/11/11 14:31:56 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -271,21 +271,6 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 		 * next time we connect.
 		 */
 		fst_nodecache_move (FST_PLUGIN->nodecache, node, NodeInsertSorted);
-
-/*
- * Enabling this has proven to be a bad idea since it terminates connections
- * before they are fully established.		
- */
-#if 0
-		/* if we don't have a established session try again with this node */
-		if (!FST_PLUGIN->session || FST_PLUGIN->session->state == SessConnecting)
-		{
-			FST_HEAVY_DBG ("no established session, using this node...");
-			/* this calls us back with SessMsgDisconnected */
-			fst_session_disconnect (FST_PLUGIN->session);
-		}
-#endif
-
 		break;
 	}
 
@@ -375,6 +360,8 @@ static int fst_plugin_session_callback (FSTSession *session,
 		}
 
 		/* remove old node from node cache */
+		assert (session->node);
+
 		if (session->node)
 		{
 			fst_nodecache_remove (FST_PLUGIN->nodecache, session->node);
@@ -407,8 +394,8 @@ static int fst_plugin_session_callback (FSTSession *session,
 #else
 #ifdef DUMP_NODES
 			fprintf (stderr, "%08x %08x:%d %08x:%d %d %d\n",
-				   now, session->tcpcon->host, session->tcpcon->port,
-				   ip, port, load, last_seen);
+			         now, session->tcpcon->host, session->tcpcon->port,
+			         ip, port, load, last_seen);
 
 #endif
 #endif
