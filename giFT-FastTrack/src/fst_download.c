@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.10 2003/07/05 11:46:25 mkern Exp $
+ * $Id: fst_download.c,v 1.11 2003/07/05 16:44:00 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -382,10 +382,6 @@ static void download_error_gift (FSTDownload *download, int remove_source, unsig
 		FST_DBG_1 ("download error (%s), removing source", error);
 		FST_PROTO->source_status (FST_PROTO, download->chunk->source, klass, error);
 		FST_PROTO->source_abort (FST_PROTO, download->chunk->transfer, download->chunk->source);
-
- 		/* tell giFT an error occured with this download */
- 		download_write_gift (download, NULL, 0);
- 		fst_download_free (download);
 	}
 	else
 	{
