@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_20.c,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: enc_type_20.c,v 1.3 2003/06/21 18:08:33 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -34,8 +34,8 @@ typedef int THROWS_RET;
 
 /* some constants and helper funcs */ 
 
-double math_const_1 = 0.001;
-double math_const_2 = 0;
+static double math_const_1 = 0.001;
+static double math_const_2 = 0;
 
 static unsigned int ROR(unsigned int value, unsigned int count)
 {
