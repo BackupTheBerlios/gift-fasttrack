@@ -48,12 +48,7 @@ dnl ###########################################################################
 dnl Checks for libraries.
 dnl ###########################################################################
 
-AC_CHECK_LIB(nsl, gethostbyname)
-AC_CHECK_LIB(socket, socket)
-AC_CHECK_LIB(mingwex, opendir)
-AC_CHECK_LIB(bind, inet_ntoa)
-AC_CHECK_LIB(be, openlog)
-AC_CHECK_LIB(gift, libgift_init)
+PKG_CHECK_MODULES(FT, libgift >= 0.10.0)
 
 dnl ###########################################################################
 dnl Checks for header files.
@@ -62,20 +57,6 @@ dnl ###########################################################################
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(dirent.h \
-                 fcntl.h \
-                 getopt.h \
-                 limits.h \
-                 linux/limits.h \
-                 sys/mman.h \
-                 sys/time.h \
-                 syslog.h \
-                 signal.h \
-                 unistd.h \
-                 inttypes.h \
-                 io.h \
-                 libgift/libgift.h \
-)
 
 dnl ###########################################################################
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -84,24 +65,6 @@ dnl ###########################################################################
 AC_C_CONST
 AC_HEADER_TIME
 AC_STRUCT_TM
-
-AS_IF([test "${ac_cv_header_time}" = yes],
-      [AC_DEFINE(TIME_WITH_SYS_TIME)],
-      [])
-
-AS_IF([test "${ac_cv_header_sys_time_h}" = yes],
-      [AC_DEFINE(HAVE_SYS_TIME_H)],
-      [])
-
-AS_IF([test "${ac_cv_struct_tm}" = sys/time.h],
-      [AC_DEFINE(TM_IN_SYS_TIME)],
-      [])
-
-AC_C_BIGENDIAN
-
-AS_IF([test "${ac_cv_c_bigendian}" = yes],
-      [AC_DEFINE(WORDS_BIGENDIAN)],
-      [])
 
 AC_CHECK_SIZEOF(short)
 AC_CHECK_SIZEOF(int)
@@ -216,8 +179,8 @@ dnl ###########################################################################
 
 # set the defaults
 use_ltdl=no
-FT_CFLAGS="$CFLAGS"
-FT_LIBS="$LIBS \$(top_builddir)/src/libFastTrack.la"
+FT_CFLAGS="$FT_CFLAGS $CFLAGS"
+FT_LIBS="$FT_LIBS $LIBS \$(top_builddir)/src/libFastTrack.la"
 
 if test x$enable_ltdl = xyes; then
     dnl check for lt_dlopen and lt_dlsym in libltdl
@@ -251,45 +214,12 @@ AC_SUBST(FT_LIBS)
 AC_SUBST(FT_LDFLAGS)
 
 if test x$prefix = xNONE; then
-    prefix="/usr/local"
+    prefix=`pkg-config libgift --variable=prefix`
     AC_SUBST(prefix)
 fi
 
-libgiftincdir=${prefix}/include/libgift
-AC_SUBST(libgiftincdir)
-
 plugindir=${prefix}/lib/giFT
 AC_SUBST(plugindir)
-
-giftdatadir=${prefix}/share/giFT
-AC_SUBST(giftdatadir)
-
-AC_DEFUN([FT_HEADER],
-         [AS_IF([test "${ac_cv_header_$1}" = yes],
-                [AC_DEFINE([$2])],
-                [])
-          ])
-
-dnl TODO: wrap AC_CHECK_HEADERS usage above
-FT_HEADER(stdint_h, HAVE_STDINT_H)
-FT_HEADER(inttypes_h, HAVE_INTTYPES_H)
-FT_HEADER(unistd_h, HAVE_UNISTD_H)
-FT_HEADER(dirent_h, HAVE_DIRENT_H)
-FT_HEADER(dlfcn_h, HAVE_DLFCN_H)
-FT_HEADER(fcntl_h, HAVE_FCNTL_H)
-FT_HEADER(io_h, HAVE_IO_H)
-FT_HEADER(stdlib_h, HAVE_STDLIB_H)
-FT_HEADER(strings_h, HAVE_STRINGS_H)
-FT_HEADER(syslog_h, HAVE_SYSLOG_H)
-FT_HEADER(sys_dir_h, HAVE_SYS_DIR_H)
-FT_HEADER(sys_mman_h, HAVE_SYS_MMAN_H)
-FT_HEADER(sys_ndir_h, HAVE_SYS_NDIR_H)
-FT_HEADER(sys_stat_h, HAVE_SYS_STAT_H)
-FT_HEADER(sys_types_h, HAVE_SYS_TYPES_H)
-FT_HEADER(limits_h, HAVE_LIMITS_H)
-FT_HEADER(linux_limits_h, HAVE_LINUX_LIMITS_H)
-FT_HEADER(memory_h, HAVE_MEMORY_H)
-FT_HEADER(ndir_h, HAVE_NDIR_H)
 
 dnl ###########################################################################
 dnl Finally do the generation

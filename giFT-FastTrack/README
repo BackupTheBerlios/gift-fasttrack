@@ -16,7 +16,7 @@ Compilation & Installation
 
 run ./autogen.sh and this will run automake and friends, then configure.
 
-Mac OS X users should run LIBTOOL=glibtool LIBTOOLIZE=glibtoolize ./autogen.sh
+Mac OS X users should run sh -c 'LIBTOOL=glibtool LIBTOOLIZE=glibtoolize ./autogen.sh'
 (or if use fink to install it, if you have it)
 
 All that is left to do is run make
@@ -46,4 +46,4 @@ Thanks to weinholt for reverse engineering most parts of enc_type_1.c
 
 enc_type_2.c is the work of Raimar Falke, I merely cleaned it up a bit.
 
-buildsystem based on giFT, by beren12@users.berlios.de
+buildsystem based on giFT, rewritten by beren12@users.berlios.de
