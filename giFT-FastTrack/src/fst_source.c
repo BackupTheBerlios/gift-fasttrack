@@ -1,5 +1,5 @@
 /*
- * $Id: fst_source.c,v 1.2 2004/11/10 21:46:35 mkern Exp $
+ * $Id: fst_source.c,v 1.3 2004/12/28 15:53:23 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -209,7 +209,9 @@ BOOL fst_source_equal (FSTSource *a, FSTSource *b)
 	        a->port       == b->port &&
 	        a->snode_ip   == b->snode_ip &&
 	        a->snode_port == b->snode_port &&
+#if 0
 	        a->parent_ip  == b->parent_ip &&
+#endif
 	        !gift_strcmp (a->username, b->username));
 }
 

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.81 2004/11/25 14:33:11 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.82 2004/12/28 15:53:23 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -911,7 +911,32 @@ static void fst_giftcb_destroy (Protocol *proto)
 
 static int fst_giftcb_source_cmp (Protocol *p, Source *a, Source *b)
 {
-	return strcmp (a->url, b->url);
+	FSTSource *sa, *sb;
+	int ret;
+
+	if (!(sa = fst_source_create_url (a->url)))
+	{
+		FST_ERR_1 ("Invalid source url '%s'", a->url);
+		return -1;
+	}
+
+	if (!(sb = fst_source_create_url (b->url)))
+	{
+		FST_ERR_1 ("Invalid source url '%s'", b->url);
+		fst_source_free (sa);
+		return -1;
+	}
+
+	/* !fst_source_equal implies strcmp != 0 so this is safe. */
+	if (fst_source_equal (sa, sb))
+		ret = 0;
+	else
+		ret = strcmp (a->url, b->url);
+
+	fst_source_free (sa);
+	fst_source_free (sb);
+
+	return ret;
 }
 
 static int fst_giftcb_user_cmp (Protocol *p, const char *a, const char *b)
