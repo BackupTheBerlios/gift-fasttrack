@@ -1,4 +1,4 @@
-# $Id: Makefile.msvc,v 1.1 2003/06/24 15:16:39 rasa Exp $
+# $Id: Makefile.msvc,v 1.2 2003/07/11 02:28:44 rasa Exp $
 
 !include ../../Make.msvc
 
@@ -19,22 +19,22 @@ TARGET     = $(FASTTRACK_STATIC)
 !endif # defined(dynamic) || defined(DYNAMIC)
 
 OBJECTS = \
-fst_download$(O) \
-fst_fasttrack$(O) \
-fst_hash$(O) \
-fst_http$(O) \
-fst_meta$(O) \
-fst_node$(O) \
-fst_packet$(O) \
-fst_search$(O) \
-fst_session$(O) \
-fst_stats$(O) \
-fst_utils$(O) \
-md5$(O) \
-crypt\enc_type_1$(O) \
-crypt\enc_type_2$(O) \
-crypt\enc_type_20$(O) \
-crypt\fst_crypt$(O)
+	fst_download$(O) \
+	fst_fasttrack$(O) \
+	fst_hash$(O) \
+	fst_http$(O) \
+	fst_meta$(O) \
+	fst_node$(O) \
+	fst_packet$(O) \
+	fst_search$(O) \
+	fst_session$(O) \
+	fst_stats$(O) \
+	fst_utils$(O) \
+	md5$(O) \
+	crypt\enc_type_1$(O) \
+	crypt\enc_type_2$(O) \
+	crypt\enc_type_20$(O) \
+	crypt\fst_crypt$(O)
 	
 all : $(TARGET)
 

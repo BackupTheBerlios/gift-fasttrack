@@ -16,3 +16,9 @@ configure-stamp
 stamp-h1
 debian/gift-fasttrack
 debian/gift-fasttrack.substvars
+
+*.plg
+Debug
+Release
+FastTrack_Debug
+FastTrack_Release
