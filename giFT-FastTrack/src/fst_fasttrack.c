@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.16 2003/07/02 16:09:06 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.17 2003/07/04 19:36:03 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -329,6 +329,13 @@ static void gift_cb_destroy (Protocol *p)
 
 /*****************************************************************************/
 
+int gift_cb_source_cmp (Protocol *p, Source *a, Source *b)
+{
+	return strcmp (a->url, b->url);
+}
+
+/*****************************************************************************/
+
 static void fst_plugin_setup_functbl (Protocol *p)
 {
 	/*
@@ -366,9 +373,12 @@ static void fst_plugin_setup_functbl (Protocol *p)
 *	p->upload_avail   = openft_upload_avail;
 *	p->chunk_suspend  = openft_chunk_suspend;
 *	p->chunk_resume   = openft_chunk_resume;
-*	p->source_cmp     = openft_source_cmp;
-*	p->user_cmp       = openft_user_cmp;
 */
+	p->source_cmp     = gift_cb_source_cmp;
+/*	
+	p->user_cmp       = openft_user_cmp;
+*/	
+
 	/* fst_share.c: */
 /*
 *	p->share_new      = openft_share_new;
