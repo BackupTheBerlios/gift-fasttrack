@@ -137,6 +137,7 @@ int fst_download_start (FSTDownload *download)
 	download->tcpcon = tcp_open (download->ip, download->port, FALSE);
 	if(download->tcpcon == NULL)
 	{
+		FST_DBG_2 ("ERROR: tcp_open() failed for %s:%d", net_ip_str(download->ip), download->port);
 		download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Connection Failed");
 		return FALSE;
 	}
@@ -365,15 +366,17 @@ static void download_error_gift (FSTDownload *download, int remove_source, unsig
 //		download_remove_source (download->chunk->transfer, download->chunk->source->url);
 //		download->chunk->source = NULL;
 		download->chunk->data = NULL;
-		// this makes giFT call gift_cb_download_stop()
+		// tell giFT and error occured with this download
 		download_write_gift (download, NULL, 0);
+		fst_download_free (download);
 	}
 	else
 	{
 		FST_PROTO->source_status (FST_PROTO, download->chunk->source, klass, error);
 		download->chunk->data = NULL;
-		// this makes giFT call gift_cb_download_stop()
+		// tell giFT and error occured with this download
 		download_write_gift (download, NULL, 0);
+		fst_download_free (download);
 	}
 }
 
