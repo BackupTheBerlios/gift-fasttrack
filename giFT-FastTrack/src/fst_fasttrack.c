@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.10 2003/06/22 12:21:18 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.11 2003/06/22 16:58:34 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project http://developer.berlios.de/projects/gift-fasttrack
  *
@@ -46,15 +46,15 @@ static int fst_plugin_connect_next()
 		}
 
 		// fetch next node
-		node = fst_nodecache_get_freshest(FST_PLUGIN->nodecache);
+		node = fst_nodecache_get_front(FST_PLUGIN->nodecache);
 
 		if (node == NULL)
 		{
 			FST_WARN ("Ran out of nodes. Trying some static hosts");
 
-//			fst_nodecache_add (FST_PLUGIN->nodecache, "fm1.imesh.com", 1214, NodeKlassIndex);
-			fst_nodecache_add (FST_PLUGIN->nodecache, "fm2.imesh.com", 1214, NodeKlassIndex);
-			node = fst_nodecache_get_freshest(FST_PLUGIN->nodecache);
+			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex,
+							   "fm2.imesh.com", 1214, 0, 0);
+			node = fst_nodecache_get_front(FST_PLUGIN->nodecache);
 		}
 
 		// remove new node from cache so restarting can be used to force use of another node
@@ -82,7 +82,8 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 
 	case SessMsgEstablished:
 	{
-		FST_DBG_2 ("connection established to %s:%d", session->node->host, session->node->port);
+		FST_DBG_2 ("supernode connection established to %s:%d",
+				   session->node->host, session->node->port);
 		// resent queries for all running searches
 		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
 		break;
@@ -103,15 +104,18 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 	case SessMsgNodeList:	// supernode sent ip list
 	{
 		int i;
+		time_t now = time (NULL); 
 
 		for(i=0; fst_packet_remaining(msg_data) >= 8; i++)
 		{
-			unsigned long ip = fst_packet_get_uint32 (msg_data);				// ip comes in intel byte order....
-			unsigned short port = ntohs(fst_packet_get_uint16 (msg_data));	// ...port doesn't?
-			unsigned short unknown = fst_packet_get_uint16 (msg_data);		// not idea what this is
+			unsigned long ip		= fst_packet_get_uint32 (msg_data);			
+			unsigned short port		= ntohs (fst_packet_get_uint16 (msg_data));	
+			unsigned int last_seen	= fst_packet_get_uint8 (msg_data);			
+			unsigned int load		= fst_packet_get_uint8 (msg_data);		
 
-//			FST_HEAVY_DBG ("node: %s:%d \t- unknown: %02x", net_ip_str(ip), port, unknown);
-			fst_nodecache_add (FST_PLUGIN->nodecache, net_ip_str(ip), port, NodeKlassSuper);
+//			FST_DBG_4 ("node: %s:%d   load: %d%% last_seen: %d mins ago", net_ip_str(ip), port, load, last_seen);
+			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
+							   net_ip_str (ip), port, load, now - last_seen * 60);
 		}
 		FST_DBG_1 ("added %d received supernode IPs to nodes list", i);
 

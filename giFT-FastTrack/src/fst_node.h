@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.h,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_node.h,v 1.3 2003/06/22 16:58:34 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -17,8 +17,7 @@
 #ifndef __FST_NODE_H__
 #define __FST_NODE_H__
 
-#include <libgift/list.h>
-#include <libgift/dataset.h>
+#include "fst_fasttrack.h"
 
 /**************************************************************************/
 
@@ -26,58 +25,70 @@ typedef enum
 {
 	NodeKlassUser = 0x00,		// simple user node not acting as supernode
 	NodeKlassSuper = 0x01,		// supernode we use for searches
-	NodeKlassIndex = 0x02,		// index node we use to get supernode ips
+	NodeKlassIndex = 0x02		// index node we use to get supernode ips
 } FSTNodeKlass;
 
 typedef struct
 {
+	FSTNodeKlass klass;
+
 	char *host;
 	unsigned short port;
 
-	FSTNodeKlass klass;
-
+	unsigned int load;			// load of node in percent
+	unsigned int last_seen;		// time in seconds since the epoch nodes was
+								// last seen
 } FSTNode;
 
 
 typedef struct
 {
-	List *list;			// we keep a list in which we instert and remove modes from the beginning...
-	Dataset *hash;		// ...and a hash table keyed by ip to prevent duplicates efficiently
+	List *list;			// we keep a list in which we instert and remove modes
+						// from the beginning...
+	Dataset *hash;		// ...and a hash table keyed by ip to prevent
+						// duplicates efficiently 
 
 } FSTNodeCache;
 
 /*****************************************************************************/
 
 // alloc and init node
-FSTNode *fst_node_create(char* host, unsigned short port, FSTNodeKlass klass);
+FSTNode *fst_node_create (FSTNodeKlass klass, char *host, unsigned short port,
+						  unsigned int load, unsigned int last_seen);
 
 // alloc and create copy of node
-FSTNode *fst_node_create_copy(FSTNode *org_node);
+FSTNode *fst_node_create_copy (FSTNode *org_node);
 
 // free node
-void fst_node_free(FSTNode *node);
+void fst_node_free (FSTNode *node);
 
 /*****************************************************************************/
 
 // alloc and init node cache
-FSTNodeCache *fst_nodecache_create();
+FSTNodeCache *fst_nodecache_create ();
 
 // free node cache
-void fst_nodecache_free(FSTNodeCache *cache);
+void fst_nodecache_free (FSTNodeCache *cache);
 
 /*****************************************************************************/
 
 // add node to node cache
-void fst_nodecache_add(FSTNodeCache *cache, char* host, unsigned short port, FSTNodeKlass klass);
+void fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
+					    unsigned short port, unsigned int load,
+					    unsigned int last_seen);
 
 // remove node from node cache by host and free it
-void fst_nodecache_remove(FSTNodeCache *cache, char* host);
+void fst_nodecache_remove (FSTNodeCache *cache, char *host);
 
-// returns _copy_ of the newest node, caller must free returned copy
-FSTNode *fst_nodecache_get_freshest(FSTNodeCache *cache);
+// returns _copy_ of the first node, caller must free returned copy
+FSTNode *fst_nodecache_get_front (FSTNodeCache *cache);
 
-// returns number of nodes currently in node cachen
-int fst_nodecache_size(FSTNodeCache *cache);
+// sort nodecache moving best nodes to the front and
+// clipping to FST_MAX_NODESFILE_SIZE
+unsigned int fst_nodecache_sort (FSTNodeCache *cache);
+
+// returns number of nodes currently in node cache
+unsigned int fst_nodecache_size (FSTNodeCache *cache);
 
 /*****************************************************************************/
 
