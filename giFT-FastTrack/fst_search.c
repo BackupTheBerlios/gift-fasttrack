@@ -478,7 +478,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_t
 		                     search->realm, filesize, 0);
 
 		// add hash, hash is freed in share_free()
-		share_set_hash (file, "FTH", hash, FST_HASH_LEN);
+		share_set_hash (file, "FTH", hash, FST_HASH_LEN, FALSE);
 
 		// add meta data
 		for(; metalist; metalist = list_remove_link (metalist, metalist))
