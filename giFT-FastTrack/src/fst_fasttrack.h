@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.29 2003/12/23 16:38:50 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.30 2004/01/01 21:44:43 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -135,6 +135,7 @@ typedef uint32_t fst_uint32;
 #include "fst_push.h"
 #include "fst_upload.h"
 #include "fst_share.h"
+#include "fst_udp_discover.h"
 
 /*****************************************************************************/
 
@@ -182,6 +183,12 @@ typedef uint32_t fst_uint32;
 /* timeout for sessions handshakes */
 #define FST_SESSION_HANDSHAKE_TIMEOUT	(10*SECONDS)
 
+/* timeout for udp ping */
+#define FST_UDP_DISCOVER_TIMEOUT        (5*SECONDS)
+
+/* max number of simultaneous udp pings */
+#define FST_UDP_DISCOVER_MAX_PINGS      (15)
+
 /*****************************************************************************/
 
 typedef struct
@@ -204,6 +211,10 @@ typedef struct
 	FSTSession *session;			/* established session to supernode we are
 									 * currently using
 									 */
+
+	FSTUdpDiscover *discover;		/* pointer to udp node discovery if
+	                                 * active
+	                                 */
 
 	FSTSearchList *searches;		/* list containing all currently running
 									 * searches

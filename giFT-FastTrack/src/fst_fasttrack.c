@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.35 2003/11/28 19:49:15 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.36 2004/01/01 21:44:43 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -29,85 +29,102 @@ static int fst_plugin_session_callback (FSTSession *session,
 										FSTSessionMsg msg_type,
 										FSTPacket *msg_data);
 
-static int fst_plugin_connect_next();
+static int fst_plugin_connect_next ();
 
 /*****************************************************************************/
 
-static BOOL reconnect_timer (void *udata)
+int discover_callback (FSTUdpDiscover *discover, FSTNode *node)
 {
-	fst_plugin_connect_next ();
-	/* don't raise again */
-	return FALSE;
+	/* did we run out of nodes? */
+	if (!node)
+	{
+		/* TODO: fall back to index node */
+		FST_WARN ("ran out of nodes. find a better nodes file somewhere");
+
+		fst_udp_discover_free (FST_PLUGIN->discover, TRUE);
+		FST_PLUGIN->discover = NULL;
+
+		return TRUE;
+	}	
+
+	FST_HEAVY_DBG ("discover_callback");
+
+	/* if there is no open session try to connect again */
+	if (!FST_PLUGIN->session)
+	{
+		fst_plugin_connect_next ();
+	}
+	
+	return TRUE;
 }
 
-static int fst_plugin_connect_next()
+static int fst_plugin_connect_next ()
 {
 	FSTNode *node;
 
-	while (1)
+	/* close old session if any */
+	if (FST_PLUGIN->session)
 	{
-		if (FST_PLUGIN->session)
+		/* remove old node from node cache */
+		if (FST_PLUGIN->session->node)
 		{
-			/* remove old node from node cache */
-			if (FST_PLUGIN->session->node)
-			{
-				fst_nodecache_remove (FST_PLUGIN->nodecache,
-									  FST_PLUGIN->session->node->host);
-			}
+			fst_nodecache_remove (FST_PLUGIN->nodecache,
+								  FST_PLUGIN->session->node->host);
+		}
+		/* free old session */
+		fst_session_free (FST_PLUGIN->session);
+		FST_PLUGIN->session = NULL;
+	}
 
-			/* free old session */
-			fst_session_free (FST_PLUGIN->session);
-			FST_PLUGIN->session = NULL;
+	/* start udp discovery if not running */
+	if (!FST_PLUGIN->discover)
+	{
+		FST_PLUGIN->discover = fst_udp_discover_create (discover_callback,
+		                                                FST_PLUGIN->nodecache);
+
+		if (!FST_PLUGIN->discover)
+		{
+			/* TODO: fall back to tcp only */
+			assert (FST_PLUGIN->discover);
+			return FALSE;
 		}
 
-		/* fetch next node */
-		node = fst_nodecache_get_front (FST_PLUGIN->nodecache);
+		FST_DBG ("started udp node discovery");
+	}
 
-		if (node == NULL)
-		{
-			FST_WARN ("Ran out of nodes. Trying some static hosts");
+	FST_HEAVY_DBG ("trying to connect to discovered node");
 
-			fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex,
-							   "fm2.imesh.com", 1214, 0, 0);
-			node = fst_nodecache_get_front (FST_PLUGIN->nodecache);
-		}
-
+	/* if there are already nodes found by udp discover use one */
+	while ((node = fst_udp_discover_get_node (FST_PLUGIN->discover)))
+	{
 		/* don't connect to banned ips */
 		if (config_get_int (FST_PLUGIN->conf, "main/banlist_filter=0") &&
-	        fst_ipset_contains (FST_PLUGIN->banlist, net_ip (node->host)))
+			fst_ipset_contains (FST_PLUGIN->banlist, net_ip (node->host)))
 		{
 			FST_DBG_2 ("not connecting to banned supernode %s:%d",
 			           node->host, node->port);
-
-			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
 			fst_node_free (node);
 			continue;
 		}
-
-		/* remove new node from cache so restarting can be used to
-		 * force use of another node
-		 */
-		fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
-
-		/* create session */
+	
 		FST_PLUGIN->session = fst_session_create (fst_plugin_session_callback);
-
+	
 		if (fst_session_connect (FST_PLUGIN->session, node))
 		{
-			/* we started connecting, got back to doing other stuff */
-			break;
+			return TRUE;
 		}
 		else
 		{
 			/* free node */
 			fst_node_free (node);
-			/* try a different one in a short while so we don't burn up all
-			 * nodes immediately if the network is down or the like 
-			 */
-			timer_add (FST_SESSION_NETFAIL_INTERVAL, reconnect_timer, NULL);
-			break;
+			/* free session */
+			fst_session_free (FST_PLUGIN->session);
+			FST_PLUGIN->session = NULL;
+			continue;
 		}
 	}
+
+	FST_HEAVY_DBG ("no nodes discovered yet");
 
 	return TRUE;
 }
@@ -156,6 +173,11 @@ static int fst_plugin_session_callback (FSTSession *session,
 	{
 		FST_DBG_3 ("supernode connection established to %s:%d, load: %d%%",
 				   session->node->host, session->node->port, session->node->load);
+
+		/* stop udp discovery */
+		fst_udp_discover_free (FST_PLUGIN->discover, TRUE);
+		FST_PLUGIN->discover = NULL;
+		FST_DBG ("stopped udp node discovery");
 
 		/* resend queries for all running searches */
 		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
@@ -426,6 +448,9 @@ static int fst_giftcb_start (Protocol *p)
 
 	/* set session to NULL */
 	FST_PLUGIN->session = NULL;
+
+	/* set discover to NULL */
+	FST_PLUGIN->discover = NULL;
 	
 	/* init searches */
 	FST_PLUGIN->searches = fst_searchlist_create();
@@ -450,10 +475,11 @@ static int fst_giftcb_start (Protocol *p)
 	                                            "main/allow_sharing=0");
 
 	/* temporary, until we have a way to find useful nodes faster */
+/*
 	FST_DBG ("adding fm2.imesh.com:1214 as temporary index node");
 	fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex,
 					   "fm2.imesh.com", 1214, 0, time (NULL));
-
+*/
 	/* start first connection */
 	fst_plugin_connect_next ();
 

@@ -1,4 +1,4 @@
-# $Id: Makefile.msvc,v 1.5 2003/12/12 13:29:18 mkern Exp $
+# $Id: Makefile.msvc,v 1.6 2004/01/01 21:44:43 mkern Exp $
 
 
 !include ../Make.msvc
@@ -41,6 +41,7 @@ OBJECTS = \
 	fst_session$(O) \
 	fst_stats$(O) \
 	fst_utils$(O) \
+	fst_udp_discover$(O) \
 	md5$(O) \
 	crypt\enc_type_1$(O) \
 	crypt\enc_type_2$(O) \
