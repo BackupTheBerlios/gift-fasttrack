@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.5 2003/06/20 22:29:17 beren12 Exp $
+ * $Id: fst_fasttrack.c,v 1.6 2003/06/21 15:11:29 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project http://developer.berlios.de/projects/gift-fasttrack
  *
@@ -184,9 +184,6 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 /*****************************************************************************/
 
 // alloc and init plugin
-
-char *FST_USER_NAME;           /* Global username from conffile */
-
 static int gift_cb_start (Protocol *p)
 {
 	FSTPlugin *plugin = malloc (sizeof(FSTPlugin));
@@ -225,7 +222,7 @@ static int gift_cb_start (Protocol *p)
 		file_cp (src_path, dst_path);
 	}
 
-//	free(src_path);			// All done with it
+	free(src_path);			// All done with it
 
 	if ( !(plugin->conf = gift_config_new ("FastTrack")))
 	{
@@ -242,7 +239,7 @@ static int gift_cb_start (Protocol *p)
 	FST_PLUGIN->session = NULL;
 
 	// init node cache
-	plugin->nodecache = fst_nodecache_create ();
+	FST_PLUGIN->nodecache = fst_nodecache_create ();
 
 	/* Attempt to open the locally installed nodes file; if this fails we
 	* should try the global cache. */
@@ -272,14 +269,12 @@ static int gift_cb_start (Protocol *p)
 		FST_DBG_2 ("loaded %d supernode addresses from local nodes file \"%s\"", i, nodesfile);
 
 	// init searches
-	plugin->searches = fst_searchlist_create();
+	FST_PLUGIN->searches = fst_searchlist_create();
 
 	// init stats
-	plugin->stats = fst_stats_create ();
+	FST_PLUGIN->stats = fst_stats_create ();
 
 	FST_PLUGIN->conf = gift_config_new ("FastTrack");	// Use local config
-
-	FST_USER_NAME = config_get_str(FST_PLUGIN->conf, "main/alias=giFTed");
 
 	// start first connection
 	fst_plugin_connect_next ();
