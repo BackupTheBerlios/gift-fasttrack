@@ -1,8 +1,5 @@
-$Id: TODO,v 1.21 2004/02/16 17:12:22 mkern Exp $
+$Id: TODO,v 1.22 2004/02/29 22:15:26 mkern Exp $
 
-- redo udp discovery, only use it as a supplemental to tcp
-- make dowloading less greedy, custom throttle?
-- automatically search more supernodes?
 - make the README clearer
 - determine if we can make LIBTOOL=glibtool for mac os x users automatic
 - use download_throttle to make download throttling smoother
@@ -15,4 +12,8 @@ $Id: TODO,v 1.21 2004/02/16 17:12:22 mkern Exp $
 - does kazaa use the same fst_id for searchin again?
 - make use of country code in nodes file
 - use bandwidth from search results for availability
+- limit number of shared files
+- normalize meta data
+- do byte order conversion in fst_packet instead of all over the place
+- don't sort out index nodes when saving node list
 

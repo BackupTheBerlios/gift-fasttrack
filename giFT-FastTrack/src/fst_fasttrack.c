@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.44 2004/01/16 00:26:05 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.45 2004/02/29 22:15:26 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -25,11 +25,15 @@ Protocol *fst_proto = NULL;
 
 /*****************************************************************************/
 
+static void fst_plugin_connect_next ();
+
+static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
+                                          FSTUdpNodeState node_state,
+                                          FSTNode *node);
+
 static int fst_plugin_session_callback (FSTSession *session,
 										FSTSessionMsg msg_type,
 										FSTPacket *msg_data);
-
-static int fst_plugin_connect_next ();
 
 /*****************************************************************************/
 
@@ -37,36 +41,7 @@ static int fst_plugin_connect_next ();
  * Note: the connect control flow is wicked. modify with extreme care.
  */
 
-int discover_callback (FSTUdpDiscover *discover, FSTNode *node)
-{
-	if (!node)
-	{
-		/* we run out of nodes */
-		FST_HEAVY_DBG ("ran out of supernodes trying static index node.");
-		/* 
-		 * don't save back nodes in node cache here so fst_plugin_connect_next
-		 * actually uses the index node.
-		 */
-		fst_udp_discover_free (FST_PLUGIN->discover, FALSE);
-		FST_PLUGIN->discover = NULL;
-
-		/* try index node in next call to fst_plugin_connect_next */
-		if (!FST_PLUGIN->session)
-			fst_plugin_connect_next ();
-
-		return FALSE;
-	}	
-
-	/* if there is no open session try to connect again */
-	if (!FST_PLUGIN->session)
-	{
-		fst_plugin_connect_next ();
-	}
-	
-	return TRUE;
-}
-
-static int fst_plugin_connect_next ()
+static void fst_plugin_connect_next ()
 {
 	FSTNode *node;
 
@@ -84,100 +59,132 @@ static int fst_plugin_connect_next ()
 		FST_PLUGIN->session = NULL;
 	}
 
-	/* start udp discovery if not running */
-	if (!FST_PLUGIN->discover)
+	/* connect to head node in node cache */
+	while (1)
 	{
-		FST_PLUGIN->discover = fst_udp_discover_create (discover_callback,
-		                                                FST_PLUGIN->nodecache);
-
-		if (!FST_PLUGIN->discover)
+		if (!(node = fst_nodecache_get_front (FST_PLUGIN->nodecache)))
 		{
-			/* try a hardcoded index node */
-			FST_WARN ("Ran out of super nodes to contact, trying static index node");
-			
-			FST_PLUGIN->session = fst_session_create (fst_plugin_session_callback);
-			
-			if (!(node = fst_node_create (NodeKlassIndex, "fm2.imesh.com", 1214, 0, time (NULL))))
-				return FALSE;
-
-			if (!fst_session_connect (FST_PLUGIN->session, node))
-			{
-				fst_node_free (node);
-				fst_session_free (FST_PLUGIN->session);
-				FST_PLUGIN->session = NULL;
-				
-				FST_ERR ("All attempts at contacting peers have failed. Get a new nodes file.");
-				return FALSE;
-			}
-
-			return TRUE;
+			/* node cache empty */
+			FST_ERR ("All attempts at contacting peers have failed. Get a new nodes file.");
+			return;
 		}
 
-		FST_DBG ("started udp node discovery");
-		return TRUE;
-	}
-
-	FST_HEAVY_DBG ("trying to connect to discovered node");
-
-	/* if there are already nodes found by udp discover use one */
-	while ((node = fst_udp_discover_get_node (FST_PLUGIN->discover)))
-	{
 		/* don't connect to banned ips */
 		if (config_get_int (FST_PLUGIN->conf, "main/banlist_filter=0") &&
 			fst_ipset_contains (FST_PLUGIN->banlist, net_ip (node->host)))
 		{
 			FST_DBG_2 ("not connecting to banned supernode %s:%d",
 			           node->host, node->port);
+			/* remove this node from cache */
+			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
 			fst_node_free (node);
 			continue;
 		}
-	
+
+		/* create session and connect */
 		FST_PLUGIN->session = fst_session_create (fst_plugin_session_callback);
 	
 		if (fst_session_connect (FST_PLUGIN->session, node))
 		{
-			return TRUE;
+			break;
 		}
 		else
 		{
-			/* free node */
-			fst_node_free (node);
+			/* TODO: if connect fails due to net down idle for a while */
+
 			/* free session */
 			fst_session_free (FST_PLUGIN->session);
 			FST_PLUGIN->session = NULL;
+			/* remove this node from cache */
+			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+			fst_node_free (node);
 			continue;
 		}
 	}
 
-	FST_HEAVY_DBG ("no nodes discovered yet");
-
-	return TRUE;
-}
-
-/*****************************************************************************/
-
-/* temporarily until next gift release */
-static in_addr_t my_net_local_ip (int fd, in_port_t *port)
-{
-	struct sockaddr_in saddr;
-	in_addr_t ip = 0;
-	int       len = sizeof (saddr);
-
-	if (port)
-		*port = 0;
-
-	if (getsockname (fd, (struct sockaddr *)&saddr, &len) == 0)
+	/* We started a connection attempt with the head node from nodecache.
+	 * Try to quickly find some online nodes with udp in parallel now.
+	 */
+	if (FST_PLUGIN->discover && FST_PLUGIN->discover->pinged_nodes == 0)
 	{
-		ip = saddr.sin_addr.s_addr;
-		if (port)
-			*port = ntohs (saddr.sin_port);
-	}
+		List *item = FST_PLUGIN->nodecache->list;
+		int i = 0;
 
-	return ip;
+		while (i < FST_UDP_DISCOVER_MAX_PINGS && item && item->data)
+		{
+			node = (FSTNode*)item->data;
+
+			if (!fst_udp_discover_ping_node (FST_PLUGIN->discover, node))
+			{
+				/* This may fail due to the network being down. While 
+				 * we could handle this in a special way doing nothing
+				 * works fine if being somewhat inefficient. */
+			}
+
+			item = item->next;
+			i++;
+		}
+	}
 }
 
 /*****************************************************************************/
 
+static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
+                                          FSTUdpNodeState node_state,
+                                          FSTNode *node)
+{
+	switch (node_state)
+	{
+	case UdpNodeStateDown:
+		/* remove this node from node cache _if_ we know that udp works.
+		 * otherwise just move the node to the back of the cache.
+		 */
+		if (FST_PLUGIN->udp_discover->udp_working)
+		{
+			FST_HEAVY_DBG ("UdpNodeStateDown: %s:%d, UDP works",
+			               node->host, node->port);
+			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+		}
+		else
+		{
+			FST_HEAVY_DBG ("UdpNodeStateDown: %s:%d, UDP not verified",
+			               node->host, node->port);
+			/* remove node from current position in cache... */
+			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+			/* ... and add it to the back */
+			fst_nodecache_add (FST_PLUGIN->nodecache, node->klass, node->host,
+				               node->port, 100, node->last_seen);
+		}
+		break;
+	case UdpNodeStateUp:
+		FST_HEAVY_DBG ("UdpNodeStateUp: %s:%d", node->host, node->port);
+		/* remove node from current position in cache... */
+		fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+		/* ... and add it to the back */
+		fst_nodecache_add (FST_PLUGIN->nodecache, node->klass, node->host,
+		                   node->port, 100, node->last_seen);
+		break;
+	case UdpNodeStateFree:
+		FST_HEAVY_DBG ("UdpNodeStateFree: %s:%d", node->host, node->port);
+		/* remove node from current position in cache... */
+		fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+		/* ... and add it to the front */
+		fst_nodecache_add (FST_PLUGIN->nodecache, node->klass, node->host,
+		                   node->port, 0, node->last_seen);
+
+#if 1
+		/* if we don't have a established session try again with this node */
+		if (!FST_PLUGIN->session || FST_PLUGIN->session->state == SessConnecting)
+		{
+			FST_HEAVY_DBG ("no established session, using this node...");
+			/* this calls us back with SessMsgDisconnected */
+			fst_session_disconnect (FST_PLUGIN->session);
+		}
+#endif
+
+		break;
+	}
+}
 
 static int fst_plugin_session_callback (FSTSession *session,
 										FSTSessionMsg msg_type,
@@ -189,8 +196,8 @@ static int fst_plugin_session_callback (FSTSession *session,
 	case SessMsgConnected:
 	{
 		/* determine local ip */
-		FST_PLUGIN->local_ip = my_net_local_ip (session->tcpcon->fd, NULL);
-		FST_DBG_1 ("local ip: %s", net_ip_str (FST_PLUGIN->local_ip));
+		FST_PLUGIN->local_ip = net_local_ip (session->tcpcon->fd, NULL);
+		FST_DBG_1 ("connected, local ip: %s", net_ip_str (FST_PLUGIN->local_ip));
 		break;
 	}
 
@@ -495,8 +502,13 @@ static int fst_giftcb_start (Protocol *p)
 	/* set session to NULL */
 	FST_PLUGIN->session = NULL;
 
-	/* set discover to NULL */
-	FST_PLUGIN->discover = NULL;
+	/* create discover */
+	FST_PLUGIN->discover = fst_udp_discover_create (fst_plugin_discover_callback);
+
+	if (!FST_PLUGIN->discover)
+	{
+		FST_WARN ("Creation of udp discovery failed");
+	}
 	
 	/* init searches */
 	FST_PLUGIN->searches = fst_searchlist_create();
@@ -554,6 +566,9 @@ static void fst_giftcb_destroy (Protocol *p)
 	/* shutdown http server */
 	fst_http_server_free (FST_PLUGIN->server);
 
+	/* free udp discovery */
+	fst_udp_discover_free (FST_PLUGIN->discover);
+
 	/* put currently used supernode at the front of the node cache */
 	if (FST_PLUGIN->session && FST_PLUGIN->session->state == SessEstablished)
 	{
@@ -609,6 +624,8 @@ static int fst_giftcb_user_cmp (Protocol *p, const char *a, const char *b)
 {
 	return strcmp (a, b);
 }
+
+/* TODO: move this to something like fst_transfer.c */
 
 static int fst_giftcb_chunk_suspend (Protocol *p, Transfer *transfer,
                                      Chunk *chunk, Source *source)
@@ -712,7 +729,7 @@ static void fst_plugin_setup_functbl (Protocol *p)
 int FastTrack_init (Protocol *p)
 {
 	/* make sure we're loaded with the correct plugin interface version */
-	if (protocol_compat (p, LIBGIFTPROTO_MKVERSION (0, 11, 3)) != 0)
+	if (protocol_compat (p, LIBGIFTPROTO_MKVERSION (0, 11, 5)) != 0)
 		return FALSE;
 	
 	/* tell giFT about our version

@@ -165,6 +165,10 @@ SOURCE=..\src\fst_stats.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\fst_udp_discover.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\fst_upload.c
 # End Source File
 # Begin Source File
@@ -245,6 +249,10 @@ SOURCE=..\src\fst_stats.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\fst_udp_discover.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\fst_upload.h
 # End Source File
 # Begin Source File
@@ -256,5 +264,25 @@ SOURCE=..\src\fst_utils.h
 SOURCE=..\src\md5.h
 # End Source File
 # End Group
+# Begin Source File
+
+SOURCE=..\AUTHORS
+# End Source File
+# Begin Source File
+
+SOURCE=..\ChangeLog
+# End Source File
+# Begin Source File
+
+SOURCE=..\PROTOCOL
+# End Source File
+# Begin Source File
+
+SOURCE=..\README
+# End Source File
+# Begin Source File
+
+SOURCE=..\TODO
+# End Source File
 # End Target
 # End Project

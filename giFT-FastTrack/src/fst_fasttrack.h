@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.34 2004/01/11 19:19:57 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.35 2004/02/29 22:15:26 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -212,9 +212,7 @@ typedef struct
 									 * currently using
 									 */
 
-	FSTUdpDiscover *discover;		/* pointer to udp node discovery if
-	                                 * active
-	                                 */
+	FSTUdpDiscover *discover;		/* pointer to udp node discovery object */
 
 	FSTSearchList *searches;		/* list containing all currently running
 									 * searches
@@ -227,7 +225,9 @@ typedef struct
 	in_addr_t local_ip;				/* the ip our supernode connection is bound
 									 * to locally
 									 */
+
 	in_addr_t external_ip;			/* our external ip as told by supernode */
+
 	int forwarding;					/* if we're behind NAT and the user has
 									 * set up port forwarding this is TRUE
 									 * (from config file)

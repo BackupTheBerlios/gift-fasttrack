@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.h,v 1.5 2004/01/16 00:26:05 mkern Exp $
+ * $Id: fst_udp_discover.h,v 1.6 2004/02/29 22:15:26 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -24,63 +24,25 @@
 
 /*****************************************************************************/
 
-/*
- * After creation a FSTUdpDiscover object will continually retrieve nodes from
- * the passed nodecache and ping them. Nodes which respond are kept and a
- * callback is raised. Dead nodes are removed.
- *
- * TODO: use udp support from libgift 0.12.x
- */
-
-/*****************************************************************************/
-
-/* udp packet types */
-typedef enum
-{
-	UdpMsgPing  = 0x27,
-	UdpMsgPong  = 0x28,
-	UdpMsgPong2 = 0x29
-
-} FSTUdpMsg;
-
-
 /* udp node */
-
 typedef enum
 {
-	UdpNodeStateNew,
-	UdpNodeStatePinged,
-	UdpNodeStateUp,
-	UdpNodeStateFree
-
+	UdpNodeStateDown,		/* not could not be reached */
+	UdpNodeStateUp,			/* node is up but doesn't want to be parent */
+	UdpNodeStateFree		/* node is up and can be our parent */
 } FSTUdpNodeState;
-
-typedef struct 
-{
-	in_addr_t ip;
-	in_port_t port;
-
-	FSTUdpNodeState state;
-
-	unsigned int last_seen;		/* time in seconds since the epoch nodes was
-	                             * last seen
-	                             */
-
-	unsigned int min_enc_type;
-	char *network;
-} FSTUdpNode;
 
 
 /* udp discover */
-
 typedef struct _FSTUdpDiscover FSTUdpDiscover;
 
 /* 
  * if udp_node is NULL we ran out of nodes to try.
  * if callback returns FALSE discover has been freed by callback.
  */
-typedef int (*FSTUdpDiscoverCallback) (FSTUdpDiscover *discover,
-                                       FSTNode *node);
+typedef void (*FSTUdpDiscoverCallback) (FSTUdpDiscover *discover,
+									    FSTUdpNodeState *node_state,
+                                        FSTNode *node);
 
 struct _FSTUdpDiscover
 {
@@ -88,7 +50,9 @@ struct _FSTUdpDiscover
 
 	List *nodes;				/* the list we store currently pinged nodes in */
 	int pinged_nodes;			/* number of outstanding ping replies */
-	FSTNodeCache *cache;		/* the cache we get our nodes to try from */
+
+	int udp_working;			/* initially 0, set to 1 upon reception of
+								 * first udp packet */
 
 	FSTUdpDiscoverCallback callback;
 	timer_id timer;				/* timer which times out pings */
@@ -96,29 +60,14 @@ struct _FSTUdpDiscover
 
 /*****************************************************************************/
 
-/* allocate and init udp node */
-FSTUdpNode* fst_udp_node_create (in_addr_t ip, in_addr_t port);
+/* init discover object */
+FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback);
 
-/* free udp_node */
-void fst_udp_node_free (FSTUdpNode* udp_node);
+/* free discover object */
+void fst_udp_discover_free (FSTUdpDiscover *discover);
 
-/*****************************************************************************/
-
-/* init discover object and start search */
-FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback,
-                                         FSTNodeCache *cache);
-
-/*
- * free discover and if save_nodes is TRUE writes back all discovered nodes to
- * discover->cache;
- */
-void fst_udp_discover_free (FSTUdpDiscover *discover, int save_nodes);
-
-/* 
- * get discovered node and remove it from list.
- * caller frees returned node
- */
-FSTNode *fst_udp_discover_get_node (FSTUdpDiscover *discover);
+/* ping node an return result via callback. */
+int fst_udp_discover_ping_node (FSTUdpDiscover *discover, FSTNode *node);
 
 /*****************************************************************************/
 

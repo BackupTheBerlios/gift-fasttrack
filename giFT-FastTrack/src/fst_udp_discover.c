@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.10 2004/01/16 00:26:05 mkern Exp $
+ * $Id: fst_udp_discover.c,v 1.11 2004/02/29 22:15:26 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -18,62 +18,91 @@
 #include "fst_fasttrack.h"
 #include "fst_udp_discover.h"
 
+/*
+ * TODO: use udp support from libgift 0.12.x
+ */
+
 /*****************************************************************************/
 
 #define UDP_BUFFER_LEN 1024 /* length of udp packet buffer */
 
 /*****************************************************************************/
 
+/* udp packet types */
+typedef enum
+{
+	UdpMsgPing  = 0x27,
+	UdpMsgPong  = 0x28,
+	UdpMsgPong2 = 0x29
+} FSTUdpMsg;
+
+typedef struct 
+{
+	FSTNode *node;				/* a copy of the node we ping */
+	in_addr_t ip;				/* the resolved node->host */
+
+	unsigned int sent_time;		/* time in seconds since the epoch this
+	                             * ping was sent */
+
+	unsigned int min_enc_type;
+	char *network;
+} FSTUdpNode;
+
+/*****************************************************************************/
+
 static void udp_discover_receive (int fd, input_id input,
                                   FSTUdpDiscover *discover);
 static int udp_discover_timeout (FSTUdpDiscover *discover);
-static int udp_discover_ping_nodes (FSTUdpDiscover *discover, int max_pings);
-static int udp_discover_send_ping (FSTUdpDiscover *discover, FSTNode *node);
-
 static int udpsock_bind (in_port_t port, int blocking);
 
 /*****************************************************************************/
 
-FSTUdpNode* fst_udp_node_create (in_addr_t ip, in_addr_t port)
+static FSTUdpNode* fst_udp_node_create (FSTNode *node)
 {
-	FSTUdpNode *udp_node = malloc (sizeof (FSTUdpNode));
+	FSTUdpNode *udp_node;
 
-	if (!udp_node)
+	if (!(udp_node = malloc (sizeof (FSTUdpNode))))
 		return NULL;
 
-	udp_node->ip = ip;
-	udp_node->port = port;
-	udp_node->state = UdpNodeStateNew;
-	udp_node->last_seen = 0;
+	if (node)
+		udp_node->node = fst_node_copy (node);
+	else
+		udp_node->node = NULL;
+
+	udp_node->ip = 0;
+	udp_node->sent_time = 0;
 	udp_node->min_enc_type = 0x00;
 	udp_node->network = NULL;
 
 	return udp_node;
 }
 
-void fst_udp_node_free (FSTUdpNode* udp_node)
+static void fst_udp_node_free (FSTUdpNode* udp_node)
 {
 	if (!udp_node)
 		return;
 
+	fst_node_free (udp_node->node);
 	free (udp_node->network);
 	free (udp_node);
 }
 
 /*****************************************************************************/
 
-FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback,
-                                         FSTNodeCache *cache)
+FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback)
 {
-	FSTUdpDiscover *discover = malloc (sizeof (FSTUdpDiscover));
+	FSTUdpDiscover *discover;
 	in_port_t port;
 
-	if (!discover)
+	if (!callback)
+		return NULL;
+
+	if (!(discover = malloc (sizeof (FSTUdpDiscover))))
 		return NULL;
 
 	discover->nodes = NULL;
 	discover->pinged_nodes = 0;
-	discover->cache = cache;
+	discover->udp_working = FALSE;
 	discover->callback = callback;
 	discover->timer = 0;
 
@@ -88,54 +117,21 @@ FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback,
 		return NULL;
 	}
 
-	/* create timer for timeout */
-	discover->timer = timer_add (FST_UDP_DISCOVER_TIMEOUT,
-	                             (TimerCallback)udp_discover_timeout,
-	                             discover);
-
-	if (!discover->timer)
-	{
-		fst_udp_discover_free (discover, FALSE);
-		FST_ERR ("timer init failed");
-		return NULL;
-	}
-
 	/* wait for responses */
 	input_add (discover->fd, (void*) discover, INPUT_READ,
 			   (InputCallback) udp_discover_receive, 0);
 
-
-	/* sort the cache so we start with the best nodes */
-	fst_nodecache_sort (discover->cache);
-
-	if (udp_discover_ping_nodes (discover, 0) == 0) {
-		/* no more nodes */
-		fst_udp_discover_free (discover, FALSE);
-		return NULL;
-	}
-
 	return discover;
 }
 
-
-/* free udp node and optionally save it back to cache */
-static int udp_discover_free_node (FSTUdpNode *udp_node,
-                                   FSTNodeCache *cache)
+/* free udp node list entry */
+static int udp_discover_free_node (FSTUdpNode *udp_node, void *udata)
 {
-	if (cache)
-	{
-		unsigned int load = 0;
-		fst_nodecache_add (cache, NodeKlassSuper, net_ip_str (udp_node->ip),
-		                   udp_node->port, load, udp_node->last_seen);
-		FST_HEAVY_DBG_2 ("added node %s:%d back into cache",
-		                 net_ip_str (udp_node->ip), udp_node->port);
-	}
-	
 	fst_udp_node_free (udp_node);
 	return TRUE;
 }
 
-void fst_udp_discover_free (FSTUdpDiscover *discover, int save_nodes)
+void fst_udp_discover_free (FSTUdpDiscover *discover)
 {
 	if (!discover)
 		return;
@@ -146,57 +142,102 @@ void fst_udp_discover_free (FSTUdpDiscover *discover, int save_nodes)
 	net_close (discover->fd);
 	discover->fd = -1;
 
-	if (save_nodes)
-	{
-		list_foreach_remove (discover->nodes,
-		                     (ListForeachFunc)udp_discover_free_node,
-	                         discover->cache);
-		/* sort cache again */
-		fst_nodecache_sort (discover->cache);
-	}
-	else
-	{
-		list_foreach_remove (discover->nodes,
-		                     (ListForeachFunc)udp_discover_free_node,
-	                         NULL);
-	}
+	list_foreach_remove (discover->nodes,
+		                 (ListForeachFunc)udp_discover_free_node,
+	                     NULL);
 
 	free (discover);
 }
 
 
-FSTNode *fst_udp_discover_get_node (FSTUdpDiscover *discover)
+int fst_udp_discover_ping_node (FSTUdpDiscover *discover, FSTNode *node)
 {
-	List *item;
-	FSTNode *node;
+	struct hostent *he;
 	FSTUdpNode *udp_node;
+	FSTPacket *packet;
+	struct sockaddr_in addr;
 
-	if (!discover)
-		return NULL;
+	if (!discover || !node)
+		return FALSE;
 
-	/* find the first free node and return it */
-	for (item=discover->nodes; item; item=item->next)
+	/* create udp_node */
+	if (!(udp_node = fst_udp_node_create (node)))
+		return FALSE;
+
+	/* TODO: make this non-blocking */
+	if (! (he = gethostbyname (node->host)))
 	{
-		udp_node = (FSTUdpNode*)item->data;
-
-		if (udp_node->state == UdpNodeStateFree)
-			break;
+		fst_udp_node_free (udp_node);
+		FST_WARN_1 ("fst_udp_discover_ping_node: gethostbyname failed for host %s",
+		            node->host);
+		return FALSE;
 	}
 
-	if (!item)
-		return NULL;
+	/* hmm */
+	udp_node->ip = *((in_addr_t*)he->h_addr_list[0]);
 
-	discover->nodes = list_remove_link (discover->nodes, item);	
-	
-	node = fst_node_create (NodeKlassSuper, net_ip_str (udp_node->ip),
-	                        udp_node->port, 0, udp_node->last_seen);
+	FST_HEAVY_DBG_3 ("sending udp ping to %s(%s):%d", udp_node->node->host,
+	                 net_ip_str(udp_node->ip), udp_node->node->port);
 
-	fst_udp_node_free (udp_node);
-	
-	if (!node)
-		return NULL;
+	/* create packet */
+	if (!(packet = fst_packet_create ()))
+	{
+		fst_udp_node_free (udp_node);
+		return FALSE;
+	}
 
-	return node;
+	fst_packet_put_uint8 (packet, UdpMsgPing);
+	fst_packet_put_uint32 (packet, htonl (0x29)); /* minimum enc_type */
+	fst_packet_put_uint8 (packet, 0x80);          /* unknown */
+	fst_packet_put_ustr (packet, FST_NETWORK_NAME, strlen (FST_NETWORK_NAME) + 1);
+
+	/* send packet */
+	memset (&addr, 0, sizeof (addr));
+	addr.sin_family      = AF_INET;
+	addr.sin_addr.s_addr = udp_node->ip;
+	addr.sin_port        = htons (udp_node->node->port);
+
+	if(sendto (discover->fd, packet->data, packet->used, 0, (struct sockaddr*)&addr, sizeof (addr)) != packet->used)
+	{
+		FST_DBG_2 ("sendto failed for %s:%d",
+		           net_ip_str(udp_node->ip), udp_node->node->port);
+		fst_udp_node_free (udp_node);
+		fst_packet_free (packet);
+
+		/* TODO: signal network down to caller */
+		return FALSE;
+	}
+
+	fst_packet_free (packet);
+
+	/* create timer for ping timeout if necessary */
+	if (!discover->timer)
+	{
+		FST_HEAVY_DBG ("creating timer");
+
+		discover->timer = timer_add (FST_UDP_DISCOVER_TIMEOUT,
+		                             (TimerCallback)udp_discover_timeout,
+		                             discover);
+
+		if (!discover->timer)
+		{
+			fst_udp_node_free (udp_node);
+			FST_ERR ("timer init failed");
+			return FALSE;
+		}
+	}
+
+	udp_node->sent_time = time (NULL);
+
+	/* add node to list */
+	discover->nodes = list_append (discover->nodes, udp_node);
+	discover->pinged_nodes++;
+
+	FST_DBG_3 ("sent udp ping to %s:%d, pinged nodes: %d",
+	           net_ip_str (udp_node->ip), udp_node->node->port,
+	           discover->pinged_nodes);
+
+	return TRUE;
 }
 
 /*****************************************************************************/
@@ -215,31 +256,20 @@ static void udp_discover_receive (int fd, input_id input,
 	
 	if (net_sock_error (fd))
 	{
-		/* this should never happen */
+		/* this should never happen for an udp socket */
 		FST_ERR ("udp_discover_receive called with invalid fd");
-		/* TODO: do something more clever than aborting */
-		assert(net_sock_error (fd) == FALSE);
 		return;
 	}
 
+	/* TODO: check for ICMP host unreachable and friends */
 	if ((len = recvfrom (fd, buf, UDP_BUFFER_LEN, 0, (struct sockaddr*)&addr, &addr_len)) < 0)
 	{
 #ifdef WIN32
-		if (WSAGetLastError () == WSAEMSGSIZE)
-		{
-			FST_DBG_1 ("udp_discover_receive: packet larger than %d bytes",
-			           UDP_BUFFER_LEN);
-			len = UDP_BUFFER_LEN;			
-		}
-		else
-		{
-			FST_ERR_1 ("udp_discover_receive: recvfrom failed: %d", WSAGetLastError ());
-			return;
-		}
+		FST_ERR_1 ("udp_discover_receive: recvfrom failed: %d", WSAGetLastError ());
 #else
 		FST_ERR ("udp_discover_receive: recvfrom failed");
-		return;
 #endif
+		return;
 	}
 
 	/* find this udp node in list */
@@ -258,6 +288,12 @@ static void udp_discover_receive (int fd, input_id input,
 		           net_ip_str (addr.sin_addr.s_addr), ntohs (addr.sin_port));
 		return;
 	}
+
+	/* remove udp_node from list */
+	discover->nodes = list_remove_link(discover->nodes, udp_node_link);
+
+	/* we got _some_ udp packet so udp is not firewalled */
+	discover->udp_working = TRUE;
 
 	/* create packet */
 	if (!(packet = fst_packet_create ()))
@@ -282,11 +318,10 @@ static void udp_discover_receive (int fd, input_id input,
 		if((len = fst_packet_strlen (packet, 0x00)) < 0)
 		{
 			FST_DBG_2 ("received corrupted udp reply from %s:%d",
-						net_ip_str (udp_node->ip), udp_node->port);
-			/* remove udp_node from list */
-			discover->nodes = list_remove_link(discover->nodes, udp_node_link);
+						net_ip_str (udp_node->ip), udp_node->node->port);
 			fst_udp_node_free (udp_node);
 			fst_packet_free (packet);
+			/* let the ping time out */
 			return;
 		}
 
@@ -294,65 +329,47 @@ static void udp_discover_receive (int fd, input_id input,
 		fst_packet_free (packet);
 	
 		/* this node is up and has free child slots */
-		udp_node->last_seen = time (NULL);
-		udp_node->state = UdpNodeStateFree;
+		udp_node->node->last_seen = time (NULL);
 		discover->pinged_nodes--;
 
-		/* notify plugin using FSTNode */
-		node = fst_node_create (NodeKlassSuper, net_ip_str (udp_node->ip),
-		                        udp_node->port, 0, udp_node->last_seen);
-
-		if (!node)
-		{
-			discover->nodes = list_remove_link(discover->nodes, udp_node_link);
-			fst_udp_node_free (udp_node);
-			return;
-		}
-
 		FST_DBG_4 ("received udp reply 0x%02x (pong) from %s:%d, pinged nodes: %d",
-		           type, net_ip_str (udp_node->ip), udp_node->port,
+		           type, net_ip_str (udp_node->ip), udp_node->node->port,
 		           discover->pinged_nodes);
 
-		/* callback may free us */
-		discover->callback (discover, node);
+		/* raise callback */
+		discover->callback (discover, UdpNodeStateFree, udp_node->node);
 	
-		/* don't send another ping right now since this was a pong */
-		fst_node_free (node);
-		
-		return;
+		fst_udp_node_free (udp_node);
+		break;
 
 	default: /* unknown packet */
 
 		fst_packet_free (packet);
 
 		/* this node is up but has no child slot for us */
-		udp_node->last_seen = time (NULL);
-		udp_node->state = UdpNodeStateUp;
+		udp_node->node->last_seen = time (NULL);
 		discover->pinged_nodes--;
 
 		FST_DBG_4 ("received udp reply 0x%02x from %s:%d, pinged nodes: %d",
-					type, net_ip_str (udp_node->ip), udp_node->port,
+					type, net_ip_str (udp_node->ip), udp_node->node->port,
 					discover->pinged_nodes);
-		
-#if 0
-		/* remove udp_node from list */
-		discover->nodes = list_remove_link(discover->nodes, udp_node_link);
-		
-		/* add this node back to cache with high load */
-		fst_nodecache_add (discover->cache, NodeKlassSuper,
-		                   net_ip_str (udp_node->ip), udp_node->port,
-		                   100, udp_node->last_seen);
+
+		/* raise callback */
+		discover->callback (discover, UdpNodeStateFree, udp_node->node);
 
 		fst_udp_node_free (udp_node);
+		break;
+	}
 
-#endif
+	assert (discover->pinged_nodes >= 0);
 
-		if (udp_discover_ping_nodes (discover, 1) == 0)
-		{
-			/* notify plugin via callback */
-			if (!discover->callback (discover, NULL))
-				return FALSE; /* no more nodes */
-		}
+	/* remove timer if no more outstanding pings */
+	if (discover->pinged_nodes == 0)
+	{
+		FST_HEAVY_DBG ("removing timer");
+		/* remove timer */
+		discover->timer = 0;
+		return FALSE;
 	}
 
 	/* wait for next packet */
@@ -373,10 +390,7 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 
 		next = item->next;
 		
-		if (udp_node->state != UdpNodeStatePinged)
-			continue;
-
-		if (udp_node->last_seen + (FST_UDP_DISCOVER_TIMEOUT/SECONDS) > now)
+		if (udp_node->sent_time + (FST_UDP_DISCOVER_TIMEOUT/SECONDS) > now)
 			continue;
 
 		/* the node timed out, remove it */
@@ -384,135 +398,28 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 		discover->pinged_nodes--;
 
 		FST_HEAVY_DBG_3 ("removed timed out udp node %s:%d, pinged nodes: %d",
-		                 net_ip_str (udp_node->ip), udp_node->port,
+		                 net_ip_str (udp_node->ip), udp_node->node->port,
 						 discover->pinged_nodes);
 
+		/* raise callback */
+		discover->callback (discover, UdpNodeStateDown, udp_node->node);
+
 		fst_udp_node_free (udp_node);
 	}
-	
-	if (udp_discover_ping_nodes (discover, 0) == 0)
-	{
-		/* notify plugin via callback */
-		if (!discover->callback (discover, NULL))
-			return FALSE; /* no more nodes */
-	}
 
+	assert (discover->pinged_nodes >= 0);
+
+	/* remove timer if no more outstanding pings */
+	if (discover->pinged_nodes == 0)
+	{
+		FST_HEAVY_DBG ("removing timer");
+		/* remove timer */
+		discover->timer = 0;
+		return FALSE;
+	}
+	
 	/* raise us again after FST_UDP_DISCOVER_TIMEOUT */
 	return TRUE;
-}
-
-/*****************************************************************************/
-
-/*
- * sends enough pings so FST_UDP_DISCOVER_MAX_PINGS is reached
- * returns number of currently pinged nodes, -1 if network is down
- */
-static int udp_discover_ping_nodes (FSTUdpDiscover *discover, int max_pings)
-{
-	if (max_pings == 0)
-		max_pings = FST_UDP_DISCOVER_MAX_PINGS;
-	else
-		max_pings = discover->pinged_nodes + max_pings;	
-
-	while (discover->pinged_nodes < max_pings)
-	{
-		FSTNode *node = fst_nodecache_get_front (discover->cache);
-		
-		if(!node)
-			break;
-
-		if (udp_discover_send_ping (discover, node) == -1)
-		{
-			/* network is down, let the timer try again later */
-			FST_WARN_1 ("no route to the internet, trying again in %d seconds",
-			            FST_UDP_DISCOVER_TIMEOUT / SECONDS);
-			fst_node_free (node);
-			return -1;
-		}
-
-		/* remove this node from cache */
-		fst_nodecache_remove (discover->cache, node->host);
-		fst_node_free (node);
-	}
-
-	return discover->pinged_nodes;
-}
-
-
-/*
- * pings node via udp
- * returns 0 on success, -1 if network is down and 1 if something else fails
- */
-static int udp_discover_send_ping (FSTUdpDiscover *discover, FSTNode *node)
-{
-	struct hostent *he;
-	FSTUdpNode *udp_node;
-	in_addr_t ip;
-	FSTPacket *packet;
-	struct sockaddr_in addr;
-
-	if (!discover || !node)
-		return 1;
-
-	/* TODO: make this non-blocking */
-	if (! (he = gethostbyname (node->host)))
-	{
-		FST_WARN_1 ("udp_discover_send_ping: gethostbyname failed for host %s",
-		            node->host);
-		return 1;
-	}
-
-	ip = *((in_addr_t*)he->h_addr_list[0]);
-
-	FST_HEAVY_DBG_3 ("sending udp ping to %s(%s):%d", node->host,
-	                 net_ip_str(ip), node->port);
-
-	/* create udp_node */
-	if (!(udp_node = fst_udp_node_create (ip, node->port)))
-		return 1;
-
-	/* create packet */
-	if (!(packet = fst_packet_create ()))
-	{
-		fst_udp_node_free (udp_node);
-		return 1;
-	}
-
-	fst_packet_put_uint8 (packet, UdpMsgPing);
-	fst_packet_put_uint32 (packet, htonl (0x29)); /* minimum enc_type */
-	fst_packet_put_uint8 (packet, 0x80); /* unknown */
-	fst_packet_put_ustr (packet, FST_NETWORK_NAME, strlen (FST_NETWORK_NAME) + 1);
-
-	/* send packet */
-
-	memset (&addr, 0, sizeof (addr));
-	addr.sin_family      = AF_INET;
-	addr.sin_addr.s_addr = udp_node->ip;
-	addr.sin_port        = htons (udp_node->port);
-
-	if(sendto (discover->fd, packet->data, packet->used, 0, (struct sockaddr*)&addr, sizeof (addr)) != packet->used)
-	{
-		FST_DBG_2 ("sendto failed for %s:%d",
-		           net_ip_str (udp_node->ip), udp_node->port);
-		fst_udp_node_free (udp_node);
-		fst_packet_free (packet);
-		return -1;
-	}
-
-	fst_packet_free (packet);
-	
-	udp_node->state = UdpNodeStatePinged;
-	udp_node->last_seen = time (NULL);
-
-	/* add node to list */
-	discover->nodes = list_append (discover->nodes, udp_node);
-	discover->pinged_nodes++;
-
-	FST_DBG_3 ("sent udp ping to %s:%d, pinged nodes: %d",
-	           net_ip_str (udp_node->ip), udp_node->port,
-	           discover->pinged_nodes);
-
-	return 0;
 }
 
 /*****************************************************************************/
