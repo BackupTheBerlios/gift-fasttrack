@@ -1,7 +1,8 @@
 /*
- * $Id: fst_crypt.c,v 1.3 2003/06/21 16:18:42 mkern Exp $
+ * $Id: fst_crypt.c,v 1.4 2003/06/26 18:34:37 mkern Exp $
  *
- * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
+ * Copyright (C) 2003 giFT-FastTrack project
+ * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -27,7 +28,7 @@ void enc_type_20 (unsigned int *key, unsigned int seed);
 
 /*****************************************************************************/
 
-static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* pad, unsigned int pad_size);
+static int pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* pad, unsigned int pad_size);
 static unsigned char clock_cipher(FSTCipher *cipher);
 static unsigned int calculate_num_xor(unsigned int seed);
 static int calculate_num(unsigned int *num, int val);
@@ -65,7 +66,8 @@ void fst_cipher_crypt(FSTCipher *cipher, unsigned char *data, int len)
 }
 
 // initialize cipher state
-void fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type)
+// returns FALSE if enc_type is not supported, TRUE otherwise
+int fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type)
 {
 	int i,j;
 	unsigned int temp;
@@ -77,9 +79,10 @@ void fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type
 	cipher->add_to_lookup = 0;
 	cipher->seed = seed;
 
-	FST_DBG_2 ("init_cipher: seed = 0x%08x, enc_type = 0x%02x", seed, enc_type);
+	FST_HEAVY_DBG_2 ("init_cipher: seed = 0x%08x, enc_type = 0x%02x", seed, enc_type);
 
-	pad_init(&seed, enc_type, cipher->pad, sizeof(cipher->pad));
+	if(!pad_init(&seed, enc_type, cipher->pad, sizeof(cipher->pad)))
+		return FALSE;
 
 	// adjust pad
 	c = 0;
@@ -155,6 +158,8 @@ void fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type
 
 //	print_bin_data(cipher->pad, sizeof(cipher->pad));
 //	print_bin_data(cipher->lookup, sizeof(cipher->lookup));
+
+	return TRUE;
 }
 
 /*****************************************************************************/
@@ -173,7 +178,7 @@ unsigned int fst_cipher_decode_enc_type(unsigned int seed, unsigned int crypted_
 
 /*****************************************************************************/
 
-static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* pad, unsigned int pad_size)
+static int pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* pad, unsigned int pad_size)
 {
 	int i;
 	unsigned int temp;
@@ -225,8 +230,10 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 
 		if(enc_type & 0x04)
 		{
-			FST_DBG ("pad_init: enc_type & 0x04, WARNING: not implemented");
+//			FST_WARN ("pad_init: enc_type & 0x04 not implemented");
+
 			seed = seed_step(seed);
+			return FALSE;
 		}
 
 		if(enc_type & 0x20)
@@ -239,14 +246,18 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 
 		if(enc_type & 0x80)
 		{
-			FST_DBG ("pad_init: enc_type & 0x80, WARNING: not implemented");
+//			FST_WARN ("pad_init: enc_type & 0x80 not implemented");
+
 			seed = seed_step(seed);
+			return FALSE;
 		}
 
 		if(enc_type & 0x100)
 		{
-			FST_DBG ("pad_init: enc_type & 0x100, WARNING: not implemented");
+//			FST_WARN ("pad_init: enc_type & 0x100 not implemented");
+
 			seed = seed_step(seed);
+			return FALSE;
 		}
 
 		// correct byte order on big-endian before merging
@@ -256,7 +267,10 @@ static void pad_init(unsigned int *pseed, unsigned int enc_type, unsigned char* 
 		for(i=0; i<pad_size; i++)
 			pad[i] ^= ((unsigned char*)key_80)[i];
 	}
+
 	*pseed = seed;
+
+	return TRUE;
 }
 
 /**
@@ -401,12 +415,12 @@ static int calculate_num(unsigned int *num, int val)
 	}
 	else
 	{
-		FST_DBG ("calculate_num: (val <= 0x10001), WARNING: not implemented");
+		FST_WARN ("calculate_num: (val <= 0x10001) not implemented");
 	}
 
 	if (val > 0xff)
 	{
-		FST_DBG ("calculate_num: (val > 0xff), WARNING: not implemented");
+		FST_WARN ("calculate_num: (val > 0xff) not implemented");
 	}
 	return val;
 }

@@ -1,7 +1,8 @@
 /*
- * $Id: fst_download.c,v 1.6 2003/06/22 16:59:10 mkern Exp $
+ * $Id: fst_download.c,v 1.7 2003/06/26 18:34:37 mkern Exp $
  *
- * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
+ * Copyright (C) 2003 giFT-FastTrack project
+ * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -47,13 +48,13 @@ void gift_cb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk, Sourc
 
 	if(complete)
 	{
-		FST_DBG_2 ("removing completed download from %s:%d", net_ip_str(download->ip), download->port);
+		FST_HEAVY_DBG_2 ("removing completed download from %s:%d", net_ip_str(download->ip), download->port);
 		FST_PROTO->source_status (FST_PROTO, chunk->source, SOURCE_COMPLETE, "Complete");
 		fst_download_stop (download);
 	}
 	else
 	{
-		FST_DBG_2 ("removing cancelled download from %s:%d", net_ip_str(download->ip), download->port);
+		FST_HEAVY_DBG_2 ("removing cancelled download from %s:%d", net_ip_str(download->ip), download->port);
 		FST_PROTO->source_status (FST_PROTO, chunk->source, SOURCE_CANCELLED, "Cancelled");
 		fst_download_stop (download);
 	}
@@ -87,7 +88,7 @@ static void download_read_body(int fd, input_id input, FSTDownload *download);
 static void download_write_gift (FSTDownload *download, unsigned char *data, unsigned int len);
 static void download_error_gift (FSTDownload *download, int remove_source, unsigned short klass, char *error);
 static char *download_parse_url (char *url, unsigned int *ip, unsigned short *port);
-static char *download_calc_xfer_uid(char *uri);
+static char *download_calc_xferuid(char *uri);
 
 /*****************************************************************************/
 
@@ -189,7 +190,7 @@ static void download_connected(int fd, input_id input, FSTDownload *download)
 	fst_http_request_set_header (request, "X-Kazaa-Network", FST_NETWORK_NAME);
 	fst_http_request_set_header (request, "X-Kazaa-Username", FST_USER_NAME);
 #ifdef FST_DOWNLOAD_BOOST_PL
-	fst_http_request_set_header (request, "X-Kazaa-Xfer-Uid", download_calc_xfer_uid(download->uri));
+	fst_http_request_set_header (request, "X-Kazaa-XferUid", download_calc_xferuid(download->uri));
 #endif
 	// host
 	sprintf (buf, "%s:%d", net_ip_str (download->ip), download->port);
@@ -227,7 +228,7 @@ static void download_read_header(int fd, input_id input, FSTDownload *download)
 
 	if (net_sock_error (download->tcpcon->fd))
 	{
-		FST_DBG_2 ("read error while downloading from %s:%d -> removing source", net_ip_str(download->ip), download->port);
+		FST_HEAVY_DBG_2 ("read error while downloading from %s:%d -> removing source", net_ip_str(download->ip), download->port);
 		download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Request Failed");
 		return;
 	}
@@ -334,10 +335,10 @@ static void download_read_body(int fd, input_id input, FSTDownload *download)
 
 	if (net_sock_error (download->tcpcon->fd))
 	{
-		FST_DBG_2 ("read error while downloading from %s:%d -> aborting", net_ip_str(download->ip), download->port);
+		FST_HEAVY_DBG_2 ("read error while downloading from %s:%d -> aborting", net_ip_str(download->ip), download->port);
 		input_remove (input);
 		// this makes giFT call gift_cb_download_stop(), which closes connection and frees download
-		download_error_gift (download, FALSE, SOURCE_TIMEOUT, "Download Failed");
+		download_error_gift (download, FALSE, SOURCE_CANCELLED, "Download Failed");
 		return;
 	}
 	
@@ -345,7 +346,7 @@ static void download_read_body(int fd, input_id input, FSTDownload *download)
 
 	if((len = tcp_recv (download->tcpcon, data, DOWNLOAD_BUF_SIZE)) <= 0)
 	{
-		FST_DBG_2 ("download_read_body: tcp_recv() <= 0 for %s:%d", net_ip_str(download->ip), download->port);
+		FST_HEAVY_DBG_2 ("download_read_body: tcp_recv() <= 0 for %s:%d", net_ip_str(download->ip), download->port);
 		input_remove (input);
 		// this makes giFT call gift_cb_download_stop(), which closes connection and frees download
 		download_error_gift (download, FALSE, SOURCE_CANCELLED, "Download Error");
@@ -434,8 +435,8 @@ static char *download_parse_url (char *url, unsigned int *ip, unsigned short *po
 ((fst_uint8*)&(x))[2]) << 8) | \
 ((fst_uint8*)&(x))[3])
 
-// returns static base64 encoded string for X-Kazaa-Xfer-Uid http header
-static char *download_calc_xfer_uid(char *uri)
+// returns static base64 encoded string for X-Kazaa-XferUid http header
+static char *download_calc_xferuid(char *uri)
 {
 /*
 	static const unsigned char last_search_hash[32] = {
@@ -471,8 +472,16 @@ static char *download_calc_xfer_uid(char *uri)
 	memcpy(buf, last_search_hash, 32);
 	seed = SWAPU32(buf[0]);
 
+	// run through cipher
 	cipher = fst_cipher_create ();
-	fst_cipher_init (cipher, seed, 0xB0);
+
+	if(!fst_cipher_init (cipher, seed, 0xB0))
+	{
+		fst_cipher_free (cipher);
+		base64[0] = 0;
+		return base64;
+	}
+
 	fst_cipher_crypt (cipher, (unsigned char*)(buf+1), 28); 
 	fst_cipher_free (cipher);
 
@@ -505,9 +514,17 @@ static char *download_calc_xfer_uid(char *uri)
 	seed ^= smhash;
 
 	buf[0] = SWAPU32(seed);
-	
+
+	// run through cipher
 	cipher = fst_cipher_create ();
-	fst_cipher_init (cipher, seed, 0xB0);
+
+	if(!fst_cipher_init (cipher, seed, 0xB0))
+	{
+		fst_cipher_free (cipher);
+		base64[0] = 0;
+		return base64;
+	}
+
 	fst_cipher_crypt (cipher, (unsigned char*)(buf+1), 28); 
 	fst_cipher_free (cipher);
 

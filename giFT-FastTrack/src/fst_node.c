@@ -1,7 +1,8 @@
 /*
- * $Id: fst_node.c,v 1.3 2003/06/22 16:58:34 mkern Exp $
+ * $Id: fst_node.c,v 1.4 2003/06/26 18:34:37 mkern Exp $
  *
- * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
+ * Copyright (C) 2003 giFT-FastTrack project
+ * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -143,7 +144,13 @@ FSTNode *fst_nodecache_get_front (FSTNodeCache *cache)
 
 static int nodecache_cmp_nodes (FSTNode *a, FSTNode *b)
 {
-	return (a->load < b->load) ? -1 : (a->load > b->load);
+	// compare with 3 minute accuracy
+	if ((a->last_seen / 180) == (b->last_seen / 180))
+		return (a->load < b->load) ? -1 : (a->load > b->load);
+	else if (a->last_seen < b->last_seen)
+		return -1;
+	else
+		return 1;
 }
 
 // sort nodecache moving best nodes to the front and
@@ -206,10 +213,10 @@ int fst_nodecache_load (FSTNodeCache *cache, const char *filename)
 		/* format: <host> <port> <klass> <load> <last_seen> */
 
 		host		=                       string_sep (&ptr, " ");
-		port		= (unsigned short) ATOI(string_sep (&ptr, " "));
-		klass		=                  ATOI(string_sep (&ptr, " "));
-		load		=				   ATOI(string_sep (&ptr, " "));
-		last_seen	=				   ATOI(string_sep (&ptr, " "));
+		port		= (unsigned short) ATOUL(string_sep (&ptr, " "));
+		klass		=                  ATOUL(string_sep (&ptr, " "));
+		load		=				   ATOUL(string_sep (&ptr, " "));
+		last_seen	=				   ATOUL(string_sep (&ptr, " "));
 
 		if (!host || !port)
 			continue;

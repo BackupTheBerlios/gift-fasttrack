@@ -1,5 +1,8 @@
 /*
- * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
+ * $Id
+ *
+ * Copyright (C) 2003 giFT-FastTrack project
+ * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the

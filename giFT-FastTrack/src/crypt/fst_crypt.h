@@ -1,7 +1,8 @@
 /*
- * $Id: fst_crypt.h,v 1.3 2003/06/21 16:18:42 mkern Exp $
+ * $Id: fst_crypt.h,v 1.4 2003/06/26 18:34:37 mkern Exp $
  *
- * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
+ * Copyright (C) 2003 giFT-FastTrack project
+ * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -44,7 +45,8 @@ FSTCipher *fst_cipher_create();
 void fst_cipher_free(FSTCipher *cipher);
 
 // initialize cipher state
-void fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type);
+// returns FALSE if enc_type is not supported, TRUE otherwise
+int fst_cipher_init(FSTCipher *cipher, unsigned int seed, unsigned int enc_type);
 
 // encrypt / decrypt a block of data with cipher
 void fst_cipher_crypt(FSTCipher *cipher, unsigned char *data, int len);

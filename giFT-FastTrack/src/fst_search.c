@@ -1,7 +1,8 @@
 /*
- * $Id: fst_search.c,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_search.c,v 1.3 2003/06/26 18:34:37 mkern Exp $
  *
- * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
+ * Copyright (C) 2003 giFT-FastTrack project
+ * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -291,6 +292,9 @@ int fst_searchlist_send_queries (FSTSearchList *searchlist, FSTSession *session,
 {
 	List *node = searchlist->searches;
 	FSTSearch *search;
+	int i=0;
+
+	FST_HEAVY_DBG_1 ("resending pending searches to supernode, resent = %d", resent);
 
 	for (; node; node = node->next)
 	{
@@ -298,7 +302,11 @@ int fst_searchlist_send_queries (FSTSearchList *searchlist, FSTSession *session,
 		if(!search->sent || resent)
 			if(fst_search_send_query (search, session) == FALSE)
 				return FALSE;
+		i++;
 	}
+
+	FST_HEAVY_DBG_1 ("sent %d searches to supernode.", i);
+
 	return TRUE;
 }
 

@@ -1,7 +1,8 @@
 /*
- * $Id: fst_fasttrack.h,v 1.11 2003/06/24 15:20:59 rasa Exp $
+ * $Id: fst_fasttrack.h,v 1.12 2003/06/26 18:34:37 mkern Exp $
  *
- * Copyright (C) 2003 giFT-FastTrack project http://developer.berlios.de/projects/gift-fasttrack
+ * Copyright (C) 2003 giFT-FastTrack project
+ * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -130,21 +131,21 @@ typedef uint32_t fst_uint32;
 #define FST_PLUGIN ((FSTPlugin*)fst_proto->udata)
 #define FST_PROTO (fst_proto)
 
-#define FST_NETWORK_NAME "KaZaA"		// network name we send and which we require from other supernodes
-#define FST_USER_NAME (config_get_str (FST_PLUGIN->conf, "main/alias=giFTed"))
+#define FST_NETWORK_NAME "KaZaA"	// network name we send to supernodes
+#define FST_USER_NAME (FST_PLUGIN->username)
 
 #define FST_MAX_NODESFILE_SIZE 1000	// max number of nodes we save in nodes file
 
 #define FST_MAX_SEARCH_RESULTS 0xFF	// max number of results we want to be returned per search
 
 // no worki yet 
-//#define FST_DOWNLOAD_BOOST_PL               // use a participation level if 1000 for downloading
+//#define FST_DOWNLOAD_BOOST_PL     // use a participation level if 1000 for downloading
 
 // various timeouts in ms
-#define FST_SESSION_CONNECT_TIMEOUT		(10*SECONDS)
+#define FST_SESSION_CONNECT_TIMEOUT		(8*SECONDS)
 #define FST_SESSION_HANDSHAKE_TIMEOUT	(10*SECONDS)
 
-#define FST_DOWNLOAD_CONNECT_TIMEOUT	(20*SECONDS)
+#define FST_DOWNLOAD_CONNECT_TIMEOUT	(15*SECONDS)
 #define FST_DOWNLOAD_HANDSHAKE_TIMEOUT	(10*SECONDS)
 #define FST_DOWNLOAD_DATA_TIMEOUT		(10*SECONDS)
 
@@ -153,6 +154,7 @@ typedef uint32_t fst_uint32;
 typedef struct
 {
 	Config *conf;					// ~/.giFT/FastTrack/FastTrack.conf
+	char *username;					// copy of user name from config file
 
 	FSTNodeCache *nodecache;		// cache that holds known supernode addresses
 

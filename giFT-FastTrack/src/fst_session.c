@@ -1,7 +1,8 @@
 /*
- * $Id: fst_session.c,v 1.2 2003/06/20 18:57:30 beren12 Exp $
+ * $Id: fst_session.c,v 1.3 2003/06/26 18:34:37 mkern Exp $
  *
- * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
+ * Copyright (C) 2003 giFT-FastTrack project
+ * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -16,6 +17,10 @@
 
 #include "fst_fasttrack.h"
 #include "fst_session.h"
+
+/*****************************************************************************/
+
+char *valid_network_names[] = { "kazaa", "fileshare", "grokster", NULL};
 
 /*****************************************************************************/
 
@@ -84,7 +89,7 @@ int fst_session_connect(FSTSession *session, FSTNode *node)
 	if (!(he = gethostbyname (node->host)))
 	{
 		session->state = SessDisconnected;
-		FST_DBG_1 ("gethostbyname failed for host %s", node->host);
+		FST_WARN_1 ("gethostbyname failed for host %s", node->host);
 		return FALSE;
    }
 
@@ -95,7 +100,7 @@ int fst_session_connect(FSTSession *session, FSTNode *node)
 	if (!session->tcpcon)
 	{
 		session->state = SessDisconnected;
-		FST_DBG_1 ("ERROR: tcp_open() failed for %s. no route to host?", node->host);
+		FST_WARN_1 ("tcp_open() failed for %s. no route to host?", node->host);
 		return FALSE;
 	}
 	
@@ -134,7 +139,12 @@ int fst_session_send_message(FSTSession *session, FSTSessionMsg msg_type, FSTPac
     int xtype;
 
 	if(!session || session->state != SessEstablished || msg_type > 0xFF || !msg_data)
+	{
+		FST_DBG_1 ("cannot happen: fst_session_send_message() failed! msg_type: 0x%02X", msg_type);
 		return FALSE;
+	}
+
+	FST_HEAVY_DBG_1 ("sending msg with msg_type: 0x%02X", msg_type);
 
 	new_packet = fst_packet_create();
 
@@ -170,6 +180,7 @@ int fst_session_send_message(FSTSession *session, FSTSessionMsg msg_type, FSTPac
     session->out_xinu ^= ~(fst_packet_size(msg_data) + msg_type);
 
 	fst_packet_append (new_packet, msg_data);
+//	print_bin_data(new_packet->data, new_packet->used);
 	fst_packet_encrypt (new_packet, session->out_cipher);
 
 	if(fst_packet_send (new_packet, session->tcpcon) == FALSE)
@@ -188,7 +199,6 @@ int fst_session_send_message(FSTSession *session, FSTSessionMsg msg_type, FSTPac
 static void session_connected(int fd, input_id input, FSTSession *session)
 {
 	FSTPacket *packet;
-
 
 	if (net_sock_error (session->tcpcon->fd))
 	{
@@ -233,7 +243,6 @@ static void session_connected(int fd, input_id input, FSTSession *session)
 static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 {
 	FSTPacket *packet;
-	fst_uint8 c;
 
 	input_remove(input);
 
@@ -291,10 +300,12 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 
 	if(session->state == SessWaitingNetName)
 	{
-		c = 'a';
-		while(fst_packet_remaining(session->in_packet) && (c = fst_packet_get_uint8(session->in_packet)) != 0)
+		char **net_name;
+		fst_uint8 c = 'a';
+
+		while(fst_packet_remaining(session->in_packet) && (c = fst_packet_get_uint8(session->in_packet)) != '\0')
 			;
-		if(c != 0)
+		if(c != '\0')
 		{
 			fst_packet_rewind(session->in_packet);
 			// get more data
@@ -302,15 +313,19 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 			return;
 		}
 
-		if(strcmp(session->in_packet->data, FST_NETWORK_NAME) &&
-		   strcmp(session->in_packet->data, "fileshare") )		// "fileshare" is imesh's network name i think
+		// check for valid network name
+		for(net_name=valid_network_names; *net_name; net_name++)
+			if(strcasecmp (*net_name, session->in_packet->data) == 0)
+				break;
+
+		if(*net_name == NULL)
 		{
-			FST_DBG_1 ("ERROR: remote network name invalid: \"%s\", closing connection", session->in_packet->data);
+			FST_WARN_1 ("Remote network name invalid: \"%s\". closing connection", session->in_packet->data);
 			fst_session_disconnect (session);
 			return;
 		}
 
-		FST_DBG_1 ("remote networkname: \"%s\"", session->in_packet->data);
+		FST_DBG_1 ("remote network name is \"%s\"", session->in_packet->data);
 
 		session->state = SessEstablished;
 		fst_packet_truncate(session->in_packet);
@@ -324,14 +339,14 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 			return;
 		}
 	}
-
+/*
 	if(fst_packet_size(session->in_packet) == 0)
 	{
 		// get more data
-		input_add (session->tcpcon->fd, (void*)session,INPUT_READ, (InputCallback) session_decrypt_packet, 0);
+		input_add (session->tcpcon->fd, (void*)session, INPUT_READ, (InputCallback) session_decrypt_packet, 0);
 		return;
 	}
-
+*/
 	while (fst_packet_remaining (session->in_packet))
 	{
 		unsigned int type = fst_packet_get_uint8 (session->in_packet);
@@ -418,7 +433,7 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 			continue;
 		}
 		// oops, dunno what that packet is, maybe our decryption failed?
-		FST_DBG_1 ("strange packet of type 0x%02X received. closing connection.", type);
+		FST_WARN_1 ("strange packet of type 0x%02X received. closing connection.", type);
 		print_bin_data(session->in_packet->data, fst_packet_remaining(session->in_packet));
 
 		fst_session_disconnect (session);
@@ -426,7 +441,7 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 	}
 
 	// get more data
-	input_add (session->tcpcon->fd, (void*)session,INPUT_READ, (InputCallback) session_decrypt_packet, 0);
+	input_add (session->tcpcon->fd, (void*)session, INPUT_READ, (InputCallback) session_decrypt_packet, 0);
 }
 
 static int session_do_handshake(FSTSession *session)
@@ -442,20 +457,22 @@ static int session_do_handshake(FSTSession *session)
 	enc_type = ntohl (fst_packet_get_uint32 (session->in_packet));
 	enc_type = fst_cipher_decode_enc_type (seed, enc_type);
 
-	if(enc_type > 0x29)
+	// generate send key
+	session->out_cipher->seed ^= seed; // xor send cipher with received seed
+	if(!fst_cipher_init(session->out_cipher, session->out_cipher->seed, session->out_cipher->enc_type))
 	{
-		FST_DBG_1 ("ERROR: unsupported encryption (0x%02x)", enc_type);
+		FST_WARN_1 ("Unsupported encryption: 0x%02X", session->out_cipher->enc_type);
 		return FALSE;
 	}
 
-	FST_HEAVY_DBG_1 ("session_do_handshake: connection started with enc_type 0x%02x", enc_type);
-
-	// generate send key
-	session->out_cipher->seed ^= seed; // xor send cipher with received seed
-	fst_cipher_init(session->out_cipher, session->out_cipher->seed, session->out_cipher->enc_type);
-
 	// generate recv key
-	fst_cipher_init(session->in_cipher, seed, enc_type);
+	if(!fst_cipher_init(session->in_cipher, seed, enc_type))
+	{
+		FST_WARN_1 ("Unsupported encryption: 0x%02X", enc_type);
+		return FALSE;
+	}
+
+	FST_DBG_2 ("outgoing enc_type: 0x%02X, incoming enc_type: 0x%02X", session->out_cipher->enc_type, enc_type);
 
 	// send network name
 	FST_HEAVY_DBG_1 ("session_do_handshake: sending network name (\"%s\")", FST_NETWORK_NAME);
@@ -481,19 +498,19 @@ static int session_greet_suppernode(FSTSession *session)
 	struct sockaddr_in sa;
 	int size = sizeof(struct sockaddr);
 	
-	FST_DBG ("session_greet_suppernode: sending ip, bandwidth and user name to supernode");
+	FST_DBG ("sending ip, bandwidth and user name to supernode");
 
 	// send our ip address and port
 	getsockname (session->tcpcon->fd, (struct sockaddr *) &sa, &size);
 	
-	fst_packet_put_uint32 (packet, htonl (sa.sin_addr.s_addr)); // ip
+	fst_packet_put_uint32 (packet, sa.sin_addr.s_addr); // ip
 	fst_packet_put_uint16 (packet, htons (0x0000));  // port
 	
 	/* This next byte represents the user's advertised bandwidth, on
 	* a logarithmic scale.  0xd1 represents "infinity" (actually,
 	* 1680 kbps).  The value is approximately 14*log_2(x)+59, where
 	* x is the bandwidth in kbps. */
-	fst_packet_put_uint8 (packet, 0x68);
+	fst_packet_put_uint8 (packet, 0xb0);
 
 	/* 1 byte: dunno. */
 	fst_packet_put_uint8 (packet, 0x00);
@@ -519,8 +536,6 @@ static int session_send_pong(FSTSession *session)
 	FSTPacket *packet = fst_packet_create();
 	int ret;
 
-//	FST_HEAVY_DBG ("sending pong");
-
 	fst_packet_put_uint8 (packet, 0x52);
 	fst_packet_encrypt (packet, session->out_cipher);
 	
@@ -536,8 +551,6 @@ static int session_send_ping(FSTSession *session)
 {
 	FSTPacket *packet = fst_packet_create();
 	int ret;
-
-//	FST_HEAVY_DBG ("sending ping");
 
 	fst_packet_put_uint8 (packet, 0x50);
 	fst_packet_encrypt (packet, session->out_cipher);

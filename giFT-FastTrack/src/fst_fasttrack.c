@@ -1,7 +1,8 @@
 /*
- * $Id: fst_fasttrack.c,v 1.11 2003/06/22 16:58:34 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.12 2003/06/26 18:34:37 mkern Exp $
  *
- * Copyright (C) 2003 giFT-FastTrack project http://developer.berlios.de/projects/gift-fasttrack
+ * Copyright (C) 2003 giFT-FastTrack project
+ * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -82,10 +83,13 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 
 	case SessMsgEstablished:
 	{
-		FST_DBG_2 ("supernode connection established to %s:%d",
-				   session->node->host, session->node->port);
+		FST_DBG_3 ("supernode connection established to %s:%d, load: %d%%",
+				   session->node->host, session->node->port, session->node->load);
 		// resent queries for all running searches
+		// TODO: greet supernode first!
+/*
 		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
+*/
 		break;
 	}
 
@@ -122,6 +126,7 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 		// if we got this from an index node disconnect now and use a supernode
 		if (session->node->klass == NodeKlassIndex)
 		{
+			FST_DBG ("disconnecting from index node");
 			fst_session_disconnect (session); // this calls us back with SessMsgDisconnected
 			return FALSE;
 		}
@@ -150,7 +155,10 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 		// we do not currently care for those
 		// something else with a size of 37 byte follows, dunno what it is
 
-		FST_DBG_3 ("received network stats: %d users, %d files, %d GB", FST_PLUGIN->stats->users, FST_PLUGIN->stats->files, FST_PLUGIN->stats->size);
+		FST_DBG_3 ("received network stats: %d users, %d files, %d GB",
+				   FST_PLUGIN->stats->users,
+				   FST_PLUGIN->stats->files,
+				   FST_PLUGIN->stats->size);
 		break;
 	}
 
@@ -185,9 +193,11 @@ static int fst_plugin_session_callback(FSTSession *session, FSTSessionMsg msg_ty
 	}
 
 	default:
-		FST_HEAVY_DBG_2 ("unhandled message: type = 0x%02x, length = %d", msg_type, fst_packet_size(msg_data));
-//		printf("\nunhandled message: type = 0x%02x, length = %d", msg_type, fst_packet_size(msg_data));
-//		print_bin_data(msg_data->data, fst_packet_remaining(msg_data));
+/*
+		FST_DBG_2 ("unhandled message: type = 0x%02x, length = %d", msg_type, fst_packet_size(msg_data));
+		printf("\nunhandled message: type = 0x%02x, length = %d", msg_type, fst_packet_size(msg_data));
+		print_bin_data(msg_data->data, fst_packet_remaining(msg_data));
+*/
 		break;
 	}
 
@@ -234,6 +244,9 @@ static int gift_cb_start (Protocol *p)
 	// set protocol pointer
 	p->udata = (void*)plugin;
 
+	// cache user name
+	FST_PLUGIN->username = strdup(config_get_str (FST_PLUGIN->conf, "main/alias=giFTed"));
+
 	// set session to NULL
 	FST_PLUGIN->session = NULL;
 
@@ -269,6 +282,10 @@ static int gift_cb_start (Protocol *p)
 	// init stats
 	FST_PLUGIN->stats = fst_stats_create ();
 
+	// temporary, until we have a way to find usefull nodes faster
+	FST_DBG ("adding fm2.imesh.com:1214 as temporary index node");
+	fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassIndex, "fm2.imesh.com", 1214, 0, time(NULL));
+
 	// start first connection
 	fst_plugin_connect_next ();
 
@@ -303,6 +320,9 @@ static void gift_cb_destroy (Protocol *p)
 	else
 		FST_DBG_2 ("saved %d supernode addresses to nodes file \"%s\"", i, nodesfile);
 	fst_nodecache_free (FST_PLUGIN->nodecache);
+
+	// free cached user name
+	free (FST_PLUGIN->username);
 
 	// free config
 	config_free (FST_PLUGIN->conf);
