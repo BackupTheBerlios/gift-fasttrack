@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.5 2003/09/10 11:10:26 mkern Exp $
+ * $Id: fst_search.h,v 1.6 2003/09/11 17:23:48 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -43,83 +43,97 @@ typedef enum
 
 /*****************************************************************************/
 
-typedef enum { SearchTypeSearch, SearchTypeBrowse, SearchTypeLocate } FSTSearchType;
+typedef enum
+{
+	SearchTypeSearch,
+	SearchTypeBrowse,
+	SearchTypeLocate
+} FSTSearchType;
 
 typedef struct
 {
-	IFEvent *gift_event;		// giFT event used to send results back
-	unsigned int fst_id;			// id used with FastTrack protocol
-	FSTSearchType type;          // type of search
-	unsigned int sent;			// number of times a query for this search has been sent to supernodes
-	unsigned int replies;		// number of received replies
-	unsigned int fw_replies;	// number of firewalled replies
+	IFEvent *gift_event;		/* giFT event used to send results back  */
+	unsigned int fst_id;		/* id used with FastTrack protocol  */
+	FSTSearchType type;         /* type of search  */
+	unsigned int sent;			/* number of times a query for this search has
+								 * been sent to supernodes
+								 */
+	unsigned int replies;		/* number of received replies  */
+	unsigned int fw_replies;	/* number of firewalled replies  */
 
-	char *query;                // space delimited words to search for
-	char *exclude;              // words to exlude from search
-	char *realm;                // (part of) mime type we're searching for, e.g. "audio"
+	char *query;                /* space delimited words to search for  */
+	char *exclude;              /* words to exlude from search */
+	char *realm;                /* mime type we're searching for e.g. "audio" */
 } FSTSearch;
 
 
 typedef struct
 {
-	List *searches;				// list of active searches
+	List *searches;				/* list of active searches */
 	
-	fst_uint16 current_ft_id;	// running number used FastTrack protocol id
+	fst_uint16 current_ft_id;	/* running number used FastTrack protocol id */
 
 } FSTSearchList;
 
 
 /*****************************************************************************/
 
-// called by giFT to initiate search
+/* called by giFT to initiate search */
 int fst_giftcb_search (Protocol *p, IFEvent *event, char *query, char *exclude,
 					   char *realm, Dataset *meta);
 
-// called by giFT to initiate browse
+/* called by giFT to initiate browse */
 int fst_giftcb_browse (Protocol *p, IFEvent *event, char *user, char *node);
 
-// called by giFT to locate file
+/* called by giFT to locate file */
 int fst_giftcb_locate (Protocol *p, IFEvent *event, char *htype, char *hash);
 
-// called by giFT to cancel search/locate/browse
+/* called by giFT to cancel search/locate/browse */
 void fst_giftcb_search_cancel (Protocol *p, IFEvent *event);
 
 /*****************************************************************************/
 
-// allocate and init new search
-FSTSearch *fst_search_create (IFEvent *event, FSTSearchType type, char *query, char *exclude, char *realm);
+/* allocate and init new search */
+FSTSearch *fst_search_create (IFEvent *event, FSTSearchType type, char *query,
+							  char *exclude, char *realm);
 
-// free search
+/* free search */
 void fst_search_free (FSTSearch *search);
 
-// send search request to supernode and increment search->count
+/* send search request to supernode and increment search->count */
 int fst_search_send_query (FSTSearch *search, FSTSession *session);
 
 /*****************************************************************************/
 
-// allocate and init searchlist
+/* allocate and init searchlist */
 FSTSearchList *fst_searchlist_create ();
 
-// free searchlist
+/* free searchlist */
 void fst_searchlist_free (FSTSearchList *searchlist);
 
-// add search to list
+/* add search to list */
 void fst_searchlist_add (FSTSearchList *searchlist, FSTSearch *search);
 
-// remove search from list
+/* remove search from list */
 void fst_searchlist_remove (FSTSearchList *searchlist, FSTSearch *search);
 
-// lookup search by FastTrack id
+/* lookup search by FastTrack id */
 FSTSearch *fst_searchlist_lookup_id (FSTSearchList *searchlist, fst_uint16 fst_id);
 
-// lookup search by giFT event
+/* lookup search by giFT event */
 FSTSearch *fst_searchlist_lookup_event (FSTSearchList *searchlist, IFEvent *event);
 
-// send queries for every search in list if search->count == 0 or resent == TRUE
-int fst_searchlist_send_queries (FSTSearchList *searchlist, FSTSession *session, int resent);
+/* send queries for every search in list if search->count == 0
+ * or resent == TRUE
+ */
+int fst_searchlist_send_queries (FSTSearchList *searchlist, FSTSession *session,
+								 int resent);
 
-// process reply and send it to giFT, accepts SessMsgQueryReply and SessMsgQueryEnd
-int fst_searchlist_process_reply (FSTSearchList *searchlist, FSTSessionMsg msg_type, FSTPacket *msg_data);
+/* process reply and send it to giFT
+ * accepts SessMsgQueryReply and SessMsgQueryEnd
+ */
+int fst_searchlist_process_reply (FSTSearchList *searchlist,
+								  FSTSessionMsg msg_type, FSTPacket *msg_data);
 
 /*****************************************************************************/
 

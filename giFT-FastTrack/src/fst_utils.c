@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.c,v 1.6 2003/08/13 21:15:06 weinholt Exp $
+ * $Id: fst_utils.c,v 1.7 2003/09/11 17:23:48 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -95,7 +95,7 @@ static int oct_value_from_hex (char hex_char)
 	return ((hex_char - 'A') + 10);
 }
 
-// caller frees returned string
+/* caller frees returned string */
 char *fst_utils_url_decode (char *encoded)
 {
 	char *decoded, *ptr;
@@ -149,7 +149,7 @@ static char *url_encode_char (char *stream, unsigned char c)
 	return stream + 2;
 }
 
-// caller frees returned string
+/* caller frees returned string */
 char *fst_utils_url_encode (char *decoded)
 {
 	char *encoded, *ptr;
@@ -201,7 +201,7 @@ char *fst_utils_url_encode (char *decoded)
 
 /*****************************************************************************/
 
-// caller frees returned string
+/* caller frees returned string */
 char *fst_utils_base64_encode (const unsigned char *data, int src_len)
 {
 	static const char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -244,7 +244,7 @@ char *fst_utils_base64_encode (const unsigned char *data, int src_len)
 	return out;
 }
 
-// caller frees returned string
+/* caller frees returned string */
 unsigned char *fst_utils_base64_decode (const char *data, int *dst_len)
 {
 	static const char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -256,7 +256,7 @@ unsigned char *fst_utils_base64_decode (const char *data, int *dst_len)
 	if(!data)
 		return NULL;
 
-	if((out = dst = malloc(strlen(data))) == NULL)
+	if((out = dst = malloc (strlen (data))) == NULL)
 		return NULL;
 
 	for (i=0, *dst_len=0; *data; data++)
@@ -294,7 +294,67 @@ unsigned char *fst_utils_base64_decode (const char *data, int *dst_len)
 
 /*****************************************************************************/
 
-// returns TRUE if ip in reserved private space, ip is big endian
+/* caller frees returned string */
+char *fst_utils_hex_encode (const unsigned char *data, int src_len)
+{
+	static const char hex_string[] = "0123456789abcdefABCDEF";
+	char *out, *dst;
+	int i;
+
+	if (!data)
+		return NULL;
+
+	if (! (out = dst = malloc (src_len * 2 + 1)))
+		return NULL;
+
+	for(i=0; i<src_len; i++, dst += 2)
+	{
+		dst[0] = hex_string[data[i] >> 4];
+		dst[1] = hex_string[data[i] & 0x0F];
+	}
+
+	dst[0] = 0;
+
+	return out;
+}
+
+/* caller frees returned string */
+unsigned char *fst_utils_hex_decode (const char *data, int *dst_len)
+{
+	static const char hex_string[] = "0123456789abcdefABCDEF";
+	char *out, *dst, *h;
+	int i;
+	unsigned char hi, lo;
+
+	if (!data)
+		return NULL;
+
+	if (! (out = dst = malloc (strlen (data) / 2 + 1)))
+		return NULL;
+
+	for(i=0; *data; i++, data += 2, dst++)
+	{
+		/* high nibble */
+		if( (h = strchr (hex_string, data[0])) == NULL)
+			return FALSE;
+		hi = (h - hex_string) > 16 ? (h - hex_string - 6) : (h - hex_string);
+		/* low nibble */
+		if ( (h = strchr (hex_string, data[1])) == NULL)
+			return FALSE;
+		lo = (h - hex_string) > 16 ? (h - hex_string - 6) : (h - hex_string);
+
+		dst[i] = (hi << 4) | lo;
+	}
+
+	if (dst_len)
+		*dst_len = i;
+
+	return out;
+}
+
+/*****************************************************************************/
+
+/* returns TRUE if ip in reserved private space, ip is big endian */
 int fst_utils_ip_private (unsigned int ip)
 {
 	if (((ip & 0x000000ff) == 0x0000007f) || /* 127.0.0.0 */

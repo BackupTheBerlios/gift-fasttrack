@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.15 2003/09/10 11:10:25 mkern Exp $
+ * $Id: fst_download.c,v 1.16 2003/09/11 17:23:47 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -26,7 +26,9 @@ static void download_write_gift (Source *source, unsigned char *data,
 								 unsigned int len);
 static void download_error_gift (Source *source, int remove_source,
 								 unsigned short klass, char *error);
-static char *download_parse_url (char *url, in_addr_t *ip, in_port_t *port);
+static unsigned char *download_parse_url (char *url, in_addr_t *ip,
+										  in_port_t *port, Dataset **params);
+static char *download_parse_url_old (char *url, in_addr_t *ip, in_port_t *port);
 static char *download_calc_xferuid (char *uri);
 
 /*****************************************************************************/
@@ -42,10 +44,22 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 	char *uri, *range_str;
 
 	/* parse url */
-	if (! (uri = download_parse_url (source->url, &ip, &port)))
+	if (! (uri = download_parse_url_old (source->url, &ip, &port)))
 	{
-		FST_WARN_1 ("malformed url %s", source->url);
-		return FALSE;
+		/* try new url format */
+		unsigned char *hash = download_parse_url (source->url, &ip, &port, NULL);
+		char *hash_hex;
+		
+		if (!hash)
+		{
+			FST_WARN_1 ("malformed url %s", source->url);
+			return FALSE;
+		}
+
+		hash_hex = fst_utils_hex_encode (hash, FST_HASH_LEN);
+		uri = stringf_dup ("/.hash=%s", hash_hex);
+		free (hash);
+		free (hash_hex);
 	}
 
 	/* create http request */
@@ -277,8 +291,76 @@ static void download_error_gift (Source *source, int remove_source,
 
 /*****************************************************************************/
 
-/* parses url, returns uri which caller frees or NULL on failure */
-static char *download_parse_url (char *url, in_addr_t *ip, in_port_t *port)
+/* parses new format url
+ * returns hash of FST_HASH_LEN size which caller frees or NULL on failure
+ * params receives a dataset with additional params, caller frees, may be NULL
+ */
+static unsigned char *download_parse_url (char *url, in_addr_t *ip,
+										  in_port_t *port, Dataset **params)
+{
+	char *url0, *hash_str, *param_str;
+	char *ip_str, *port_str;
+	unsigned char *hash;
+	int hash_len;
+
+	if (!url)
+		return NULL;
+
+	url0 = param_str = strdup (url);
+
+	string_sep (&param_str, "://");
+
+	/* separate ip and port */
+	if (! (port_str = string_sep (&param_str, "/")))
+	{
+		free (url0);
+		return NULL;
+	}
+
+	if (! (ip_str = string_sep (&port_str, ":")))
+	{
+		free (url0);
+		return NULL;
+	}
+
+	if (ip) *ip = net_ip (ip_str);
+	if (port) *port = ATOI (port_str);
+
+	/* decode hash */
+	if (! (hash_str = string_sep (&param_str, "?")))
+		hash_str = param_str;
+
+	if (! (hash = fst_utils_base64_decode (hash_str, &hash_len))
+		|| hash_len != FST_HASH_LEN)
+	{
+		free (hash);
+		free (url0);
+		return NULL;
+	}
+
+	/* parse params if that was requested */
+	if (params && (*params = dataset_new (DATASET_HASH)))
+	{
+		char *name, *value;
+
+		while ((value = string_sep (&param_str, "&")))
+		{
+			if ((name = string_sep (&value, "=")))
+				dataset_insertstr (params, name, value);
+		}
+		if ((name = string_sep (&param_str, "=")))
+			dataset_insertstr (params, name, param_str);
+	}
+
+	free (url0);
+	return hash;
+}
+
+/* parses old format url.
+ * returns uri which caller frees or NULL on failure.
+ * also returns NULL in case of new url format
+ */
+static char *download_parse_url_old (char *url, in_addr_t *ip, in_port_t *port)
 {
 	char *tmp, *uri, *ip_str, *port_str;
 
@@ -301,11 +383,14 @@ static char *download_parse_url (char *url, in_addr_t *ip, in_port_t *port)
 				*ip = net_ip (ip_str);
 			if (port)
 				*port = ATOI (port_str);
-		
-			uri--; *uri = '/';
-			uri = strdup (uri);
-			free (tmp);
-			return uri;
+
+			if (strncmp (uri, ".hash", 5) == 0)
+			{
+				uri--; *uri = '/';
+				uri = strdup (uri);
+				free (tmp);
+				return uri;
+			}
 		}
 	}
 

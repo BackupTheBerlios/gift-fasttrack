@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.h,v 1.6 2003/09/10 11:10:25 mkern Exp $
+ * $Id: fst_hash.h,v 1.7 2003/09/11 17:23:48 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -22,10 +22,11 @@
 
 /*****************************************************************************/
 
-#define FST_HASH_LEN		20			/* length of binary hash */
-#define FST_HASH_STR_LEN	40			/* length of string representing hash without terminating '\0' */
-#define FST_HASH_NAME	"FTH"		/* name of hash */
-#define FST_HASH_CHUNK	307200		/* size of portion of file that is hashed */
+#define FST_HASH_LEN		20	/* length of binary hash */
+#define FST_HASH_STR_LEN	40	/* length of string representing hash
+								 * without terminating '\0' */
+#define FST_HASH_NAME	"FTH"	/* name of hash */
+#define FST_HASH_CHUNK	307200	/* size of portion of file that is hashed */
 
 /*****************************************************************************/
 
@@ -42,21 +43,11 @@ int fst_hash_file (unsigned char *fth, char *file);
  * updates 4 byte small hash that is concatenated to the md5 of the first
  * 307200 bytes of the file. set hash to 0xffffffff for first run
  */
-unsigned int fst_hash_small (unsigned char* data, unsigned int len, unsigned int smallhash);
+unsigned int fst_hash_small (unsigned char* data, unsigned int len,
+							 unsigned int smallhash);
 
 /* produce 2 byte checksum used in the URL from 20 byte hash */
 unsigned short fst_hash_checksum (unsigned char *hash);
-
-/*****************************************************************************/
-
-/*
- * creates human readable string of hash
- * returned string is only valid till next call of function
- */
-char *fst_hash_get_string (unsigned char *hash);
-
-/* sets hash from human readable string, */
-int fst_hash_set_string (unsigned char *hash, char *string);
 
 /*****************************************************************************/
 

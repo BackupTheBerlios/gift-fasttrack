@@ -1,5 +1,5 @@
 /*
- * $Id: fst_hash.c,v 1.6 2003/09/10 11:10:25 mkern Exp $
+ * $Id: fst_hash.c,v 1.7 2003/09/11 17:23:48 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -33,7 +33,16 @@ unsigned char *fst_giftcb_FTH (const char *path, size_t *len)
 
 char *fst_giftcb_FTH_human (unsigned char *FTH)
 {
-	return strdup (fst_hash_get_string (FTH));
+	char *base64, *human;
+
+	if (! (base64 = fst_utils_base64_encode (FTH, FST_HASH_LEN)))
+		return NULL;
+
+	/* symmetry shall reign */
+	human = stringf_dup ("=%s", base64);
+
+	free (base64);
+	return human;
 }
 
 /*****************************************************************************/
@@ -186,7 +195,8 @@ int fst_hash_file (unsigned char *fth, char *file)
 		size_t endlen;
 		while (offset + 2 * FST_HASH_CHUNK < filesize)
 		{
-			if (fseek (fp, offset, SEEK_SET) < 0 || fread (buf, 1, FST_HASH_CHUNK, fp) < FST_HASH_CHUNK)
+			if (fseek (fp, offset, SEEK_SET) < 0 ||
+				fread (buf, 1, FST_HASH_CHUNK, fp) < FST_HASH_CHUNK)
 			{
 				free (buf);
 				fclose (fp);
@@ -199,7 +209,8 @@ int fst_hash_file (unsigned char *fth, char *file)
 		endlen = filesize - lastpos;
 		if (endlen > FST_HASH_CHUNK)
 			endlen = FST_HASH_CHUNK;
-		if (fseek (fp, filesize - endlen, SEEK_SET) < 0 || fread (buf, 1, endlen, fp) < endlen)
+		if (fseek (fp, filesize - endlen, SEEK_SET) < 0 ||
+			fread (buf, 1, endlen, fp) < endlen)
 		{
 			free (buf);
 			fclose (fp);
@@ -226,7 +237,8 @@ int fst_hash_file (unsigned char *fth, char *file)
 /* updates 4 byte small hash that is concatenated to the md5 of the first
  * 307200 bytes of the file. set hash to 0xffffffff for first run */
 
-unsigned int fst_hash_small (unsigned char* data, unsigned int len, unsigned int smallhash)
+unsigned int fst_hash_small (unsigned char* data, unsigned int len,
+							 unsigned int smallhash)
 {
 	unsigned int i;
 
@@ -246,59 +258,6 @@ unsigned short fst_hash_checksum (unsigned char *hash)
 		val = checksumtable[hash[i] ^ (val >> 8)] ^ (val << 8);
 
 	return (val & 0x3fff);
-}
-
-/*****************************************************************************/
-
-/* creates human readable string of hash
- * returned string is only valid till next call of function */
-char *fst_hash_get_string (unsigned char *hash)
-{
-	static const char hex_string[] = "0123456789abcdefABCDEF";
-	static char string[FST_HASH_STR_LEN+1];
-	char *p = string;
-	int i;
-
-	if (!hash)
-		return NULL;
-
-	for(i = 0; i < FST_HASH_LEN; i++, p += 2)
-	{
-		p[0] = hex_string[hash[i] >> 4];
-		p[1] = hex_string[hash[i] & 0x0F];
-	}
-
-	string[FST_HASH_STR_LEN] = 0;
-
-	return string;
-}
-
-/* sets hash from human readable string, */
-int fst_hash_set_string (unsigned char *hash, char* string)
-{
-	static const char hex_string[] = "0123456789abcdefABCDEF";
-	char *p, *h;
-	int i;
-	unsigned char hi, lo;
-
-	if (!hash || !string)
-		return FALSE;
-
-	for(i = 0, p = string; i < FST_HASH_LEN; i++, p += 2)
-	{
-		/* high nibble */
-		if( (h = strchr (hex_string, p[0])) == NULL)
-			return FALSE;
-		hi = (h - hex_string) > 16 ? (h - hex_string - 6) : (h - hex_string);
-		/* low nibble */
-		if ( (h = strchr (hex_string, p[1])) == NULL)
-			return FALSE;
-		lo = (h - hex_string) > 16 ? (h - hex_string - 6) : (h - hex_string);
-
-		hash[i] = (hi << 4) | lo;
-	}
-
-	return TRUE;
 }
 
 /*****************************************************************************/

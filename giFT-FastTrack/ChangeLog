@@ -1,6 +1,12 @@
- $Id: ChangeLog,v 1.6 2003/09/10 11:10:25 mkern Exp $
+ $Id: ChangeLog,v 1.7 2003/09/11 17:23:47 mkern Exp $
+
+2003-08-11  Markus Kern <mkern@users.berlios.de>
+
+	* Changed hash encoding from hex to base64
+	* Changed url format. Old format still supported for now
 
 2003-09-10  Markus Kern <mkern@users.berlios.de>
+
 	* Rewrote entire download system
 	* Cleaned up stuff all over the place
 
