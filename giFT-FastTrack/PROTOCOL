@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.16 2004/03/11 14:47:31 mkern Exp $
+$Id: PROTOCOL,v 1.17 2004/03/11 19:37:59 mkern Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -204,7 +204,7 @@ Message types
 
 0x01 Extended supernode information(?) [=]
 
-  Repeate as many times as necessary:
+  Repeat as many times as necessary:
 
   Bytes Desc
   4     IPv4 address
