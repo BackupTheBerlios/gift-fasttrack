@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.1 2003/07/27 01:14:20 hex Exp $
+$Id: PROTOCOL,v 1.2 2003/08/02 22:30:14 hex Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -39,25 +39,23 @@ User nodes do not communicate with each other. Instead, user nodes
 connect to a supernode, and supernodes forward traffic between
 themselves as required.
 
-The supernode:user node ratio is about 50:1. (FIXME: verify this.)
+The user node:supernode ratio is about 100:1. (FIXME: verify this.)
 
 User nodes can be "promoted" to supernode status if network conditions
-require this. Promotion is one of the great mysteries of FastTrack;
-it's not known whether promotion is autonomous or requires instigation
-by other supernodes (i.e. whether a supernode will believe you if you
-tell it you're also a supernode, or whether supernodes will only treat
-previously-agreed-on nodes as supernodes, although I suspect the
-former). The conditions for promotion are also unknown, although it's
-reasonable to assume one or more of high bandwidth, low latency, and
-plenty of CPU/RAM are sought after. It's not even known how
-supernode-ness ("class") is conveyed.
+require this. Promotion is autonomous (i.e. a supernode will believe
+you if you tell it you're also a supernode).  The conditions for
+promotion are unknown, although it's reasonable to assume one or more
+of high bandwidth, low latency, and plenty of CPU/RAM are sought
+after.
 
-Little is known about supernode-supernode communication, thus we will
-be concerned only with user nodes connecting to a supernode.
+Little is currently known about supernode-supernode communication,
+thus we will be concerned only with user nodes connecting to a
+supernode. (However, KaZaA has a configuration option to force
+supernode status which appears very useful for analysis; expect more
+information on supernodes in the near future.)
 
-The default KaZaA port is 1214, although recent versions also listen
-on port 80, and increasing numbers of nodes are using non-default
-ports due to the increasing number of ISPs blocking port 1214.
+The default KaZaA port is 1214, although recent versions (>=2.0
+apparently) use a random port; some also listen on port 80.
 
 Transfers take place over the KaZaA port too, but use HTTP. Thus,
 it's necessary to check whether an incoming connection looks like an
@@ -71,6 +69,7 @@ Session establishment
 =====================
 
 -> is client-to-server traffic, <- is server-to-client traffic.
+= is traffic sent between supernodes.
 
 1. Initial handshake [->]
 
@@ -173,6 +172,12 @@ Communication consists of one of the following:
   type and message length, then all bits are inverted. (FIXME: there
   must be a better way to calculate this...)
 
+8. ??? [=]
+
+  Bytes Desc
+  1     unknown (0x00 or 0x0a or 0x76, maybe others)
+  n     unknown
+
 
 Message types
 =============
@@ -192,6 +197,14 @@ Message types
   message. Kazaa appears always to send 200 nodes (i.e. a 1600 byte
   message) when a connection has just been established, but it's
   probably unwise to rely on this.
+
+0x01 Supernode information(?) [=]
+
+  Bytes Desc
+  n     unknown
+
+  This is used to tell the remote node that we are a supernode, and
+  henceforth for other supernode-related stuff.
 
 0x02 User information [->]
 
@@ -266,15 +279,12 @@ Message types
 0x07 Search reply [<-]
 
   Bytes Desc
-  4     IPv4 address
-  2     port
+  4     supernode IPv4 address
+  2     supernode port
   2     search id
   2     number of results
 
-  giFT-FastTrack: "not sure what this first ip and port are, parent
-  supernode maybe?" If so, it would seem that each search reply
-  message contains all the search results from a particular supernode.
-  Which would imply that search results are forwarded between supernodes.
+  Contains search results from a single supernode.
 
   For each result:
 
@@ -328,7 +338,9 @@ Message types
   n     zero-terminated network name
   4     Number of users
 
-0x0D Push request [->]
+0x0D Push request [->, <-]
+
+  User->supernode version:
 
   Bytes Desc
   4     push ID
@@ -342,14 +354,29 @@ Message types
 
   Requests that the given user connects to us.
 
-0x15 ??? [->, <-]
+  Supernode->user version:
 
-  Length either 6 or 10.
+  Bytes Desc
+  4     push ID
+  4     requester's IPv4 address
+  2     requester's port
+
+  Requests that we connect to the given user.
+
+0x15 Attempt UDP connection [->, <-]
 
   Bytes Desc
   4     IPv4 address
   2     port
- [4     unknown]
+
+  For supernodes(?):
+
+  Bytes Desc
+  4     unknown
+
+  This should elicit a UDP packet of type 0xC0 from the recipient to
+  the specified address, which is usually (always?) the address of the
+  sender.
 
 0x16 ??? [->, <-]
 
@@ -489,8 +516,12 @@ Message types
 
 0x26 ??? [->, <-]
 
-0x2C ??? [<-]
+0x2C External IP [<-]
 
+  Bytes Desc
+  4     IPv4 address
+
+  Your globally-visible IP.
 
 UDP messages
 ============
@@ -528,24 +559,25 @@ The first byte is the message type:
   1     unknown (0x01 or 0x02)
   1     flag (0x00 or 0x01)
   2     unknown (0x00 0x00)
-  4     unknown
+  4     unknown ID
 
   If "flag" is 1:
 
   Bytes Desc
-  4     unknown
-  2     unknown
+  4     sender's IPv4 address
+  2     port
   2     unknown
 
-  Conjecture: this means "I am an index node; send me your stats".
+  Flag means "available for incoming connections"?
 
 0x2A ??? [->]
 
   Bytes Desc
   1     0x2A
-  4     unknown
+  4     ID
 
-  Seems to be sent in response to a 0x29.
+  Seems to be sent in response to a 0x29 (but only if flag was set?).
+  Often (but not always) results in a 0xC0.
 
 0xC0 ??? [->,<-?]
 
@@ -586,6 +618,11 @@ Kazaa can also serve an HTML page containing a list of shared files;
 this used to be globally available but is now restricted to loopback
 connections (i.e. 127.0.0.1 only; even other local interfaces won't
 work).
+
+Other possible Kazaa path formats include "/.download/%u.%s",
+"/.supernode%s", "/.status%s", "/.network%s", "/.files". Not sure what
+most of these do, or even if they still work. Some (all?) of them
+seem to require some kind of authentication.
 
 Standard HTTP headers used:
   
@@ -630,9 +667,7 @@ Nonstandard HTTP headers used:
 
 For push transfers, the remote user connects and sends 
 "GIVE 4253679545\r\n", where the integer is the 4-byte push ID.
-Unknown: what happens then? A normal HTTP connection with roles
-reversed?
-
+There then follows a normal HTTP connection with roles reversed.
 
 Tag types
 =========
@@ -650,10 +685,10 @@ Most of these need verifying.
   0x08  string album
   0x0A  string language (two-letter country code?)
   0x0C  string keywords
-  0x0D  ?      resolution
+  0x0D  intint resolution
   0x0E  string genre
   0x10  ?      OS
-  0x11  ?      bitdepth
+  0x11  int    bitdepth
   0x12  ?      "type"?
   0x15  int    quality (bitrate in kbps?)
   0x18  ?      version
@@ -664,7 +699,8 @@ Most of these need verifying.
   0x25  ???
   0x35  ?      ??? (0x02 witnessed)
 
-All integers are packed. Strings are not terminated.
+All integers are packed. Strings are not terminated. Type "intint" is
+two consecutive packed integers.
 
 The "any" tag is not a real tag, and is used for searching only.
 
