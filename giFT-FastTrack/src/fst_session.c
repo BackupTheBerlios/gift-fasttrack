@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.17 2003/12/23 16:38:50 mkern Exp $
+ * $Id: fst_session.c,v 1.18 2004/01/11 19:19:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -155,14 +155,11 @@ int fst_session_send_message(FSTSession *session, FSTSessionMsg msg_type,
     unsigned char hi_type, lo_type;
     int xtype;
 
-	if (!session || session->state != SessEstablished ||
-		msg_type > 0xFF || !msg_data)
-	{
-		FST_DBG_4 ("cannot happen: fst_session_send_message() failed! msg_type = 0x%02X, "
-			   "session = 0x%08X, session->state = %d, msg_data = 0x%08X",
-			   msg_type, session, session->state, msg_data);
+	if (!session || session->state != SessEstablished)
 		return FALSE;
-	}
+
+	assert (msg_type < 0xFF);
+	assert (msg_data != NULL);
 
 	if (! (new_packet = fst_packet_create()))
 		return FALSE;

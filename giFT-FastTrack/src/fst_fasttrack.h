@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.33 2004/01/02 21:50:27 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.34 2004/01/11 19:19:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -170,7 +170,7 @@ typedef uint32_t fst_uint32;
  * 1680 kbps).  The value is approximately 14*log_2(x)+59, where
  * x is the bandwidth in kbps.
  */
-#define FST_ADVERTISED_BW 0x50
+#define FST_ADVERTISED_BW 0x60
 
 /* the amount of time we wait before retrying with another node 
  * after resolve/tcp_open failed

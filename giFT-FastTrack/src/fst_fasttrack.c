@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.42 2004/01/04 22:57:24 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.43 2004/01/11 19:19:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -83,7 +83,7 @@ static int fst_plugin_connect_next ()
 		if (!FST_PLUGIN->discover)
 		{
 			/* TODO: fall back to tcp only */
-			assert (FST_PLUGIN->discover);
+			FST_ERR ("Giving up trying to find a supernode. Get a new nodes file.");
 			return FALSE;
 		}
 
