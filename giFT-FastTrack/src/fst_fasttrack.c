@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.43 2004/01/11 19:19:57 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.44 2004/01/16 00:26:05 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -33,16 +33,26 @@ static int fst_plugin_connect_next ();
 
 /*****************************************************************************/
 
+/*
+ * Note: the connect control flow is wicked. modify with extreme care.
+ */
+
 int discover_callback (FSTUdpDiscover *discover, FSTNode *node)
 {
 	if (!node)
 	{
 		/* we run out of nodes */
-		FST_ERR ("ran out of supernodes. find a new nodes file somewhere");
-
-		/* TODO: fall back to index node? */
-		fst_udp_discover_free (FST_PLUGIN->discover, TRUE);
+		FST_HEAVY_DBG ("ran out of supernodes trying static index node.");
+		/* 
+		 * don't save back nodes in node cache here so fst_plugin_connect_next
+		 * actually uses the index node.
+		 */
+		fst_udp_discover_free (FST_PLUGIN->discover, FALSE);
 		FST_PLUGIN->discover = NULL;
+
+		/* try index node in next call to fst_plugin_connect_next */
+		if (!FST_PLUGIN->session)
+			fst_plugin_connect_next ();
 
 		return FALSE;
 	}	
@@ -82,12 +92,29 @@ static int fst_plugin_connect_next ()
 
 		if (!FST_PLUGIN->discover)
 		{
-			/* TODO: fall back to tcp only */
-			FST_ERR ("Giving up trying to find a supernode. Get a new nodes file.");
-			return FALSE;
+			/* try a hardcoded index node */
+			FST_WARN ("Ran out of super nodes to contact, trying static index node");
+			
+			FST_PLUGIN->session = fst_session_create (fst_plugin_session_callback);
+			
+			if (!(node = fst_node_create (NodeKlassIndex, "fm2.imesh.com", 1214, 0, time (NULL))))
+				return FALSE;
+
+			if (!fst_session_connect (FST_PLUGIN->session, node))
+			{
+				fst_node_free (node);
+				fst_session_free (FST_PLUGIN->session);
+				FST_PLUGIN->session = NULL;
+				
+				FST_ERR ("All attempts at contacting peers have failed. Get a new nodes file.");
+				return FALSE;
+			}
+
+			return TRUE;
 		}
 
 		FST_DBG ("started udp node discovery");
+		return TRUE;
 	}
 
 	FST_HEAVY_DBG ("trying to connect to discovered node");

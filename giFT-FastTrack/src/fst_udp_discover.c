@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.9 2004/01/11 17:04:42 hex Exp $
+ * $Id: fst_udp_discover.c,v 1.10 2004/01/16 00:26:05 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -95,7 +95,7 @@ FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback,
 
 	if (!discover->timer)
 	{
-		fst_udp_discover_free (discover, TRUE);
+		fst_udp_discover_free (discover, FALSE);
 		FST_ERR ("timer init failed");
 		return NULL;
 	}
@@ -108,9 +108,9 @@ FSTUdpDiscover *fst_udp_discover_create (FSTUdpDiscoverCallback callback,
 	/* sort the cache so we start with the best nodes */
 	fst_nodecache_sort (discover->cache);
 
-	if (udp_discover_ping_nodes (discover, 0) == -2)
-	{
-		/* callback freed us */
+	if (udp_discover_ping_nodes (discover, 0) == 0) {
+		/* no more nodes */
+		fst_udp_discover_free (discover, FALSE);
 		return NULL;
 	}
 
@@ -174,19 +174,19 @@ FSTNode *fst_udp_discover_get_node (FSTUdpDiscover *discover)
 	if (!discover)
 		return NULL;
 
-	/* find the first responsive node and return it */
+	/* find the first free node and return it */
 	for (item=discover->nodes; item; item=item->next)
 	{
 		udp_node = (FSTUdpNode*)item->data;
 
-		if (udp_node->state == UdpNodeStateUp)
+		if (udp_node->state == UdpNodeStateFree)
 			break;
 	}
 
 	if (!item)
 		return NULL;
 
-	discover->nodes = list_remove_link(discover->nodes, item);	
+	discover->nodes = list_remove_link (discover->nodes, item);	
 	
 	node = fst_node_create (NodeKlassSuper, net_ip_str (udp_node->ip),
 	                        udp_node->port, 0, udp_node->last_seen);
@@ -293,8 +293,9 @@ static void udp_discover_receive (int fd, input_id input,
 		udp_node->network = fst_packet_get_ustr (packet, len+1);
 		fst_packet_free (packet);
 	
+		/* this node is up and has free child slots */
 		udp_node->last_seen = time (NULL);
-		udp_node->state = UdpNodeStateUp;
+		udp_node->state = UdpNodeStateFree;
 		discover->pinged_nodes--;
 
 		/* notify plugin using FSTNode */
@@ -324,10 +325,16 @@ static void udp_discover_receive (int fd, input_id input,
 
 		fst_packet_free (packet);
 
+		/* this node is up but has no child slot for us */
+		udp_node->last_seen = time (NULL);
+		udp_node->state = UdpNodeStateUp;
+		discover->pinged_nodes--;
+
 		FST_DBG_4 ("received udp reply 0x%02x from %s:%d, pinged nodes: %d",
 					type, net_ip_str (udp_node->ip), udp_node->port,
 					discover->pinged_nodes);
 		
+#if 0
 		/* remove udp_node from list */
 		discover->nodes = list_remove_link(discover->nodes, udp_node_link);
 		
@@ -338,8 +345,14 @@ static void udp_discover_receive (int fd, input_id input,
 
 		fst_udp_node_free (udp_node);
 
-		/* callback may free us */
-		udp_discover_ping_nodes (discover, 1);
+#endif
+
+		if (udp_discover_ping_nodes (discover, 1) == 0)
+		{
+			/* notify plugin via callback */
+			if (!discover->callback (discover, NULL))
+				return FALSE; /* no more nodes */
+		}
 	}
 
 	/* wait for next packet */
@@ -377,12 +390,13 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 		fst_udp_node_free (udp_node);
 	}
 	
-	if (udp_discover_ping_nodes (discover, 0) == -2)
+	if (udp_discover_ping_nodes (discover, 0) == 0)
 	{
-		/* callback freed us */
-		return FALSE;
+		/* notify plugin via callback */
+		if (!discover->callback (discover, NULL))
+			return FALSE; /* no more nodes */
 	}
-	
+
 	/* raise us again after FST_UDP_DISCOVER_TIMEOUT */
 	return TRUE;
 }
@@ -391,8 +405,7 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 
 /*
  * sends enough pings so FST_UDP_DISCOVER_MAX_PINGS is reached
- * returns number of currently pinged nodes, -1 if network is down and -2 if
- * callback freed us.
+ * returns number of currently pinged nodes, -1 if network is down
  */
 static int udp_discover_ping_nodes (FSTUdpDiscover *discover, int max_pings)
 {
@@ -420,16 +433,6 @@ static int udp_discover_ping_nodes (FSTUdpDiscover *discover, int max_pings)
 		/* remove this node from cache */
 		fst_nodecache_remove (discover->cache, node->host);
 		fst_node_free (node);
-	}
-
-	if (discover->pinged_nodes == 0)
-	{
-		/* notify plugin via callback */
-		if (!discover->callback (discover, NULL))
-		{
-			/* callback freed us */
-			return -2;
-		}
 	}
 
 	return discover->pinged_nodes;

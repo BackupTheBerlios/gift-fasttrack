@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.h,v 1.4 2004/01/02 21:50:27 mkern Exp $
+ * $Id: fst_udp_discover.h,v 1.5 2004/01/16 00:26:05 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -50,7 +50,8 @@ typedef enum
 {
 	UdpNodeStateNew,
 	UdpNodeStatePinged,
-	UdpNodeStateUp
+	UdpNodeStateUp,
+	UdpNodeStateFree
 
 } FSTUdpNodeState;
 
