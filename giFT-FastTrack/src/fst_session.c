@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.13 2003/10/23 18:36:16 mkern Exp $
+ * $Id: fst_session.c,v 1.14 2003/11/28 14:50:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -152,6 +152,7 @@ int fst_session_send_message(FSTSession *session, FSTSessionMsg msg_type,
 {
 	FSTPacket *new_packet;
     unsigned char hi_len, lo_len;
+    unsigned char hi_type, lo_type;
     int xtype;
 
 	if (!session || session->state != SessEstablished ||
@@ -169,30 +170,33 @@ int fst_session_send_message(FSTSession *session, FSTSessionMsg msg_type,
 	FST_HEAVY_DBG_1 ("sending msg with msg_type: 0x%02X", msg_type);
 
     lo_len = fst_packet_size(msg_data) & 0xff;
-    hi_len = (fst_packet_size(msg_data) >> 8) & 0xff;
+    hi_len = fst_packet_size(msg_data) >> 8;
 
 	fst_packet_put_uint8 (new_packet, 0x4B); /* 'K' */
-	
+
+	lo_type = msg_type & 0xFF;
+	hi_type = msg_type >> 8;
+
     xtype = session->out_xinu % 3;
 
     switch(xtype) {
 	case 0:
-		fst_packet_put_uint8 (new_packet, msg_type);
-		fst_packet_put_uint8 (new_packet, 0);
+		fst_packet_put_uint8 (new_packet, lo_type);
+		fst_packet_put_uint8 (new_packet, hi_type);
 		fst_packet_put_uint8 (new_packet, hi_len);
 		fst_packet_put_uint8 (new_packet, lo_len);
 	    break;
 	case 1:
-		fst_packet_put_uint8 (new_packet, 0);
+		fst_packet_put_uint8 (new_packet, hi_type);
 		fst_packet_put_uint8 (new_packet, hi_len);
-		fst_packet_put_uint8 (new_packet, msg_type);
+		fst_packet_put_uint8 (new_packet, lo_type);
 		fst_packet_put_uint8 (new_packet, lo_len);
 	    break;
 	case 2:
-		fst_packet_put_uint8 (new_packet, 0);
+		fst_packet_put_uint8 (new_packet, hi_type);
 		fst_packet_put_uint8 (new_packet, lo_len);
 		fst_packet_put_uint8 (new_packet, hi_len);
-		fst_packet_put_uint8 (new_packet, msg_type);
+		fst_packet_put_uint8 (new_packet, lo_type);
 	    break;
     }
 
@@ -423,22 +427,22 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 			
 			switch (xtype) {
 			case 0:
-				msg_type = fst_packet_get_uint8 (session->in_packet);
-				fst_packet_get_uint8 (session->in_packet); // zero
+				msg_type = (unsigned int)fst_packet_get_uint8 (session->in_packet);
+				msg_type |= ((unsigned int)fst_packet_get_uint8 (session->in_packet)) << 8;
 				msg_len = ((unsigned int)fst_packet_get_uint8 (session->in_packet)) << 8;
 				msg_len |= (unsigned int)fst_packet_get_uint8 (session->in_packet);
 				break;
 			case 1:
-				fst_packet_get_uint8 (session->in_packet); // zero
+				msg_type = ((unsigned int)fst_packet_get_uint8 (session->in_packet)) << 8; 
 				msg_len = ((unsigned int)fst_packet_get_uint8 (session->in_packet)) << 8;
-				msg_type = fst_packet_get_uint8 (session->in_packet);
+				msg_type |= (unsigned int)fst_packet_get_uint8 (session->in_packet);
 				msg_len |= (unsigned int)fst_packet_get_uint8 (session->in_packet);
 				break;
 			case 2:
-				fst_packet_get_uint8 (session->in_packet); // zero
+				msg_type = ((unsigned int)fst_packet_get_uint8 (session->in_packet)) << 8;
 				msg_len = (unsigned int)fst_packet_get_uint8 (session->in_packet);
 				msg_len |= ((unsigned int)fst_packet_get_uint8 (session->in_packet)) << 8;
-				msg_type = fst_packet_get_uint8 (session->in_packet);
+				msg_type |= (unsigned int)fst_packet_get_uint8 (session->in_packet);
 				break;
 			}
 

@@ -1,8 +1,7 @@
- $Id: AUTHORS,v 1.8 2003/09/19 14:46:26 mkern Exp $
+ $Id: AUTHORS,v 1.9 2003/11/28 14:50:14 mkern Exp $
 
 (pretender) mkern@users.berlios.de    [Developer / Project Admin]
-(cirdan)    beren12@users.berlios.de  [Developer]
+(HEx)       HEx@users.berlios.de      [Developer / Reverse Engineer]
 (weinholt)  weinholt@users.berlios.de [Developer]
+(cirdan)    beren12@users.berlios.de  [Developer]
 (rasa)      rasa@users.berlios.de     [Developer / windows port]
-(HEx)       HEx@users.berlios.de      [Developer]
-            fcatrin@tuxpan.com        [Packager / RPM]

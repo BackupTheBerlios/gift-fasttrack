@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.32 2003/11/13 17:48:31 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.33 2003/11/28 14:50:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -29,7 +29,16 @@ static int fst_plugin_session_callback (FSTSession *session,
 										FSTSessionMsg msg_type,
 										FSTPacket *msg_data);
 
+static int fst_plugin_connect_next();
+
 /*****************************************************************************/
+
+static BOOL reconnect_timer (void *udata)
+{
+	fst_plugin_connect_next ();
+	/* don't raise again */
+	return FALSE;
+}
 
 static int fst_plugin_connect_next()
 {
@@ -63,6 +72,18 @@ static int fst_plugin_connect_next()
 			node = fst_nodecache_get_front (FST_PLUGIN->nodecache);
 		}
 
+		/* don't connect to banned ips */
+		if (config_get_int (FST_PLUGIN->conf, "main/banlist_filter=0") &&
+	        fst_ipset_contains (FST_PLUGIN->banlist, net_ip (node->host)))
+		{
+			FST_DBG_2 ("not connecting to banned supernode %s:%d",
+			           node->host, node->port);
+
+			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+			fst_node_free (node);
+			continue;
+		}
+
 		/* remove new node from cache so restarting can be used to
 		 * force use of another node
 		 */
@@ -78,8 +99,13 @@ static int fst_plugin_connect_next()
 		}
 		else
 		{
-			/* free node and try again with a different one */
+			/* free node */
 			fst_node_free (node);
+			/* try a different one in a short while so we don't burn up all
+			 * nodes immediately if the network is down or the like 
+			 */
+			timer_add (FST_SESSION_NETFAIL_INTERVAL, reconnect_timer, NULL);
+			break;
 		}
 	}
 
@@ -133,6 +159,7 @@ static int fst_plugin_session_callback (FSTSession *session,
 
 		/* resend queries for all running searches */
 		fst_searchlist_send_queries (FST_PLUGIN->searches, session, TRUE);
+
 		break;
 	}
 
@@ -142,6 +169,9 @@ static int fst_plugin_session_callback (FSTSession *session,
 		FST_PLUGIN->stats->users = 0;
 		FST_PLUGIN->stats->files = 0;
 		FST_PLUGIN->stats->size = 0;
+
+		/* reset external ip because we wait with sharing until we get it again */
+		FST_PLUGIN->external_ip = 0;
 
 		fst_plugin_connect_next ();
 		return FALSE;
@@ -242,6 +272,18 @@ static int fst_plugin_session_callback (FSTSession *session,
 		FST_PLUGIN->external_ip = fst_packet_get_uint32 (msg_data);
 		FST_DBG_1 ("received external ip: %s",
 				   net_ip_str (FST_PLUGIN->external_ip));
+
+		/* upload our shares to supernode.
+		 * we do this here because we have to make sure we are accessible
+		 * form the outside since we don't push yet.
+		 */
+		if (fst_share_do_share ())
+		{
+			FST_DBG ("registering shares with new supernode");
+			if (!fst_share_register_all ())
+				FST_DBG ("registering shares with new supernode failed");
+		}
+
 		break;
 	}
 
@@ -325,7 +367,7 @@ static int fst_giftcb_start (Protocol *p)
 
 	/* cache user name */
 	FST_PLUGIN->username = strdup (config_get_str (FST_PLUGIN->conf,
-												   "main/alias=giFTed"));
+	                                               "main/alias=giFTed"));
 
 	/* init node cache */
 	FST_PLUGIN->nodecache = fst_nodecache_create ();
@@ -340,7 +382,7 @@ static int fst_giftcb_start (Protocol *p)
 		FST_WARN_1 ("Couldn't find nodes file \"%s\". Fix that!", filepath);
 	else
 		FST_DBG_2 ("Loaded %d supernode addresses from nodes file \"%s\"",
-				   i, filepath);
+	               i, filepath);
 
 	/* create list of banned ips */
 	FST_PLUGIN->banlist = fst_ipset_create ();
@@ -363,14 +405,14 @@ static int fst_giftcb_start (Protocol *p)
 	if (server_port)
 	{
 		FST_PLUGIN->server = fst_http_server_create (server_port,
-													 NULL,
-													 fst_push_process_reply,
-													 NULL);
+		                                             fst_upload_process_request,
+		                                             fst_push_process_reply,
+		                                             NULL);
 
 		if (!FST_PLUGIN->server)
 		{
 			FST_WARN_1 ("Couldn't bind to port %d. Http server not started.",
-						server_port);
+			            server_port);
 		}
 		else
 		{
@@ -396,9 +438,16 @@ static int fst_giftcb_start (Protocol *p)
 
 	/* get forwarded port from config file */
 	FST_PLUGIN->forwarding = config_get_int (FST_PLUGIN->conf,
-											 "main/forwarding=0");
+	                                         "main/forwarding=0");
 	FST_PLUGIN->local_ip = 0;
 	FST_PLUGIN->external_ip = 0;
+	
+	/* make shares visible until giFT tells us otherwise */
+	FST_PLUGIN->hide_shares = FALSE;
+
+	/* cache allow_sharing key */
+	FST_PLUGIN->allow_sharing = config_get_int (FST_PLUGIN->conf,
+	                                            "main/allow_sharing=0");
 
 	/* temporary, until we have a way to find useful nodes faster */
 	FST_DBG ("adding fm2.imesh.com:1214 as temporary index node");
@@ -471,6 +520,48 @@ static int fst_giftcb_user_cmp (Protocol *p, const char *a, const char *b)
 	return strcmp (a, b);
 }
 
+static int fst_giftcb_chunk_suspend (Protocol *p, Transfer *transfer,
+                                     Chunk *chunk, Source *source)
+{
+	if (transfer_direction (transfer) == TRANSFER_UPLOAD)
+	{
+		FSTUpload *upload = (FSTUpload*) chunk->udata;
+		assert (upload);
+
+		input_suspend_all (upload->tcpcon->fd);
+	}
+	else
+	{
+		FSTHttpClient *client = (FSTHttpClient*) source->udata;
+		assert (client);
+
+		input_suspend_all (client->tcpcon->fd);
+	}
+	
+	return TRUE;
+}
+
+static int fst_giftcb_chunk_resume (Protocol *p, Transfer *transfer,
+                                    Chunk *chunk, Source *source)
+{
+	if (transfer_direction (transfer) == TRANSFER_UPLOAD)
+	{
+		FSTUpload *upload = (FSTUpload*) chunk->udata;
+		assert (upload);
+
+		input_resume_all (upload->tcpcon->fd);
+	}
+	else
+	{
+		FSTHttpClient *client = (FSTHttpClient*) source->udata;
+		assert (client);
+
+		input_resume_all (client->tcpcon->fd);
+	}
+
+	return TRUE;
+}
+
 /*****************************************************************************/
 
 static void fst_plugin_setup_functbl (Protocol *p)
@@ -497,6 +588,8 @@ static void fst_plugin_setup_functbl (Protocol *p)
 	p->destroy        = fst_giftcb_destroy;
 	p->source_cmp     = fst_giftcb_source_cmp;
 	p->user_cmp       = fst_giftcb_user_cmp;
+	p->chunk_suspend  = fst_giftcb_chunk_suspend;
+	p->chunk_resume   = fst_giftcb_chunk_resume;
 
 	/* fst_search.c */
 	p->search         = fst_giftcb_search;
@@ -509,6 +602,18 @@ static void fst_plugin_setup_functbl (Protocol *p)
 	p->download_stop  = fst_giftcb_download_stop;
 	p->source_add     = fst_giftcb_source_add;
 	p->source_remove  = fst_giftcb_source_remove;
+
+	/* fst_upload.c */
+	p->upload_stop    = fst_giftcb_upload_stop;
+
+	/* fst_share.c */
+	p->share_new      = fst_giftcb_share_new;
+	p->share_free     = fst_giftcb_share_free;
+	p->share_add      = fst_giftcb_share_add;
+	p->share_remove   = fst_giftcb_share_remove;
+	p->share_sync     = fst_giftcb_share_sync;
+	p->share_hide     = fst_giftcb_share_hide;
+	p->share_show     = fst_giftcb_share_show;
 
 	/* fst_stats.c */
 	p->stats          = fst_giftcb_stats;

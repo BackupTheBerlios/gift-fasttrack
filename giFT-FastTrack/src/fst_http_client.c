@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.c,v 1.3 2003/11/13 17:48:31 mkern Exp $
+ * $Id: fst_http_client.c,v 1.4 2003/11/28 14:50:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -18,9 +18,9 @@
 #include "fst_fasttrack.h"		/* for debug logging */
 #include "fst_http_client.h"
 
-/*
+
 #define LOG_HTTP_HEADERS
-*/
+
 
 /*****************************************************************************/
 

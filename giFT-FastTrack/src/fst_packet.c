@@ -1,5 +1,5 @@
 /*
- * $Id: fst_packet.c,v 1.3 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_packet.c,v 1.4 2003/11/28 14:50:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -196,7 +196,11 @@ unsigned char *fst_packet_get_ustr (FSTPacket *packet, size_t len)
 {
 	unsigned char *ret;
 	ret = malloc(len);
-	packet_read(packet, ret, len);
+	if (!packet_read (packet, ret, len))
+	{
+		free (ret);
+		return NULL;
+	}
 	return ret;
 }
 
@@ -205,7 +209,11 @@ char *fst_packet_get_str (FSTPacket *packet, size_t len)
 {
 	char *ret;
 	ret = malloc(len+1);
-	packet_read(packet, ret, len);
+	if (!packet_read (packet, ret, len))
+	{
+		free (ret);
+		return NULL;
+	}
 	ret[len] = 0;
 	return ret;
 }

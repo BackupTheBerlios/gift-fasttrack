@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_header.c,v 1.3 2003/09/18 14:54:50 mkern Exp $
+ * $Id: fst_http_header.c,v 1.4 2003/11/28 14:50:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -79,7 +79,9 @@ FSTHttpHeader *fst_http_header_parse (char *data, int *data_len)
 	char *p, *line, *curr;
 	int i, len = 0;
 
-	/* check if header is complete */
+	/* check if header is complete
+	 * this is probably the worst piece of code i've ever written
+	 */
 	for (i=0,p=data; i<=(*data_len)-3 && *p; i++,p++)
 	{
 		if (p[0] != '\r' || p[1] != '\n')
@@ -147,11 +149,18 @@ FSTHttpHeader *fst_http_header_parse (char *data, int *data_len)
 		/* http request */
 		header->type = HTHD_REQUEST;
 
-		/* get method, default is GET */
+		/* get method */
 		p = string_sep (&line, " ");
 		if (! strcmp (p, "GET")) header->method = HTHD_GET;
 		else if (! strcmp (p, "HEAD")) header->method = HTHD_HEAD;
 		else if (! strcmp (p, "GIVE")) header->method = HTHD_GIVE;
+		else
+		{
+			/* unknown method */
+			free (data);
+			fst_http_header_free (header);
+			return NULL;
+		}
 		/* get uri */
 		header->uri = strdup (string_sep (&line, " "));
 		/* get version */
@@ -297,6 +306,7 @@ char *fst_http_code_str (int code)
 	{
 	case 200:     str = "OK";                        break;
 	case 206:     str = "Partial Content";           break;
+	case 400:     str = "Bad Request";               break;
 	case 403:     str = "Forbidden";                 break;
 	case 404:     str = "Not Found";                 break;
 	case 500:     str = "Internal Server Error";     break;

@@ -1,10 +1,10 @@
- $Id: README,v 1.20 2003/09/18 14:54:49 mkern Exp $
+ $Id: README,v 1.21 2003/11/28 14:50:14 mkern Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
 ...just in case you haven't guessed.
 
-Obviosuly we take no responsibility as to what this code does to
+Obviously we take no responsibility as to what this code does to
 your hardware, software, physical or mental health.
 
 Then again, running KaZaA in wine may destroy all of the above.

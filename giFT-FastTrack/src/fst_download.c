@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.19 2003/09/18 14:54:50 mkern Exp $
+ * $Id: fst_download.c,v 1.20 2003/11/28 14:50:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -227,7 +227,7 @@ int fst_download_start (Source *source, TCPC *tcpcon)
 	}
 
 	/* add some http headers */
-	fst_http_header_set_field (request, "UserAgent", "giFT-FastTrack");
+	fst_http_header_set_field (request, "UserAgent", FST_HTTP_AGENT);
 	fst_http_header_set_field (request, "X-Kazaa-Network", FST_NETWORK_NAME);
 	fst_http_header_set_field (request, "X-Kazaa-Username", FST_USER_NAME);
 
@@ -418,6 +418,8 @@ static int download_client_callback (FSTHttpClient *client,
 	case HTCL_CB_DATA:
 		/* write data to file through giFT.
 		 * this calls fst_giftcb_download_stop() when download is complete
+		 *
+		 * TODO: somehow use download_throttle here
 		 */
 		download_write_gift (source, client->data, client->data_len);
 	
@@ -521,37 +523,36 @@ static char *download_parse_url_old (char *url, in_addr_t *ip, in_port_t *port)
 
 /*****************************************************************************/
 
-#define SWAPU32(x) ( ((((( \
+#define SWAPU32(x) ((fst_uint32) ((((( \
 ((fst_uint8*)&(x))[0] << 8) | \
 ((fst_uint8*)&(x))[1]) << 8) | \
 ((fst_uint8*)&(x))[2]) << 8) | \
 ((fst_uint8*)&(x))[3])
 
 /* returns static base64 encoded string for X-Kazaa-XferUid http header.
- * need to verify if this really works
+ * needs more work, need to figure out how last_search_hash is created.
  */
 static char *download_calc_xferuid (char *uri)
 {
-/*
-*	static const unsigned char last_search_hash[32] = {
-*		0xbd, 0x48, 0xa4, 0x20, 0x85, 0x4c, 0x2d, 0x30,
-*		0xee, 0x07, 0xfd, 0x6c, 0x0f, 0x0b, 0x7c, 0xf7,
-*		0x7a, 0xe5, 0x86, 0x41, 0xf8, 0x29, 0x28, 0xbc,
-*		0x78, 0xd4, 0xc5, 0x86, 0x6a, 0xd5, 0xde, 0xc7
-*	};
-*/
+	/* This search hash was provided by ashton.
+	 * The PL changes based on system time of uploading host.
+	 * I presume current time is used in creation of last_search_hash.
+	 * This hash was created in the distant future and seems to give
+	 * a PL of at least 1000 even though it fluctuates.
+	 */
 	static const unsigned char last_search_hash[32] = {
-		0x34, 0x1c, 0x58, 0x01, 0x4d, 0x32, 0xda, 0xeb,
-		0xae, 0xe7, 0x32, 0xdc, 0x60, 0xe8, 0x31, 0x76,
-		0x1d, 0x47, 0xd7, 0x40, 0x0b, 0x82, 0x4e, 0x41,
-		0xe7, 0xef, 0x5c, 0xd1, 0xc0, 0xa7, 0xd0, 0x79
+		0x6f, 0xad, 0x17, 0x55, 0x60, 0x93, 0x31, 0x0e,
+		0x05, 0x69, 0x0e, 0x1f, 0xee, 0x79, 0x39, 0x60,
+		0xd7, 0x47, 0xa0, 0x34, 0x20, 0x94, 0x2b, 0xf8,
+		0xd7, 0xc4, 0xd8, 0xe5, 0xba, 0xf3, 0xe2, 0x97
 	};
 
-	static const unsigned int VolumeId = 0xB080A125;
+	static const unsigned int VolumeId = 0xE09C4791;
+
 
 	FSTCipher *cipher;
 	unsigned int buf[8]; 
-	static char base64[40], *base64_ptr;
+	static char base64[45], *base64_ptr;
 	unsigned int uri_smhash, smhash;
 	unsigned int seed;
 
@@ -622,10 +623,10 @@ static char *download_calc_xferuid (char *uri)
 	fst_cipher_crypt (cipher, (unsigned char*)(buf+1), 28); 
 	fst_cipher_free (cipher);
 
-	// base64 encode		
+	/* base64 encode */
 	base64_ptr = fst_utils_base64_encode ( (unsigned char*)buf, 32);
-	strncpy (base64, base64_ptr, 40);
-	base64[39] = '\0';
+	strncpy (base64, base64_ptr, 45);
+	base64[44] = '\0';
 	free (base64_ptr);
 	
 	return base64;

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.c,v 1.7 2003/09/11 17:23:48 mkern Exp $
+ * $Id: fst_utils.c,v 1.8 2003/11/28 14:50:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -322,26 +322,33 @@ char *fst_utils_hex_encode (const unsigned char *data, int src_len)
 unsigned char *fst_utils_hex_decode (const char *data, int *dst_len)
 {
 	static const char hex_string[] = "0123456789abcdefABCDEF";
-	char *out, *dst, *h;
+	char *dst, *h;
 	int i;
 	unsigned char hi, lo;
 
 	if (!data)
 		return NULL;
 
-	if (! (out = dst = malloc (strlen (data) / 2 + 1)))
+	if (! (dst = malloc (strlen (data) / 2 + 1)))
 		return NULL;
 
-	for(i=0; *data; i++, data += 2, dst++)
+	for(i=0; *data && data[1]; i++, data += 2)
 	{
 		/* high nibble */
 		if( (h = strchr (hex_string, data[0])) == NULL)
-			return FALSE;
-		hi = (h - hex_string) > 16 ? (h - hex_string - 6) : (h - hex_string);
+		{
+			free (dst);
+			return NULL;
+		}
+		hi = (h - hex_string) > 0x0F ? (h - hex_string - 6) : (h - hex_string);
+
 		/* low nibble */
 		if ( (h = strchr (hex_string, data[1])) == NULL)
-			return FALSE;
-		lo = (h - hex_string) > 16 ? (h - hex_string - 6) : (h - hex_string);
+		{
+			free (dst);
+			return NULL;
+		}
+		lo = (h - hex_string) > 0x0F ? (h - hex_string - 6) : (h - hex_string);
 
 		dst[i] = (hi << 4) | lo;
 	}
@@ -349,7 +356,7 @@ unsigned char *fst_utils_hex_decode (const char *data, int *dst_len)
 	if (dst_len)
 		*dst_len = i;
 
-	return out;
+	return dst;
 }
 
 /*****************************************************************************/

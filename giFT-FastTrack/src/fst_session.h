@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.h,v 1.4 2003/09/18 14:54:50 mkern Exp $
+ * $Id: fst_session.h,v 1.5 2003/11/28 14:50:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -53,7 +53,9 @@ typedef enum
 	SessMsgNetworkStats = 0x09,
 	SessMsgNetworkName = 0x1d,
 	SessMsgPushRequest = 0x0d,
-	SessMsgExternalIp = 0x2c		/* supernode tells us our outside ip */
+	SessMsgExternalIp = 0x2c,		/* supernode tells us our outside ip */
+	SessMsgShareFile = 0x22,
+	SessMsgUnshareFile = 0x05
 
 } FSTSessionMsg;
 

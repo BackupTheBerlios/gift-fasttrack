@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.h,v 1.11 2003/11/20 19:27:52 mkern Exp $
+ * $Id: fst_search.h,v 1.12 2003/11/28 14:50:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -33,21 +33,21 @@
  */
 
 typedef enum
-{	QUERY_REALM_EVERYTHING	= 0xbf,
-	QUERY_REALM_AUDIO	= 0xa1,
-	QUERY_REALM_VIDEO	= 0xa2,
-	QUERY_REALM_IMAGES	= 0xa3,
-	QUERY_REALM_DOCUMENTS	= 0xa4,
-	QUERY_REALM_SOFTWARE	= 0xa5
+{	QUERY_REALM_EVERYTHING = 0xbf,
+	QUERY_REALM_AUDIO      = 0xa1,
+	QUERY_REALM_VIDEO      = 0xa2,
+	QUERY_REALM_IMAGES     = 0xa3,
+	QUERY_REALM_DOCUMENTS  = 0xa4,
+	QUERY_REALM_SOFTWARE   = 0xa5
 } FSTQueryRealm;
 
 typedef enum
 {
-	QUERY_CMP_EQUALS=0x00,
-	QUERY_CMP_ATMOST=0x02,
-	QUERY_CMP_APPROX=0x03,
-	QUERY_CMP_ATLEAST=0x04,
-	QUERY_CMP_SUBSTRING=0x05
+	QUERY_CMP_EQUALS    = 0x00,
+	QUERY_CMP_ATMOST    = 0x02,
+	QUERY_CMP_APPROX    = 0x03,
+	QUERY_CMP_ATLEAST   = 0x04,
+	QUERY_CMP_SUBSTRING = 0x05
 } FSTQueryCmp;
 
 /*****************************************************************************/

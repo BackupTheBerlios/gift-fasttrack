@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.26 2003/11/02 17:53:07 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.27 2003/11/28 14:50:15 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -132,6 +132,8 @@ typedef uint32_t fst_uint32;
 #include "fst_ipset.h"
 #include "fst_http_server.h"
 #include "fst_push.h"
+#include "fst_upload.h"
+#include "fst_share.h"
 
 /*****************************************************************************/
 
@@ -150,15 +152,24 @@ typedef uint32_t fst_uint32;
 /* max number of results we want to be returned per search */
 #define FST_MAX_SEARCH_RESULTS 0xFF
 
-/* use a participation level if 1000 for downloading
- * need to check if this really works
- */
-/*
-#define FST_DOWNLOAD_BOOST_PL
-*/
+/* application strings for http */
+#define FST_HTTP_SERVER "giFT-FastTrack " VERSION
+#define FST_HTTP_AGENT "giFT-FastTrack " VERSION
 
-/* various timeouts in ms */
+/* use a participation level of > 1000 for downloading
+ * the exact value fluctuates and cannot be determined exactly currently
+ */
+#define FST_DOWNLOAD_BOOST_PL
+
+/* the amount of time we wait before retrying with another node 
+ * after resolve/tcp_open failed
+ */
+#define FST_SESSION_NETFAIL_INTERVAL    (10*SECONDS)
+
+/* timeout for sessions connects */
 #define FST_SESSION_CONNECT_TIMEOUT		(8*SECONDS)
+
+/* timeout for sessions handshakes */
 #define FST_SESSION_HANDSHAKE_TIMEOUT	(10*SECONDS)
 
 /*****************************************************************************/
@@ -200,6 +211,13 @@ typedef struct
 									 * set up port forwarding this is TRUE
 									 * (from config file)
 									 */
+
+	int hide_shares;				/* TRUE if user has hidden shares.
+									 * set to FALSE on startup
+									 */
+
+	int allow_sharing;				/* cache for allow_sharing config key */
+
 } FSTPlugin;
 
 /*****************************************************************************/
