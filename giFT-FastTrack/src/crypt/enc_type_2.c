@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_2.c,v 1.10 2003/07/13 11:15:09 weinholt Exp $
+ * $Id: enc_type_2.c,v 1.11 2003/07/23 17:10:32 weinholt Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -23,8 +23,8 @@
  * And then Thingol cleaned it up even more, many thanks!
  */
 
-typedef unsigned char	u8;
-typedef unsigned int	u32;
+typedef unsigned char u8;
+typedef unsigned int u32;
 
 static void mix_major0 (u32 *state, u32 extra_state);
 
@@ -127,7 +127,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	state[12] += state[14] + 0xe087bd96;
 	extra_state &= state[13] | 0x39367989;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor30;
 		mix_minor41;
 		mix_minor45;
@@ -139,7 +140,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	state[3] *= state[12] ^ 0xd05f635;
 	state[10] += state[10] + 0xa92dc43a;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		state[0] += 0xde3b3b9a;
 		mix_minor46;
 		state[3] += 0x8600800;
@@ -151,7 +153,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	state[8] ^= state[3] ^ 0x43c25efd;
 	state[9] ^= ROL (state[9], 16);
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor53;
 		state[3] += 0x8502040;
 		mix_minor54;
@@ -161,7 +164,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	state[3] -= state[2] - 0xef553b21;
 	state[18] += state[13] + 0x3b26991e;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor39;
 		mix_minor42;
 		mix_minor35;
@@ -173,7 +177,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	ROREQ (state[8], state[16] + 0x17);
 	state[12] *= state[8] + 0xf3910fa;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor58;
 		mix_minor59;
 		mix_minor38;
@@ -185,7 +190,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	state[2] |= state[1] ^ 0x47f3a78b;
 	state[17] |= state[10] * 0x1d208465;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor39;
 		mix_minor49;
 		mix_minor50;
@@ -195,7 +201,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	state[1] -= extra_state & 0x4be5deac;
 	state[4] += state[15] & 0x3496b61a;
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor55;
 		mix_minor61;
 		state[8] += 0x82e5ca1;
@@ -205,7 +212,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	ROREQ (extra_state, extra_state * 0x10);
 	state[13] &= state[12] + 0x6b465da;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor27;
 		state[8] += 0x370c574;
 		state[0] += 0xc484fc90;
@@ -216,7 +224,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	state[7] &= state[19] ^ 0x1e569f2b;
 	state[12] += state[15] * 0x49f90b6a;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		state[17] ^= 0x8ade6faa;
 		mix_minor26;
 		mix_minor59;
@@ -228,7 +237,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	state[17] += state[3] + 0x19da7ccb;
 	state[17] -= extra_state & 0x3a423827;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor67;
 		mix_minor29;
 		state[3] += 0x506840;
@@ -238,7 +248,8 @@ void mix_major0 (u32 *state, u32 extra_state)
 	extra_state += state[11] + 0xea268d79;
 	extra_state ^= state[11] + 0x7b41453;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		state[11] += 0xe199e061;
 		mix_minor34;
 		mix_minor30;
@@ -265,7 +276,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	state[5] += state[3] & 0x24398ab;
 	extra_state += state[3] - state[18] + 0x45e6c9d4;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor26;
 		mix_minor58;
 		mix_minor67;
@@ -276,7 +288,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	state[12] -= state[1] * 0xe99b672;
 	state[15] ^= state[0] + 0xca70bf60;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		state[4] ^= 0x15e7d1d6;
 		mix_minor44;
 		mix_minor26;
@@ -288,7 +301,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	state[4] &= state[17] + 0x1b597286;
 	state[17] *= state[15] & 0x389e630b;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor44;
 		mix_minor25;
 		mix_minor63;
@@ -299,7 +313,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	state[16] &= extra_state * 0x271fe1f1;
 	ROREQ (state[7], state[16] ^ 0x9);
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		state[12] += 0x108440;
 		state[14] -= 0xf9b7e88d;
 		mix_minor64;
@@ -311,7 +326,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	extra_state *= state[5] * 0x9dfbe4;
 	extra_state += state[13] + 0xfd2ead2f;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor60;
 		mix_minor42;
 		state[14] += 0x723398ff;
@@ -321,7 +337,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	state[7] += state[17] + 0x2b29baf9;
 	ROREQ (state[2], ROL (state[0], 25));
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor46;
 		ROLEQ (state[19], 18);
 		mix_minor41;
@@ -332,7 +349,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	extra_state -= state[5] * 0x282f40d5;
 	extra_state &= ROR (state[18], 16);
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor46;
 		state[9] += 0xd0b27d9c;
 		ROLEQ (state[10], 22);
@@ -342,7 +360,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	state[17] += state[7] + 0xf9ac8515;
 	state[7] += state[10] + 0xf9b69577;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		state[3] *= 0x2da1cfcf;
 		mix_minor54;
 		state[12] += 0x80410;
@@ -352,7 +371,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	state[7] += state[13] ^ 0x6d56f7f;
 	state[8] -= extra_state - 0x8c8d3d9c;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor24;
 		mix_minor33;
 		mix_minor42;
@@ -364,7 +384,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	state[18] *= state[1] * 0x696c0;
 	state[8] *= state[4] + 0xdc2745dc;
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor58;
 		mix_minor25;
 		mix_minor36;
@@ -375,7 +396,8 @@ void mix_major1 (u32 *state, u32 extra_state)
 	ROREQ (state[11], state[6] + 0x11);
 	state[19] += state[18] + 0xb295dc;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor41;
 		mix_minor30;
 		mix_minor64;
@@ -402,7 +424,8 @@ void mix_major2 (u32 *state, u32 extra_state)
 	extra_state -= extra_state & 0x10691818;
 	state[15] &= ROR (state[15], 18);
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor63;
 		mix_minor62;
 		mix_minor43;
@@ -414,7 +437,8 @@ void mix_major2 (u32 *state, u32 extra_state)
 	state[3] &= state[18] + 0xc18379a4;
 	state[8] += state[2] + 0x8845990;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		ROLEQ (state[10], 6);
 		mix_minor64;
 		mix_minor69;
@@ -425,7 +449,8 @@ void mix_major2 (u32 *state, u32 extra_state)
 	ROREQ (state[14], extra_state ^ 0x1);
 	state[3] -= state[3] ^ 0x1a11c1c;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor48;
 		state[3] -= 0x833e3d40;
 		mix_minor61;
@@ -437,7 +462,8 @@ void mix_major2 (u32 *state, u32 extra_state)
 	extra_state ^= state[14] | 0x11712ba;
 	state[4] -= extra_state - 0x1df0f08c;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor44;
 		mix_minor41;
 		mix_minor64;
@@ -448,7 +474,8 @@ void mix_major2 (u32 *state, u32 extra_state)
 	state[0] -= state[7] - 0x8e4e3c5;
 	state[9] -= extra_state ^ 0x13f1a8da;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor20;
 		mix_minor47;
 		mix_minor57;
@@ -458,7 +485,8 @@ void mix_major2 (u32 *state, u32 extra_state)
 	state[14] ^= extra_state + 0xf2dd8a98;
 	state[14] |= state[3] & 0xb51383c;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor36;
 		mix_minor27;
 		mix_minor47;
@@ -468,7 +496,8 @@ void mix_major2 (u32 *state, u32 extra_state)
 	state[0] -= state[2] - 0x16bda446;
 	state[2] -= state[0] ^ 0x3576dfb9;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor26;
 		mix_minor32;
 		mix_minor49;
@@ -480,18 +509,20 @@ void mix_major2 (u32 *state, u32 extra_state)
 	extra_state *= state[12] + 0xffcf5d22;
 	extra_state += state[11] ^ 0x26b4296;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor55;
 		ROLEQ (state[19], 15);
 		ROLEQ (state[10], 26);
 		mix_major3 (state, extra_state);
 	}
 
-	ROREQ (extra_state, ROL(extra_state, 11));
+	ROREQ (extra_state, ROL (extra_state, 11));
 	extra_state -= ROL (state[17], 25);
 	state[4] += state[3] ^ 0x125c14db;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		state[14] += 0x7de14a07;
 		state[4] *= 0x13ca26ac;
 		mix_minor41;
@@ -503,7 +534,8 @@ void mix_major2 (u32 *state, u32 extra_state)
 	ROREQ (state[9], state[11] | 0x3);
 	state[18] ^= extra_state ^ 0x22da8ee3;
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor46;
 		mix_minor28;
 		mix_minor69;
@@ -514,7 +546,8 @@ void mix_major2 (u32 *state, u32 extra_state)
 	ROREQ (state[5], state[18] & 0x13);
 	state[5] -= state[1] ^ 0x2822999;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		state[12] += 0x108072;
 		state[8] += 0xaf45f1d7;
 		mix_minor61;
@@ -542,7 +575,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	extra_state |= state[0] + 0xd31e211;
 	state[14] -= state[0] - 0x7cfa160;
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor48;
 		mix_minor46;
 		state[14] -= 0x7f80fb4a;
@@ -552,7 +586,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	state[13] = ROR (state[13], extra_state + 0x6);
 	state[3] *= state[12] + 0xfd1d773c;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor37;
 		mix_minor39;
 		state[17] ^= 0x1d4f264d;
@@ -563,7 +598,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	extra_state += state[0] + 0xf3754e81;
 	extra_state ^= state[16] ^ 0x21d2a427;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor38;
 		state[12] += 0x208846a;
 		mix_minor31;
@@ -575,7 +611,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	state[3] &= state[6] ^ 0x1d86d59a;
 	state[0] ^= state[10] ^ 0x22d79e78;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor45;
 		ROLEQ (state[16], 14);
 		mix_minor45;
@@ -586,7 +623,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	extra_state += ROL (extra_state, 13) + (state[4] ^ 0x17568f8b);
 	state[3] -= state[9] ^ 0x1b7d211b;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor35;
 		state[14] ^= 0x7adc7a3f;
 		mix_minor64;
@@ -596,7 +634,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	state[14] *= state[10] ^ 0x25da4024;
 	state[3] += state[19] ^ 0x195596e2;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor37;
 		mix_minor60;
 		state[8] -= 0x75c7234e;
@@ -608,7 +647,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	state[7] = 0x3de4cf2b;
 	extra_state ^= state[5] * 0x1195dbf3;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor51;
 		mix_minor51;
 		mix_minor28;
@@ -618,7 +658,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	state[12] *= state[14] * 0x25bf72d4;
 	extra_state += ROL (state[11], 2);
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor28;
 		mix_minor20;
 		mix_minor41;
@@ -630,7 +671,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	extra_state *= extra_state + 0xe6d9d0ce;
 	state[2] *= state[0] * 0x25d5927e;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor41;
 		mix_minor35;
 		state[0] += 0x8a388c73;
@@ -641,7 +683,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	extra_state *= state[19] ^ 0x159fa550;
 	state[9] -= extra_state * 0x1b0d12a6;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor58;
 		mix_minor26;
 		mix_minor26;
@@ -653,7 +696,8 @@ void mix_major3 (u32 *state, u32 extra_state)
 	state[7] -= extra_state * 0x1a41598b;
 	state[17] *= state[14] & 0x36ff2c0;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor60;
 		mix_minor67;
 		mix_minor44;
@@ -678,7 +722,8 @@ void mix_major4 (u32 *state, u32 extra_state)
 	state[15] ^= state[4] + 0x385e38e;
 	state[18] |= extra_state + 0xc6189f52;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor43;
 		mix_minor24;
 		state[3] += 0x9302800;
@@ -691,7 +736,8 @@ void mix_major4 (u32 *state, u32 extra_state)
 	ROREQ (state[0], ROR (state[11], 1));
 	state[0] += state[11] ^ 0x43cd4d14;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor22;
 		mix_minor48;
 		state[4] *= 0x2a2e8718;
@@ -702,7 +748,8 @@ void mix_major4 (u32 *state, u32 extra_state)
 	state[16] += state[0] + 0xf8d647b6;
 	state[2] ^= state[4] ^ 0x11e3788d;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		state[5] += 0xc4115253;
 		mix_minor51;
 		mix_minor55;
@@ -714,7 +761,8 @@ void mix_major4 (u32 *state, u32 extra_state)
 	state[16] += ROR (extra_state, 29);
 	state[0] += state[15] + 0xc3e56f16;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor46;
 		ROLEQ (state[16], 7);
 		mix_minor40;
@@ -725,7 +773,8 @@ void mix_major4 (u32 *state, u32 extra_state)
 	state[18] -= extra_state ^ 0x23f157f6;
 	extra_state -= state[18] & 0x155b7cc8;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor48;
 		state[5] += 0x6d08d06;
 		mix_minor50;
@@ -738,7 +787,8 @@ void mix_major4 (u32 *state, u32 extra_state)
 	ROREQ (state[7], state[10] ^ 0x1a);
 	ROLEQ (state[7], state[18] + 0x1c);
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor46;
 		ROLEQ (state[10], 4);
 		mix_minor59;
@@ -749,7 +799,8 @@ void mix_major4 (u32 *state, u32 extra_state)
 	state[6] ^= extra_state ^ 0x2c8ca15;
 	state[13] += ROL (extra_state, 13);
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor61;
 		state[3] *= 0x6c0de9fa;
 		mix_minor34;
@@ -760,7 +811,8 @@ void mix_major4 (u32 *state, u32 extra_state)
 	state[3] *= extra_state & 0xd505f52;
 	extra_state -= state[15] ^ 0x15284f42;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor37;
 		mix_minor47;
 		state[12] += 0x2108058;
@@ -772,7 +824,8 @@ void mix_major4 (u32 *state, u32 extra_state)
 	state[10] += state[1] | 0xda16d9b;
 	state[9] *= state[5] ^ 0x28b62e0c;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor35;
 		state[14] ^= 0x8a0974b;
 		mix_minor37;
@@ -800,7 +853,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	state[3] ^= state[13] + 0x1fef7de0;
 	extra_state -= state[16] ^ 0x8338b85;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		state[3] += 0x1000800;
 		state[3] += 0x9102040;
 		mix_minor30;
@@ -812,7 +866,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	state[11] ^= extra_state + 0x374580a7;
 	state[10] += extra_state | 0x86941f3;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor32;
 		ROLEQ (state[10], 25);
 		mix_minor50;
@@ -823,7 +878,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	state[13] += state[18] + 0xcb82c76c;
 	state[8] -= state[1] ^ 0x3b98ae58;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor42;
 		mix_minor64;
 		mix_minor21;
@@ -834,7 +890,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	state[5] &= state[13] + 0x539ef62;
 	state[11] &= state[14] ^ 0x639b87fe;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor22;
 		mix_minor59;
 		state[14] += 0x73204792;
@@ -846,7 +903,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	extra_state += state[5] + 0x8dcb06;
 	state[12] -= extra_state & 0x632ffca;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		state[5] += 0xc6ac8583;
 		mix_minor41;
 		state[3] += 0x9004000;
@@ -857,7 +915,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	ROREQ (state[10], state[11] * 0x10);
 	state[0] += state[4] & 0x18b74e25;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		state[12] += 0x1a;
 		mix_minor53;
 		mix_minor47;
@@ -867,7 +926,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	state[2] -= state[2] ^ 0x18f1b56;
 	ROLEQ (state[19], state[13] + 0x6);
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		state[3] *= 0x27d3a148;
 		state[4] *= 0xa24016a8;
 		state[14] -= 0x3a2c78cf;
@@ -877,7 +937,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	ROREQ (extra_state, state[7] + 0x16);
 	ROLEQ (extra_state, state[14] + 0x11);
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		state[3] *= 0x3713ed22;
 		mix_minor29;
 		mix_minor59;
@@ -888,7 +949,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	ROLEQ (state[8], state[13] ^ 0x15);
 	state[1] += state[10] ^ 0x1da5a5e2;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor45;
 		mix_minor55;
 		ROLEQ (state[16], 13);
@@ -899,7 +961,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	state[6] += state[17] + 0xd3198985;
 	extra_state &= state[1] * 0xb2490cd;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor50;
 		mix_minor45;
 		state[8] += 0x749a003b;
@@ -910,7 +973,8 @@ void mix_major5 (u32 *state, u32 extra_state)
 	state[5] -= state[7] - 0xca44ad;
 	extra_state += state[14] | 0xce2b27d;
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor33;
 		mix_minor22;
 		state[8] -= 0x7a3a25c3;
@@ -940,7 +1004,8 @@ void mix_major6 (u32 *state, u32 extra_state)
 	extra_state ^= state[1] + 0xa89a8207;
 	extra_state &= 0xecc2fa7d;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor54;
 		state[4] *= 0x5141d713;
 		mix_minor62;
@@ -954,7 +1019,8 @@ void mix_major6 (u32 *state, u32 extra_state)
 	extra_state += state[0] * 0x320ea6ec;
 	extra_state ^= state[19] + 0xee10c43d;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		ROLEQ (state[19], 6);
 		state[3] += 0x1600840;
 		mix_minor41;
@@ -967,7 +1033,8 @@ void mix_major6 (u32 *state, u32 extra_state)
 	state[5] -= state[10] - 0xf95da87e;
 	extra_state ^= ROL (state[8], 18);
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor53;
 		mix_minor23;
 		mix_minor60;
@@ -981,7 +1048,8 @@ void mix_major6 (u32 *state, u32 extra_state)
 	ROLEQ (extra_state, state[2] | 0x19);
 	state[9] += state[2] | 0x176f7fa2;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor53;
 		mix_minor67;
 		mix_minor38;
@@ -993,7 +1061,8 @@ void mix_major6 (u32 *state, u32 extra_state)
 	extra_state ^= state[15] * 0x7f034;
 	ROREQ (state[14], state[2] + 0x3);
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		state[14] -= 0xa630c9b5;
 		mix_minor33;
 		state[8] -= 0xa8a2e592;
@@ -1007,7 +1076,8 @@ void mix_major6 (u32 *state, u32 extra_state)
 	ROLEQ (state[0], state[14] | 0x8);
 	state[13] -= state[3] ^ 0x2a68c40c;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor40;
 		state[14] ^= 0x4e96c3d9;
 		state[3] *= 0x7b9dddda;
@@ -1020,7 +1090,8 @@ void mix_major6 (u32 *state, u32 extra_state)
 	ROREQ (extra_state, state[16] ^ 0x4);
 	ROLEQ (state[6], ROL (state[1], 11));
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor31;
 		mix_minor31;
 		ROLEQ (state[16], 28);
@@ -1032,7 +1103,8 @@ void mix_major6 (u32 *state, u32 extra_state)
 	state[3] -= state[12] - 0x10decc67;
 	extra_state *= state[15] ^ 0x194903b4;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor33;
 		mix_minor48;
 		mix_minor66;
@@ -1054,7 +1126,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 	extra_state += ROR (state[13], 26);
 	state[15] += ROR (state[0], 18);
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor45;
 		ROLEQ (state[16], 24);
 		ROLEQ (state[16], 18);
@@ -1066,7 +1139,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 	state[17] -= state[18] | 0x1102e01a;
 	state[19] += state[12] + 0xf1e0cc5a;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		state[4] *= 0x73b12006;
 		mix_minor49;
 		mix_minor43;
@@ -1078,7 +1152,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 	state[3] ^= ROR (extra_state, 13);
 	extra_state ^= state[12] & 0x2e2ac892;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor59;
 		mix_minor69;
 		mix_minor41;
@@ -1089,7 +1164,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 	extra_state ^= extra_state + 0x7a3b4f0e;
 	state[5] += state[11] ^ 0x5f050ce6;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor46;
 		mix_minor45;
 		mix_minor24;
@@ -1100,7 +1176,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 	extra_state += state[3] + ROR (state[17], 18) + 0x17b2d86;
 	state[12] |= state[17] ^ 0xd2348b5;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor60;
 		mix_minor56;
 		mix_minor64;
@@ -1112,7 +1189,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 	state[12] -= extra_state ^ 0x32b59495;
 	state[11] -= state[7] ^ 0xcc6cef3;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor51;
 		mix_minor51;
 		mix_minor46;
@@ -1123,7 +1201,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 	state[8] ^= state[15] + 0xfc1ccf0a;
 	state[4] *= state[2] + 0xdc6ebf0;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor34;
 		mix_minor33;
 		mix_minor35;
@@ -1134,7 +1213,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 	state[2] ^= state[0] + 0xc0a98770;
 	state[6] += ROL (state[11], 15);
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor43;
 		mix_minor38;
 		ROLEQ (state[10], 8);
@@ -1143,7 +1223,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 
 	extra_state += state[18] - state[5] + 0xff5138a0;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		ROLEQ (state[19], 22);
 		mix_minor32;
 		state[14] ^= 0x3ccf037;
@@ -1153,7 +1234,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 	ROREQ (state[3], state[17] & 0xa);
 	state[3] ^= state[7] * 0x36e7ec8;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor41;
 		state[17] ^= 0xeeea146c;
 		mix_minor64;
@@ -1163,7 +1245,8 @@ void mix_major7 (u32 *state, u32 extra_state)
 	ROREQ (state[10], state[19] * 0x19);
 	state[14] *= state[12] + 0xd914afe4;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor22;
 		mix_minor57;
 		mix_minor44;
@@ -1188,7 +1271,8 @@ void mix_major8 (u32 *state, u32 extra_state)
 	state[17] &= extra_state + 0xd191e790;
 	extra_state += state[1] * 0x1c634b75;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor34;
 		mix_minor25;
 		state[8] -= 0x3dcc78c5;
@@ -1204,7 +1288,8 @@ void mix_major8 (u32 *state, u32 extra_state)
 	state[13] *= ROR (state[8], 31);
 	state[18] ^= state[15] + 0xa969bc16;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor25;
 		ROLEQ (state[10], 14);
 		mix_minor38;
@@ -1219,7 +1304,8 @@ void mix_major8 (u32 *state, u32 extra_state)
 	extra_state *= extra_state + 0xe43a6120;
 	state[1] -= state[3] - 0xd94074d;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		state[4] *= 0xdccff951;
 		mix_minor53;
 		mix_minor41;
@@ -1235,7 +1321,8 @@ void mix_major8 (u32 *state, u32 extra_state)
 	extra_state -= state[2] - 0xfffcc68a;
 	state[2] -= state[12] * 0xf8b6e25;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor36;
 		state[17] ^= 0x5f26a27b;
 		state[14] ^= 0x77f49770;
@@ -1249,7 +1336,8 @@ void mix_major8 (u32 *state, u32 extra_state)
 	state[18] ^= state[5] + 0x263032a4;
 	state[16] ^= extra_state + 0x1a70ff38;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor37;
 		mix_minor22;
 		mix_minor45;
@@ -1277,7 +1365,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	state[19] |= state[18] + 0xe56713bc;
 	state[12] |= state[8] + 0xefc639fe;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor40;
 		mix_minor26;
 		mix_minor65;
@@ -1287,7 +1376,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	state[4] ^= state[18] + 0xf20ff41d;
 	ROLEQ (extra_state, extra_state + 0xb);
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor28;
 		mix_minor35;
 		ROLEQ (state[19], 20);
@@ -1297,7 +1387,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	state[2] ^= ROR (extra_state, 1);
 	state[10] *= extra_state + 0x3842b736;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor21;
 		mix_minor28;
 		state[3] -= 0x524e81e6;
@@ -1308,7 +1399,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	state[9] += state[15] & 0xe43bfd6;
 	state[12] += state[18] | 0x24e2f424;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor43;
 		state[8] += 0x6afab397;
 		state[11] += 0x573a6da7;
@@ -1320,7 +1412,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	state[5] += 0x2961fc0;
 	state[6] *= state[11] + 0xe91b219c;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor29;
 		mix_minor41;
 		mix_minor28;
@@ -1332,7 +1425,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	state[13] += ROR (state[10], 27);
 	state[10] += state[3] + 0xea05fa03;
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor24;
 		mix_minor31;
 		ROLEQ (state[16], 20);
@@ -1342,7 +1436,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	state[19] = (state[19] + 0xe8b6d37d) - state[2];
 	extra_state ^= state[12] * 0xa95c314;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor64;
 		state[4] ^= 0xa54ee16;
 		mix_minor54;
@@ -1354,7 +1449,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	extra_state += state[2] ^ 0x33dd726a;
 	state[19] &= extra_state ^ 0x13220e;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor63;
 		mix_minor54;
 		mix_minor43;
@@ -1366,7 +1462,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	ROLEQ (extra_state, state[15] * 0xf);
 	state[12] += state[11] | 0x15477725;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor56;
 		state[14] ^= 0x66bd03a9;
 		mix_minor55;
@@ -1377,7 +1474,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	state[0] += state[11] * 0x128142d3;
 	ROREQ (state[13], extra_state + 0x9);
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor33;
 		mix_minor69;
 		mix_minor58;
@@ -1389,7 +1487,8 @@ void mix_major9 (u32 *state, u32 extra_state)
 	ROREQ (extra_state, state[16] + 0x17);
 	extra_state += state[11] ^ 0x14302fce;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor30;
 		mix_minor47;
 		state[14] -= 0x979badcc;
@@ -1417,7 +1516,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	state[19] *= state[8] + 0xe6c6654e;
 	ROREQ (state[6], state[1] ^ 0x1b);
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		state[8] += 0x8c1d03c3;
 		state[4] ^= 0x112c3767;
 		mix_minor43;
@@ -1427,7 +1527,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	state[0] *= extra_state + 0x22e5f53d;
 	state[6] -= state[14] - 0xf7f0c308;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		state[1] &= 0x548aed34;
 		mix_minor33;
 		mix_minor28;
@@ -1439,7 +1540,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	state[14] -= state[6] - 0x30bd8dc6;
 	state[2] += state[7] ^ 0x1edb75c4;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor67;
 		mix_minor49;
 		mix_minor29;
@@ -1451,7 +1553,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	ROREQ (state[11], state[6] | 0x15);
 	state[2] ^= ROL (state[10], 24);
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		ROLEQ (state[19], 19);
 		mix_minor41;
 		mix_minor26;
@@ -1461,7 +1564,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	state[16] ^= ROL (state[5], 29);
 	ROLEQ (state[8], ROL (state[8], 19));
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		state[8] += 0xabc0d876;
 		state[1] &= 0x2002d891;
 		mix_minor51;
@@ -1471,7 +1575,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	state[13] *= extra_state & 0x9aee05b;
 	ROLEQ (state[18], state[0] + 0x9);
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor37;
 		mix_minor52;
 		mix_minor65;
@@ -1482,7 +1587,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	state[0] += state[8] | 0xc568bd;
 	extra_state += ROR (state[11], 25);
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor29;
 		state[14] += 0x7bef2ee1;
 		mix_minor55;
@@ -1494,7 +1600,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	extra_state ^= state[16] & 0x1a8092b;
 	state[4] ^= state[2] + 0xf6a7c14d;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		state[3] += 0x706840;
 		state[3] += 0x1400840;
 		mix_minor68;
@@ -1504,7 +1611,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	extra_state |= state[1] + 0xbd4eb37a;
 	extra_state *= state[15] ^ 0xe476c17;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor41;
 		state[14] += 0x52aaba85;
 		mix_minor68;
@@ -1516,7 +1624,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	state[12] &= state[0] + 0x9ff4339;
 	state[15] ^= state[12] + 0xccdc186;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor25;
 		mix_minor31;
 		mix_minor43;
@@ -1527,7 +1636,8 @@ void mix_major10 (u32 *state, u32 extra_state)
 	state[5] ^= state[15] + 0x130fea4;
 	extra_state ^= state[19] + 0xdf1438e7;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor20;
 		mix_minor54;
 		mix_minor35;
@@ -1554,7 +1664,8 @@ void mix_major11 (u32 *state, u32 extra_state)
 	state[9] &= state[4] ^ 0x4b5700f;
 	state[14] *= extra_state - (state[15] | 0x1f564f3c) + 0xfe30d470;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor58;
 		state[1] &= 0xdc0e2e53;
 		mix_minor65;
@@ -1566,7 +1677,8 @@ void mix_major11 (u32 *state, u32 extra_state)
 	state[17] += 0x503fc4de;
 	state[18] += state[1] * 0xf14c9c;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor21;
 		mix_minor28;
 		mix_minor54;
@@ -1578,7 +1690,8 @@ void mix_major11 (u32 *state, u32 extra_state)
 	state[13] ^= state[1] + 0xf6c6f628;
 	state[17] ^= state[3] + 0x7f863fa;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		state[3] -= 0x7d6e042a;
 		mix_minor31;
 		state[12] += 0x2048070;
@@ -1591,7 +1704,8 @@ void mix_major11 (u32 *state, u32 extra_state)
 	state[16] |= ROR (state[16], 10);
 	state[7] *= state[11] * 0x5053948;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor58;
 		state[3] *= 0x34797b50;
 		mix_minor69;
@@ -1603,7 +1717,8 @@ void mix_major11 (u32 *state, u32 extra_state)
 	ROLEQ (state[7], extra_state + 0x7);
 	state[4] -= ROL (state[7], 2);
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		state[1] &= 0x49102e08;
 		state[12] += 0x20e0400;
 		mix_minor56;
@@ -1616,7 +1731,8 @@ void mix_major11 (u32 *state, u32 extra_state)
 	extra_state -= state[6] | 0x107e370;
 	state[17] -= extra_state - 0x191504c;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor48;
 		state[4] ^= 0xccc8d5fc;
 		mix_minor41;
@@ -1629,7 +1745,8 @@ void mix_major11 (u32 *state, u32 extra_state)
 	state[5] -= state[3] ^ 0xfd205d5;
 	state[8] ^= extra_state ^ 0x9000ce9;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor51;
 		mix_minor24;
 		mix_minor32;
@@ -1642,7 +1759,8 @@ void mix_major11 (u32 *state, u32 extra_state)
 	ROLEQ (state[11], state[1] ^ 0x15);
 	state[19] += state[9] * 0x12af9c5;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor42;
 		mix_minor60;
 		mix_major18 (state, state[0]);
@@ -1654,7 +1772,8 @@ void mix_major11 (u32 *state, u32 extra_state)
 	state[16] &= state[3] * 0x532f53a;
 	extra_state ^= state[11] * 0x14718f9a;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor49;
 		mix_minor63;
 		state[1] &= 0xc2c9d439;
@@ -1665,7 +1784,8 @@ void mix_major11 (u32 *state, u32 extra_state)
 	extra_state *= state[1] | 0x4b09e3e;
 	state[7] ^= state[12] ^ 0x2a4ea48a;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor35;
 		mix_minor35;
 		state[4] *= 0x9b2bcf2e;
@@ -1687,7 +1807,8 @@ void mix_major12 (u32 *state, u32 extra_state)
 	extra_state = state[9] * (extra_state + 0xc46fe68);
 	state[9] = extra_state;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		state[8] += 0xb0568904;
 		mix_minor55;
 		mix_minor56;
@@ -1700,7 +1821,8 @@ void mix_major12 (u32 *state, u32 extra_state)
 	state[17] &= state[6] + 0xaa504a66;
 	state[13] -= state[7] - 0x2482f7ba;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		ROLEQ (state[16], 27);
 		state[3] += 0x8602040;
 		mix_minor37;
@@ -1713,7 +1835,8 @@ void mix_major12 (u32 *state, u32 extra_state)
 	state[12] += state[10] * 0x2b5c108a;
 	state[19] -= state[10] - 0x45d1e08;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor61;
 		state[3] += 0x1704000;
 		state[12] += 0x20e002a;
@@ -1728,7 +1851,8 @@ void mix_major12 (u32 *state, u32 extra_state)
 	state[3] |= state[18] * 0x279ed38c;
 	extra_state &= state[19] ^ 0x234a2088;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor42;
 		state[12] += 0x68468;
 		mix_minor55;
@@ -1742,7 +1866,8 @@ void mix_major12 (u32 *state, u32 extra_state)
 	state[4] ^= extra_state + 0x2a0e1a7a;
 	extra_state *= extra_state * 0xba88b94;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		state[14] += 0x5a9acc8f;
 		mix_minor40;
 		mix_minor33;
@@ -1755,7 +1880,8 @@ void mix_major12 (u32 *state, u32 extra_state)
 	state[2] ^= state[12] & 0x36b79ddb;
 	extra_state ^= extra_state + 0xff3ba490;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor42;
 		mix_minor39;
 		state[8] += 0x9cf399e7;
@@ -1779,7 +1905,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	extra_state *= state[9] + 0x10ce1e6b;
 	state[13] |= state[14] & 0xe7aa887;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor61;
 		state[3] += 0x1702840;
 		mix_minor34;
@@ -1790,7 +1917,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	state[2] -= state[10] - 0x456501d3;
 	state[11] ^= state[17] + 0xe91158ed;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor41;
 		mix_minor46;
 		mix_minor27;
@@ -1802,7 +1930,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	extra_state -= state[17] ^ 0xb4b5ddd;
 	state[5] &= extra_state + 0xf2a69347;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		state[11] += 0x28b81;
 		mix_minor55;
 		mix_minor38;
@@ -1812,7 +1941,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	state[8] += state[11] + 0x35a3f082;
 	state[15] &= extra_state + 0xf0918e1c;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		state[12] += 0x2180072;
 		mix_minor48;
 		mix_minor39;
@@ -1823,7 +1953,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	extra_state ^= state[0] + 0x9b993250;
 	state[13] ^= state[17] * 0xb083b2b;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor68;
 		mix_minor58;
 		mix_minor52;
@@ -1835,7 +1966,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	extra_state ^= state[3] + 0xffce689b;
 	state[4] *= extra_state + 0x2570be6e;
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		state[14] -= 0xb271fe0e;
 		mix_minor57;
 		mix_minor20;
@@ -1847,7 +1979,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	state[0] += state[9] ^ 0x4dc36a;
 	state[0] -= extra_state - 0x10bb4f25;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor39;
 		mix_minor26;
 		state[0] += 0x8fc063b5;
@@ -1859,7 +1992,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	state[1] |= extra_state * 0x50ebe77;
 	extra_state += state[6] | 0x4d24003d;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		state[14] -= 0x3b677863;
 		mix_minor29;
 		mix_minor22;
@@ -1870,7 +2004,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	ROREQ (state[0], extra_state * 0xd);
 	extra_state -= extra_state | 0x2576a843;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor49;
 		mix_minor41;
 		state[3] += 0x8306000;
@@ -1882,7 +2017,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	state[3] *= state[11] * 0x1e333f7b;
 	ROREQ (state[7], state[17] ^ 0x1a);
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor51;
 		state[8] -= 0xfbb3cb07;
 		state[4] ^= 0x214ff68b;
@@ -1892,7 +2028,8 @@ void mix_major13 (u32 *state, u32 extra_state)
 	state[13] ^= state[18] + 0x149e5b40;
 	state[0] += state[19] + 0x541a494;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor38;
 		mix_minor28;
 		mix_minor50;
@@ -1921,7 +2058,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	state[17] *= state[5] + 0x4ef38b53;
 	state[15] ^= ROR (state[16], 8);
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		state[4] ^= 0x82254dc0;
 		mix_minor36;
 		mix_minor47;
@@ -1932,7 +2070,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	ROREQ (extra_state, state[7] * 0xb);
 	state[5] -= ROR (state[12], 5);
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		state[14] -= 0x7b59f866;
 		state[3] -= 0x6bfee72c;
 		state[3] += 0x1704040;
@@ -1943,7 +2082,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	state[18] |= state[2] + 0xef9e8d77;
 	state[3] += state[4] + 0xce3d3234;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor27;
 		mix_minor38;
 		mix_minor20;
@@ -1954,7 +2094,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	extra_state &= state[7] + 0x358107b;
 	state[12] += ROL (state[3], 20);
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor20;
 		state[17] ^= 0xde7b4629;
 		state[4] ^= 0x5cfc1b41;
@@ -1966,7 +2107,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	state[4] -= state[3] - 0x3b4034a1;
 	state[11] &= state[19] | 0x2856103;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor21;
 		mix_minor56;
 		mix_minor25;
@@ -1976,7 +2118,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	state[7] |= extra_state + 0x2d3d686;
 	extra_state &= state[15] & 0x316de5b2;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor20;
 		mix_minor33;
 		state[14] ^= 0x1e127778;
@@ -1988,7 +2131,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	state[6] *= state[10] + 0xd1650ad7;
 	state[7] *= state[3] & 0xade0835;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor26;
 		mix_minor28;
 		mix_minor67;
@@ -2000,7 +2144,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	state[9] ^= state[5] + 0xd55d1b86;
 	extra_state &= state[12] * 0x13b7b134;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor35;
 		mix_minor30;
 		mix_minor21;
@@ -2011,7 +2156,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	state[6] -= state[18] * 0x452ad09;
 	state[4] += extra_state ^ 0x4895c9e2;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor49;
 		mix_minor49;
 		mix_minor46;
@@ -2021,7 +2167,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	extra_state ^= extra_state + 0xf8ecf928;
 	ROREQ (state[18], state[5] + 0xd);
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor55;
 		mix_minor69;
 		mix_minor67;
@@ -2031,7 +2178,8 @@ void mix_major14 (u32 *state, u32 extra_state)
 	extra_state *= 0x34b70af0;
 	state[5] -= ROL (state[19], 23);
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor46;
 		mix_minor47;
 		mix_minor47;
@@ -2065,7 +2213,8 @@ void mix_major15 (u32 *state, u32 extra_state)
 	state[11] += extra_state + 0xbab1970a;
 	state[7] |= state[18] & 0x2e7cbf50;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor28;
 		mix_minor53;
 		state[8] += 0xabdd8689;
@@ -2082,7 +2231,8 @@ void mix_major15 (u32 *state, u32 extra_state)
 	state[19] -= state[9] - 0x32b94292;
 	ROREQ (extra_state, state[9] * 0x9);
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		state[1] &= 0xbe845151;
 		mix_minor66;
 		state[14] -= 0x77ab88ea;
@@ -2098,7 +2248,8 @@ void mix_major15 (u32 *state, u32 extra_state)
 	ROREQ (extra_state, state[1] + 0x2);
 	state[18] -= extra_state - 0xee6e38da;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor31;
 		mix_minor31;
 		mix_minor52;
@@ -2116,7 +2267,8 @@ void mix_major15 (u32 *state, u32 extra_state)
 	state[12] ^= ROL (state[7], 18);
 	state[17] -= state[13] - 0xb70d1a;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor46;
 		state[1] &= 0x24c41868;
 		mix_minor24;
@@ -2151,7 +2303,8 @@ void mix_major16 (u32 *state, u32 extra_state)
 	state[11] *= state[6] & 0xf076b8f;
 	state[11] += extra_state + 0x26d0f98c;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor29;
 		mix_minor21;
 		mix_minor33;
@@ -2171,7 +2324,8 @@ void mix_major16 (u32 *state, u32 extra_state)
 	state[17] ^= ROL (state[13], 5);
 	ROLEQ (state[13], extra_state & 0x12);
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor45;
 		state[8] -= 0x3e5f74f5;
 		state[11] += 0xee0e47c6;
@@ -2190,7 +2344,8 @@ void mix_major16 (u32 *state, u32 extra_state)
 	state[19] |= ROR (state[5], 22);
 	state[0] += state[6] + 0xe1f2872;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor53;
 		mix_minor27;
 		state[9] += 0xd829ce84;
@@ -2229,7 +2384,8 @@ void mix_major17 (u32 *state, u32 extra_state)
 	state[17] ^= state[11] + 0xf51e9043;
 	state[15] += extra_state + 0x37f1bc89;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		state[3] -= 0x2ae49a0;
 		state[9] += 0xde755696;
 		mix_minor53;
@@ -2252,7 +2408,8 @@ void mix_major17 (u32 *state, u32 extra_state)
 	state[12] |= extra_state + 0xee36df26;
 	state[15] &= extra_state + 0xc95e1442;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor27;
 		state[9] += 0xd68c597b;
 		state[9] += 0xdcb2dc4d;
@@ -2287,7 +2444,8 @@ void mix_major18 (u32 *state, u32 extra_state)
 	extra_state += state[6] ^ 0x16afd25f;
 	ROREQ (state[0], state[18] | 0x1b);
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor33;
 		ROLEQ (state[16], 12);
 		mix_minor39;
@@ -2299,7 +2457,8 @@ void mix_major18 (u32 *state, u32 extra_state)
 	extra_state ^= state[5] * 0xef44412;
 	extra_state -= ROL (state[18], 22);
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor37;
 		mix_minor23;
 		mix_minor35;
@@ -2312,7 +2471,8 @@ void mix_major18 (u32 *state, u32 extra_state)
 	extra_state *= state[1] | 0x110c8a1;
 	ROLEQ (state[4], ROR (state[6], 27));
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		state[3] -= 0xab85f363;
 		mix_minor47;
 		ROLEQ (state[10], 12);
@@ -2326,7 +2486,8 @@ void mix_major18 (u32 *state, u32 extra_state)
 	extra_state += state[16] & 0xf72e29a;
 	state[3] -= state[18] | 0x7614cfb;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor60;
 		state[3] *= 0x23a0356c;
 		mix_minor33;
@@ -2338,7 +2499,8 @@ void mix_major18 (u32 *state, u32 extra_state)
 	state[0] += state[4] ^ 0x35388017;
 	extra_state ^= state[14] * 0x268d6eae;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		state[14] += 0x72559385;
 		state[8] += 0xafa7ed31;
 		mix_minor26;
@@ -2350,7 +2512,8 @@ void mix_major18 (u32 *state, u32 extra_state)
 	state[19] |= extra_state ^ 0x61d2180;
 	state[4] &= state[19] + 0x588d79a3;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		state[11] += 0xa26a5e66;
 		state[9] += 0xcdf889ea;
 		mix_minor69;
@@ -2364,7 +2527,8 @@ void mix_major18 (u32 *state, u32 extra_state)
 	state[6] &= state[15] * 0x177f5d63;
 	ROLEQ (state[12], ROL (state[16], 1));
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor23;
 		mix_minor32;
 		state[9] += 0xc3b96ef0;
@@ -2483,7 +2647,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	extra_state -= state[6] - 0x67e07c3f;
 	extra_state ^= extra_state * 0x157052aa;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor22;
 		mix_minor62;
 		mix_minor63;
@@ -2493,7 +2658,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	ROLEQ (state[6], ROR (state[6], 11));
 	state[19] += extra_state * 0x2437b7c7;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		state[8] -= 0x383b7a6c;
 		mix_minor28;
 		state[14] -= 0xd8799ad3;
@@ -2503,7 +2669,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	state[3] += state[12] + 0xf9430940;
 	state[11] -= state[6];
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor40;
 		mix_minor41;
 		mix_minor66;
@@ -2514,7 +2681,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	state[18] -= extra_state & 0x6b2cc678;
 	ROREQ (state[15], state[11] & 0xa);
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor67;
 		mix_minor26;
 		mix_minor21;
@@ -2525,7 +2693,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	state[10] += state[15] * 0x42515298;
 	state[19] += state[2] ^ 0x2a15668a;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		ROLEQ (state[19], 21);
 		mix_minor30;
 		mix_minor58;
@@ -2536,7 +2705,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	state[1] &= state[3] + 0x8a7848d;
 	state[10] *= state[17] + 0xf76061aa;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor29;
 		state[17] ^= 0x3d87b641;
 		mix_minor60;
@@ -2546,7 +2716,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	state[6] += ROR (state[1], 8);
 	state[1] *= state[2] | 0x16a41bdf;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor68;
 		state[9] += 0xb8c1b4ce;
 		state[4] ^= 0x5c2840a0;
@@ -2558,7 +2729,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	state[5] |= state[13] + 0x5c58f04e;
 	state[19] ^= state[14] + 0x49437c23;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor22;
 		mix_minor30;
 		mix_minor29;
@@ -2569,7 +2741,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	state[13] &= state[14] * 0x810027b;
 	extra_state += extra_state + 0x3053624;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor20;
 		mix_minor38;
 		mix_minor27;
@@ -2581,7 +2754,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	state[6] ^= state[12] + 0xac2e6058;
 	state[12] ^= state[17] + 0xd87e9f50;
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor37;
 		mix_minor29;
 		mix_minor31;
@@ -2591,7 +2765,8 @@ void mix_major21 (u32 *state, u32 extra_state)
 	ROLEQ (state[9], state[7] ^ 0x1);
 	extra_state += state[14] ^ 0xff63c7c;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		state[14] ^= 0x491ed97d;
 		mix_minor22;
 		mix_minor40;
@@ -2622,7 +2797,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	state[19] -= extra_state - 0x4f9d3712;
 	state[16] &= state[11] * 0x37e68d12;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor57;
 		state[4] *= 0x6f2b88b5;
 		mix_major19 (state, state[7]);
@@ -2631,7 +2807,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	extra_state -= state[18] ^ 0x4ea934da;
 	state[1] &= state[18] ^ 0x18a1ba1a;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		state[3] += 0x9302840;
 		state[8] += 0x91520abe;
 		mix_minor37;
@@ -2643,7 +2820,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	state[9] += state[5] + 0xf4d4e1ee;
 	state[11] -= ROL (state[16], 22);
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor67;
 		mix_minor67;
 		mix_minor37;
@@ -2654,7 +2832,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	extra_state |= ROR (state[5], 1);
 	state[11] += extra_state + 0xf0871714;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor35;
 		mix_minor65;
 		state[8] -= 0x265c0434;
@@ -2665,7 +2844,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	state[15] += state[1] + 0xe9b29695;
 	state[9] ^= state[19] + 0xf9850900;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		ROLEQ (state[10], 1);
 		state[4] *= 0xb27c0ecb;
 		mix_minor61;
@@ -2675,7 +2855,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	state[0] += state[6] + 0x224785;
 	state[1] -= state[9] * 0x602a9ff;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor53;
 		state[3] += 0x9702000;
 		mix_minor26;
@@ -2686,7 +2867,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	state[8] -= state[12] * 0x223c8eff;
 	state[3] += state[11] * 0xc99e9b5;
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor57;
 		mix_minor45;
 		mix_minor49;
@@ -2696,7 +2878,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	extra_state *= state[3] ^ 0xf8e252d;
 	state[12] += extra_state & 0xa58c765;
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor39;
 		state[14] ^= 0x4dfb7ee4;
 		mix_minor61;
@@ -2706,7 +2889,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	state[11] -= state[3] ^ 0x59507436;
 	state[10] ^= extra_state ^ 0x1082cbd7;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor50;
 		mix_minor53;
 		ROLEQ (state[10], 6);
@@ -2716,7 +2900,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	ROREQ (state[8], extra_state + 0x1);
 	state[17] ^= state[15] * 0x1627a9f4;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		state[0] += 0xc3649533;
 		mix_minor30;
 		mix_minor41;
@@ -2727,7 +2912,8 @@ void mix_major22 (u32 *state, u32 extra_state)
 	state[3] ^= state[11] + 0x27d2e810;
 	state[3] += state[16] * 0x2bb9259f;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor40;
 		mix_minor63;
 		mix_minor61;
@@ -2760,7 +2946,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	state[18] -= ROR (extra_state, 23);
 	state[19] += extra_state + 0xb42a2f00;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		state[17] ^= 0x33db0465;
 		mix_minor62;
 		mix_minor33;
@@ -2770,7 +2957,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	state[0] += state[12] + 0x71507fd7;
 	extra_state += state[19] + 0x9a68096;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor64;
 		mix_minor47;
 		mix_minor62;
@@ -2781,7 +2969,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	ROREQ (state[3], state[15] + 0x16);
 	state[10] -= state[9] - 0xdf1e2fab;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor50;
 		state[4] ^= 0x3f348b71;
 		mix_minor44;
@@ -2791,7 +2980,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	extra_state ^= ROL (extra_state, 27);
 	extra_state -= ROR (state[11], 23);
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor48;
 		mix_minor51;
 		state[3] -= 0xf2da1eb7;
@@ -2802,7 +2992,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	state[11] -= state[10] - 0xd44a337d;
 	state[17] &= state[3] + 0xad722336;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		state[3] *= 0x1e952879;
 		mix_minor55;
 		mix_minor52;
@@ -2814,7 +3005,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	extra_state ^= state[7] + 0xd196f18f;
 	ROLEQ (state[7], extra_state ^ 0x8);
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		mix_minor55;
 		mix_minor64;
 		state[3] += 0x704000;
@@ -2825,7 +3017,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	state[0] ^= state[19] + 0x2be41642;
 	state[4] *= ROR (state[9], 18);
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor26;
 		mix_minor47;
 		mix_minor59;
@@ -2836,7 +3029,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	state[17] *= state[3] & 0x9262077;
 	state[13] ^= state[14] + 0xfa8ae5a0;
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor65;
 		mix_minor21;
 		mix_minor24;
@@ -2847,7 +3041,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	state[13] -= state[8] - 0xffd58fe8;
 	state[8] += state[6] ^ 0x1d606322;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor52;
 		mix_minor26;
 		state[3] += 0x404840;
@@ -2857,7 +3052,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	state[16] += state[19] + 0xe3a240f7;
 	extra_state ^= ROR (state[14], 3);
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor43;
 		state[3] -= 0xa9fe8c6d;
 		state[0] += 0xe9a284bb;
@@ -2868,7 +3064,8 @@ void mix_major23 (u32 *state, u32 extra_state)
 	extra_state += state[18] ^ 0xffcac8f;
 	state[1] ^= state[0] ^ 0xb09adec;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		mix_minor53;
 		mix_minor39;
 		mix_minor67;
@@ -2900,7 +3097,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	extra_state ^= state[0] ^ 0x13a77c41;
 	ROLEQ (state[2], state[3] + 0x10);
 
-	if (a == 1) {
+	if (a == 1)
+	{
 		mix_minor27;
 		mix_minor59;
 		mix_minor22;
@@ -2912,7 +3110,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	state[14] += ROL (state[13], 25);
 	state[16] ^= state[8] + 0x19454e81;
 
-	if (a == 10) {
+	if (a == 10)
+	{
 		mix_minor63;
 		mix_minor32;
 		mix_minor29;
@@ -2923,7 +3122,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	ROLEQ (state[17], state[17] ^ 0x14);
 	extra_state -= state[11] * 0x2c0fd99b;
 
-	if (a == 3) {
+	if (a == 3)
+	{
 		mix_minor57;
 		mix_minor63;
 		mix_minor25;
@@ -2935,7 +3135,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	state[4] |= state[8] & 0x162b97ec;
 	state[8] += state[3] + 0xc3000fb6;
 
-	if (a == 6) {
+	if (a == 6)
+	{
 		mix_minor48;
 		state[8] += 0x9cd4867c;
 		state[14] += 0x79cdbac7;
@@ -2946,7 +3147,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	state[10] += state[1] * 0xc693c6b;
 	state[4] *= state[10] + 0xecde6b96;
 
-	if (a == 9) {
+	if (a == 9)
+	{
 		mix_minor40;
 		ROLEQ (state[10], 18);
 		mix_minor40;
@@ -2957,7 +3159,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	state[17] ^= ROR (state[14], 24);
 	extra_state &= state[4] + 0x1c938114;
 
-	if (a == 2) {
+	if (a == 2)
+	{
 		state[4] ^= 0xc25fdd85;
 		mix_minor42;
 		mix_minor27;
@@ -2968,7 +3171,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	extra_state += state[15] | 0x137d6d8;
 	state[3] -= state[9] - 0xae4f0ae;
 
-	if (a == 0) {
+	if (a == 0)
+	{
 		mix_minor45;
 		mix_minor24;
 		mix_minor51;
@@ -2980,7 +3184,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	ROLEQ (extra_state, state[15] ^ 0xc);
 	ROREQ (state[6], state[7]);
 
-	if (a == 7) {
+	if (a == 7)
+	{
 		mix_minor23;
 		mix_minor57;
 		mix_minor55;
@@ -2992,7 +3197,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	extra_state -= ROR (state[2], 17);
 	state[1] += state[6] * 0x34aabe3a;
 
-	if (a == 4) {
+	if (a == 4)
+	{
 		mix_minor30;
 		mix_minor46;
 		mix_minor57;
@@ -3002,7 +3208,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	state[17] ^= state[13] ^ 0x3d17e55a;
 	state[15] *= state[14] + 0xdaf5121;
 
-	if (a == 5) {
+	if (a == 5)
+	{
 		mix_minor57;
 		mix_minor60;
 		mix_minor61;
@@ -3012,7 +3219,8 @@ void mix_major24 (u32 *state, u32 extra_state)
 	ROLEQ (state[6], state[17] * 0x14);
 	state[6] += state[15] ^ 0x14819516;
 
-	if (a == 8) {
+	if (a == 8)
+	{
 		state[8] -= 0x7b22975e;
 		mix_minor50;
 		mix_minor56;

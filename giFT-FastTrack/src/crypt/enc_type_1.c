@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_1.c,v 1.7 2003/07/11 14:40:30 weinholt Exp $
+ * $Id: enc_type_1.c,v 1.8 2003/07/23 17:10:32 weinholt Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -23,19 +23,18 @@
  * Many thanks to Thingol for cleaning up this file considerably.
  */
 
-#include <string.h>		/* memcpy(), memset() */
+#include <string.h>				/* memcpy(), memset() */
 
 #ifdef WIN32
-	typedef unsigned __int64 u64;
+typedef unsigned __int64 u64;
 #else
-	typedef unsigned long long u64;
-#endif /* WIN32 */
+typedef unsigned long long u64;
+#endif							/* WIN32 */
 
 typedef unsigned int u32;
 typedef unsigned char u8;
 
-static u32 modulus[] =
-{
+static u32 modulus[] = {
 	0x0eb96841d, 0x031c4a05e, 0x0193bbd8f, 0x0bf77b6d6, 0x096d7f927,
 	0x0e569c5fc, 0x05efa55ff, 0x0ba1519a1, 0x01b32a36f, 0x0e84b25f8,
 	0x08d5b5eb2, 0x0c11f00e3, 0x019d2974d, 0x0e7ee26ad, 0x0bc8c0457,
@@ -75,8 +74,8 @@ void enc_type_1 (u8 *out_key, u8 *in_key)
 	num2[255] = 1;
 
 	big_letoh (num1, num2);
-	
-	if (big_getbit (modulus, 2047) != 0)			/* always true */
+
+	if (big_getbit (modulus, 2047) != 0)	/* always true */
 		big_expmod (num1, exp, modulus);
 
 	big_htole (out_key, num1, 256);
@@ -92,10 +91,11 @@ void big_letoh (u32 *dst, u8 *src)
 {
 	int i, j;
 	u32 tmp;
-	
-	for (i = 0; i < 64; i++) {
+
+	for (i = 0; i < 64; i++)
+	{
 		for (j = 0, tmp = 0; j < 32; j += 8)
-			tmp |= ((u32)(*src++)) << j;
+			tmp |= ((u32) (*src++)) << j;
 		dst[i] = tmp;
 	}
 }
@@ -106,10 +106,9 @@ void big_htole (u8 *dst, u32 *src, int cnt)
 
 	if (cnt == 0)
 		return;
- 
+
 	for (i = 0; i < cnt; i++)
 		dst[i] = (src[i >> 2] >> ((i & 3) << 3)) & 0xff;
-	
 }
 
 int big_getbit (u32 *num, int i)
@@ -128,8 +127,10 @@ void big_expmod (u32 *num, u32 *exp, u32 *mod)
 
 	big_set (lnum, 1);
 
-	if (i > 0) {
-		for (j = 0; j < i; j++) {
+	if (i > 0)
+	{
+		for (j = 0; j < i; j++)
+		{
 			if (big_getbit (exp, j) != 0)
 				big_mulmod (lnum, num, mod);
 			big_mulmod (num, num, mod);
@@ -159,11 +160,13 @@ void big_mul (int cnt, u32 *out, u32 *in1, u32 *in2)
 	if (cnt == 0)
 		return;
 
-	memset(out, 0, 2 * cnt * 4);
+	memset (out, 0, 2 * cnt * 4);
 
-	for (i = 0; i < cnt; i++) {
-		for (j = 0, k = 0; j < cnt; j++) {
-			k += (u64)out[i + j] + (u64)in1[i] * (u64)in2[j];
+	for (i = 0; i < cnt; i++)
+	{
+		for (j = 0, k = 0; j < cnt; j++)
+		{
+			k += (u64) out[i + j] + (u64) in1[i] * (u64) in2[j];
 			out[i + j] = k & 0xffffffff;
 			k >>= 32;
 		}
@@ -176,7 +179,8 @@ int big_isless (int cnt, u32 *num1, u32 *num2)
 	if (cnt == 0)
 		return 0;
 
-	for (cnt--; cnt >= 0; cnt--) {
+	for (cnt--; cnt >= 0; cnt--)
+	{
 		if (num1[cnt] < num2[cnt])
 			return 1;
 		else if (num1[cnt] > num2[cnt])
@@ -195,15 +199,20 @@ void big_mod (int cnt, u32 *out, u32 *in1, u32 *in2)
 	if (cnt == 0)
 		return;
 
-	for (i = cnt - 1; i >= 0; i--) {
+	for (i = cnt - 1; i >= 0; i--)
+	{
 		k = in1[cnt + i];
-		if (in2[cnt - 1] != 0xffffffff) {
-			x = (((u64)in1[cnt + i] << 32) + (u64)in1[cnt + i - 1]) / ((u64)in2[cnt - 1] + 1);
+		if (in2[cnt - 1] != 0xffffffff)
+		{
+			x = (((u64) in1[cnt + i] << 32) +
+				 (u64) in1[cnt + i - 1]) / ((u64) in2[cnt - 1] + 1);
 			k = x;
 		}
 
-		for (j = 0, l = 0; j < cnt; j++) {
-			x = (u64)k * (u64)in2[j] + l;
+		for (j = 0, l = 0; j < cnt; j++)
+		{
+			x = (u64) k *(u64) in2[j] + l;
+
 			l = x >> 32;
 			if (in1[i + j] < (x & 0xffffffff))
 				l++;
@@ -211,12 +220,16 @@ void big_mod (int cnt, u32 *out, u32 *in1, u32 *in2)
 		}
 		in1[cnt + i] -= l;
 
-		while (in1[cnt + i] != 0 || !big_isless (cnt, in1 + i, in2)) {
-			for (j = 0, l = 0; j < cnt; j++) {
-				if (in1[i + j] != 0 || in2[j] == 0) {
+		while (in1[cnt + i] != 0 || !big_isless (cnt, in1 + i, in2))
+		{
+			for (j = 0, l = 0; j < cnt; j++)
+			{
+				if (in1[i + j] != 0 || in2[j] == 0)
+				{
 					in1[i + j] -= l;
 					l = (in1[i + j] < in2[j]);
-				} else {
+				} else
+				{
 					in1[i + j] = 0xffffffff;
 				}
 				in1[i + j] -= in2[j];
