@@ -8,7 +8,7 @@ INCLUDES = -I$(top_srcdir)/src \
 # compiling the gnutella plugin at all
 #
 
-lib_LTLIBRARIES = libFastTrack.la
+plugin_LTLIBRARIES = libFastTrack.la
 
 libFastTrack_la_SOURCES = \
 fst_download.c	fst_download.h \
