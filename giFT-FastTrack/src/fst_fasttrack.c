@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.70 2004/07/08 18:49:41 hex Exp $
+ * $Id: fst_fasttrack.c,v 1.71 2004/07/08 20:05:27 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -45,6 +45,17 @@ static BOOL fst_plugin_netfail_timer (void *udata)
 {
 	fst_plugin_connect_next ();
 	return FALSE;
+}
+
+/*
+ * We need to check if FST_ADDITIONAL_SESSIONS has changed
+ * periodically. TODO: this can probably replace
+ * fst_plugin_netfail_timer.
+ */
+static BOOL fst_plugin_try_connect (void *udata)
+{
+	fst_plugin_connect_next ();
+	return TRUE;
 }
 
 static void fst_plugin_connect_next ()
@@ -125,6 +136,10 @@ static void fst_plugin_connect_next ()
 			FST_PLUGIN->sessions = list_prepend (FST_PLUGIN->sessions, sess);
 		}
 	}
+
+	/* don't ping if we're currently connected */
+	if (FST_PLUGIN->stats->sessions)
+		return;
 
 	/* We started a connection attempt with the head node from nodecache.
 	 * Try to quickly find some online nodes with udp in parallel now.
@@ -733,6 +748,9 @@ static int fst_giftcb_start (Protocol *proto)
 
 	/* start first connection */
 	fst_plugin_connect_next ();
+
+	/* and periodically retry */
+	timer_add (60*SECONDS, fst_plugin_try_connect, NULL);
 
 	return TRUE;
 }
