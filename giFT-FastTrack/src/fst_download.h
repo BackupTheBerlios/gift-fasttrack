@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.h,v 1.4 2003/06/28 20:17:34 beren12 Exp $
+ * $Id: fst_download.h,v 1.5 2003/08/25 18:58:52 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -51,7 +51,7 @@ int gift_cb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk, Sourc
 void gift_cb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk, Source *source, int complete);
 
 /* called by gift to remove source */
-int gift_cb_source_remove (Protocol *p, Transfer *transfer, Source *source);
+void gift_cb_source_remove (Protocol *p, Transfer *transfer, Source *source);
 
 /*****************************************************************************/
 

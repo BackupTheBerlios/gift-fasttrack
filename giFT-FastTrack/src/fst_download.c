@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.13 2003/07/07 22:22:06 beren12 Exp $
+ * $Id: fst_download.c,v 1.14 2003/08/25 18:58:52 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -61,14 +61,14 @@ void gift_cb_download_stop (Protocol *p, Transfer *transfer, Chunk *chunk, Sourc
 }
 
 /* called by gift to remove source */
-int gift_cb_source_remove (Protocol *p, Transfer *transfer, Source *source)
+void gift_cb_source_remove (Protocol *p, Transfer *transfer, Source *source)
 {
 	FSTDownload *download;
 
 	if (!source || !source->chunk || !source->chunk->udata)
 	{
 		FST_DBG ("gift_cb_source_remove: invalid source, no action taken");
-		return FALSE;
+		return;
 	}
 
 	download = (FSTDownload*)source->chunk->udata;
@@ -77,7 +77,7 @@ int gift_cb_source_remove (Protocol *p, Transfer *transfer, Source *source)
 	FST_PROTO->source_status (FST_PROTO, source->chunk->source, SOURCE_CANCELLED, "Cancelled");
 	fst_download_stop (download);
 
-	return TRUE;
+	return;
 }
 
 /*****************************************************************************/
