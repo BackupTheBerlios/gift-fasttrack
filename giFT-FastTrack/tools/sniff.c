@@ -1,5 +1,5 @@
 /*
- * $Id: sniff.c,v 1.3 2003/11/29 03:04:11 hex Exp $
+ * $Id: sniff.c,v 1.4 2004/03/04 10:18:39 mkern Exp $
  *
  * Based on printall.c from libnids/samples, which is
  * copyright (c) 1999 Rafal Wojtczuk <nergal@avet.com.pl>. All rights reserved.
@@ -106,6 +106,14 @@ int verify_port (int p)
 		 (p<1000 && p!=80));
 }
 
+int verify_ip (struct tuple4 *addr)
+{
+	unsigned long kazaa_host = inet_addr ("192.168.0.222");
+	
+	return (addr->saddr == kazaa_host ||
+	        addr->daddr == kazaa_host);
+}
+
 void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 {
 	char buf[32];
@@ -116,6 +124,9 @@ void tcp_callback (struct tcp_stream *tcp, struct session **conn)
 	case NIDS_JUST_EST:
 	{
 		if (!verify_port (tcp->addr.dest) && !verify_port (tcp->addr.source))
+			return;
+
+		if (!verify_ip (&tcp->addr))
 			return;
 
 		c=malloc(sizeof(struct session));
