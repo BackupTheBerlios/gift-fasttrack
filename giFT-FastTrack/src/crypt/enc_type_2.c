@@ -1,5 +1,5 @@
 1/*
- * $Id: enc_type_2.c,v 1.7 2003/06/29 06:54:34 beren12 Exp $
+ * $Id: enc_type_2.c,v 1.8 2003/06/29 07:06:57 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -7951,8 +7951,6 @@ u32 mix_major22 (u32 *state, u32 extra_state)
 	u32	local_u32_1;
 	u32	local_u32_2;
 
-	u32 eax, ebx, ecx, edx, esi;
-	u32 local_u32_0, local_u32_1, local_u32_2;
 	ebx = extra_state;
 	esi = ebx % 0x0B;
 	ebx = ebx ^ 0xc3115e;
