@@ -1,5 +1,5 @@
 /*
- * $Id: fst_udp_discover.c,v 1.8 2004/01/11 16:57:52 hex Exp $
+ * $Id: fst_udp_discover.c,v 1.9 2004/01/11 17:04:42 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -375,9 +375,6 @@ static int udp_discover_timeout (FSTUdpDiscover *discover)
 						 discover->pinged_nodes);
 
 		fst_udp_node_free (udp_node);
-
-		/* restart iteration at beginning of list */
-		next = discover->nodes;
 	}
 	
 	if (udp_discover_ping_nodes (discover, 0) == -2)
