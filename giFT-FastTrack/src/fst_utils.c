@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.c,v 1.4 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_utils.c,v 1.5 2003/07/04 19:36:47 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -201,15 +201,18 @@ char *fst_utils_url_encode (char *decoded)
 /*****************************************************************************/
 
 // caller frees returned string
-char *fst_utils_base64_encode (unsigned char *data, int len)
+char *fst_utils_base64_encode (const unsigned char *data, int src_len)
 {
 	static const char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	unsigned char *dst, *out;
 
-	if((out = dst = malloc((len + 4) * 2)) == NULL)
+	if(!data)
 		return NULL;
 
-	for (; len > 2; len-=3, dst+=4, data+=3)
+	if((out = dst = malloc((src_len + 4) * 2)) == NULL)
+		return NULL;
+
+	for (; src_len > 2; src_len-=3, dst+=4, data+=3)
 	{
 		dst[0] = base64[data[0] >> 2];
 		dst[1] = base64[((data[0] & 0x03) << 4) + (data[1] >> 4)];
@@ -219,18 +222,70 @@ char *fst_utils_base64_encode (unsigned char *data, int len)
 
 	dst[0] = '\0';
 
-	if (len > 0)
+	if (src_len == 1)
 	{
 		dst[0] = base64[data[0] >> 2];
-		if(len == 1) {
-			dst[1] = base64[((data[0] & 0x03) << 4)];
-			dst[2] = '=';
-		} else {
-			dst[1] = base64[((data[0] & 0x03) << 4) + (data[1] >> 4)];
-			dst[2] = base64[((data[1] & 0x0f) << 2)];
-		}
+		dst[1] = base64[((data[0] & 0x03) << 4)];
+		dst[2] = '=';
 		dst[3] = '=';
 		dst[4] = '\0';
+	}
+
+	if (src_len == 2)
+	{
+		dst[0] = base64[data[0] >> 2];
+		dst[1] = base64[((data[0] & 0x03) << 4) + (data[1] >> 4)];
+		dst[2] = base64[((data[1] & 0x0f) << 2)];
+		dst[3] = '=';
+		dst[4] = '\0';
+	}
+
+	return out;
+}
+
+// caller frees returned string
+unsigned char *fst_utils_base64_decode (const char *data, int *dst_len)
+{
+	static const char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	unsigned char *dst, *out;
+	char *p;
+	int i;
+	unsigned char in[4];
+
+	if(!data)
+		return NULL;
+
+	if((out = dst = malloc(strlen(data))) == NULL)
+		return NULL;
+
+	for (i=0, *dst_len=0; *data; data++)
+	{
+		if((p = strchr(base64, *data)) == NULL)
+			continue;
+
+		in[i++] = (unsigned char)(p - base64);
+
+		if (i == 4)
+		{
+			dst[0] = (in[0] << 2) | ((in[1] & 0x30) >> 4);
+			dst[1] = ((in[1] & 0x0F) << 4) | ((in[2] & 0x3C) >> 2);
+			dst[2] = ((in[2] & 0x03) << 6) | (in[3] & 0x3F);
+			dst += 3;
+			*dst_len += 3;
+			i = 0;
+		}
+	}
+
+	if (i >= 2)
+	{
+		dst[0] = (in[0] << 2) | ((in[1] & 0x30) >> 4);
+		(*dst_len)++;
+	}
+
+	if (i == 3)
+	{
+		dst[1] = ((in[1] & 0x0F) << 4) | ((in[2] & 0x3C) >> 2);
+		(*dst_len)++;
 	}
 
 	return out;

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.h,v 1.4 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_utils.h,v 1.5 2003/07/04 19:36:47 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -34,7 +34,10 @@ char *fst_utils_url_encode (char *decoded);
 /*****************************************************************************/
 
 // caller frees returned string
-char *fst_utils_base64_encode (unsigned char *data, int len);
+char *fst_utils_base64_encode (const unsigned char *data, int src_len);
+
+// caller frees returned string
+unsigned char *fst_utils_base64_decode (const char *data, int *dst_len);
 
 /*****************************************************************************/
 
