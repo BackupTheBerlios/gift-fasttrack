@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.5 2003/06/21 16:30:36 mkern Exp $
+ * $Id: fst_download.c,v 1.6 2003/06/22 16:59:10 mkern Exp $
  *
  * Copyright (C) 2003 Markus Kern (mkern@users.berlios.de)
  *
@@ -173,7 +173,7 @@ static void download_connected(int fd, input_id input, FSTDownload *download)
 
 	if (net_sock_error (download->tcpcon->fd))
 	{
-		FST_DBG_2 ("connection to %s:%d failed -> removing source", net_ip_str(download->ip), download->port);
+		FST_HEAVY_DBG_2 ("connection to %s:%d failed -> removing source", net_ip_str(download->ip), download->port);
 		download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Connection failed");
 		return;
 	}
@@ -248,7 +248,7 @@ static void download_read_header(int fd, input_id input, FSTDownload *download)
 
 		if(fst_packet_size (download->in_packet) > 4096)
 		{
-			FST_DBG ("ERROR: didn't get whole http header and received more than 4K, closing connection");
+			FST_WARN ("Didn't get whole http header and received more than 4K, closing connection");
 			download_error_gift (download, TRUE, SOURCE_TIMEOUT, "Source sent crap");
 			return;
 		}
@@ -266,20 +266,23 @@ static void download_read_header(int fd, input_id input, FSTDownload *download)
 
 	if(reply->code != 200 && reply->code != 206) // 206 == partial content
 	{
-		FST_DBG_4 ("%s:%d replied with %d (\"%s\") -> aborting", net_ip_str(download->ip), download->port, reply->code, reply->code_str);
+		FST_HEAVY_DBG_4 ("%s:%d replied with %d (\"%s\") -> aborting", net_ip_str(download->ip), download->port, reply->code, reply->code_str);
 
 		if(reply->code == 503)
 			download_error_gift (download, FALSE, SOURCE_QUEUED_REMOTE, "Queued Remotely");
 		else if(reply->code == 404)
 			download_error_gift (download, TRUE, SOURCE_CANCELLED, "File not found");
 		else
+		{
 			download_error_gift (download, TRUE, SOURCE_CANCELLED, "Weird http code");
+			FST_DBG_4 ("weird http code from %s:%d: %d (\"%s\") -> aborting", net_ip_str(download->ip), download->port, reply->code, reply->code_str);
+		}
 
 		fst_http_reply_free (reply);
 		return;
 	}
 
-	FST_DBG_4 ("%s:%d replied with %d (\"%s\") -> downloading", net_ip_str(download->ip), download->port, reply->code, reply->code_str);
+	FST_HEAVY_DBG_4 ("%s:%d replied with %d (\"%s\") -> downloading", net_ip_str(download->ip), download->port, reply->code, reply->code_str);
 
 	// check that recevied ranges are correct
 	if((p = fst_http_reply_get_header (reply, "content-range")))
@@ -290,18 +293,18 @@ static void download_read_header(int fd, input_id input, FSTDownload *download)
 		// longer ranges than requested should be ok since giFT handles this
 		if(start != download->chunk->start + download->chunk->transmit || stop < download->chunk->stop-1)
 		{
-			FST_DBG ("WARNING: removing source due to range mismatch");
-			FST_DBG_2 ("\trequested range: %d-%d", download->chunk->start + download->chunk->transmit, download->chunk->stop - 1);
-			FST_DBG_2 ("\treceived range: %d-%d", start, stop);
+			FST_WARN ("Removing source due to range mismatch");
+			FST_WARN_2 ("\trequested range: %d-%d", download->chunk->start + download->chunk->transmit, download->chunk->stop - 1);
+			FST_WARN_2 ("\treceived range: %d-%d", start, stop);
 			if((p = fst_http_reply_get_header (reply, "content-length")))
-				FST_DBG_1 ("\tcontent-length: %s", p);
+				FST_WARN_1 ("\tcontent-length: %s", p);
 
 			fst_http_reply_free (reply);
 			download_error_gift (download, TRUE, SOURCE_CANCELLED, "Range Mismatch");
 			return;
 		}
 	} else {
-		FST_DBG ("WARNING: server didn't sent content-range header, file may end up corrupted");
+		FST_WARN ("Server didn't sent content-range header, file may end up corrupted");
 /*		
 		fst_http_reply_free (reply);
 		download_error_gift (download, TRUE, SOURCE_CANCELLED, "Missing Content-Range");
