@@ -26,9 +26,6 @@ static int session_send_ping(FSTSession *session);
 
 /*****************************************************************************/
 
-
-/*****************************************************************************/
-
 // allocate and init session
 FSTSession *fst_session_create(FSTSessionCallback callback)
 {
@@ -199,11 +196,11 @@ static void session_connected(int fd, input_id input, FSTSession *session)
 	// go on with handshake
 	session->state = SessHandshaking;
 	session->out_cipher->enc_type = 0x29;
-	session->out_cipher->seed = 0x0fACB1238; // random number?
+	session->out_cipher->seed = 0x0FACB1238; // random number?
 
 	packet = fst_packet_create();
 
-	fst_packet_put_uint32 (packet, 0x02BB600FA); // random number?
+	fst_packet_put_uint32 (packet, htonl(0xFA00B62B)); // random number?
 	fst_packet_put_uint32 (packet, htonl(session->out_cipher->seed));
 	fst_packet_put_uint32 (packet, htonl(fst_cipher_encode_enc_type(session->out_cipher->seed, session->out_cipher->enc_type)));
  
@@ -233,6 +230,7 @@ static void session_decrypt_packet(int fd, input_id input, FSTSession *session)
 
 	if(net_sock_error (session->tcpcon->fd))
 	{
+		FST_HEAVY_DBG_2 ("socket error for %s:%d", session->node->host, session->node->port);
 		fst_session_disconnect (session);
 		return;
 	}
@@ -431,8 +429,8 @@ static int session_do_handshake(FSTSession *session)
 		return FALSE;
 
 	// get seed and enc_type
-	seed = htonl (fst_packet_get_uint32 (session->in_packet));
-	enc_type = htonl (fst_packet_get_uint32 (session->in_packet));
+	seed = ntohl (fst_packet_get_uint32 (session->in_packet));
+	enc_type = ntohl (fst_packet_get_uint32 (session->in_packet));
 	enc_type = fst_cipher_decode_enc_type (seed, enc_type);
 
 	if(enc_type > 0x29)
@@ -479,8 +477,8 @@ static int session_greet_suppernode(FSTSession *session)
 	// send our ip address and port
 	getsockname (session->tcpcon->fd, (struct sockaddr *) &sa, &size);
 	
-	fst_packet_put_uint32 (packet, ntohl(sa.sin_addr.s_addr)); // ip
-	fst_packet_put_uint16 (packet, 0x00);  // port
+	fst_packet_put_uint32 (packet, htonl (sa.sin_addr.s_addr)); // ip
+	fst_packet_put_uint16 (packet, htons (0x0000));  // port
 	
 	/* This next byte represents the user's advertised bandwidth, on
 	* a logarithmic scale.  0xd1 represents "infinity" (actually,
