@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <limits.h>
+#include <string.h>
+#include <stdlib.h>
 #include "md5.h"
 
 extern void enc_type_1 (unsigned char *out_key, unsigned char *in_key);
@@ -154,20 +156,21 @@ int main (int argc, char* argv[])
 {
 	MD5Context in_md5_ctx, out_md5_ctx;
 	unsigned char in_hash[MD5_HASH_LEN], out_hash[MD5_HASH_LEN];
-	int runs, i;
+	int runs, i, exit_code = 0, test_all = argc == 1;
 	unsigned int key_80[20];
 	unsigned int seed;
 	unsigned int key_256_in[64], key_256_out[64];
 
-	if (argc != 2)
+	if (argc == 2 && !atoi (argv[1]))
 	{
-		printf ("usage: %s <enc_type>\n", argv[0]);
+		printf ("usage: %s [enc_type]\n", argv[0]);
 		printf ("where enc_type is one if the following:\n");
-		printf ("- \"1\" for enc_type_1\n- \"2\" for enc_type_2\n- \"20\" for enc_type_20\n- \"all\" for all\n");
+		printf ("- \"1\" for enc_type_1\n- \"2\" for enc_type_2\n- \"20\" for enc_type_20\n");
+		printf ("no argument means all enc_types are tested.\n");
 		return 1;
 	}
 
-	if (!strcmp (argv[1], "1") || !strcmp (argv[1], "all"))
+	if (test_all || (argc == 2 && !strcmp (argv[1], "1")))
 	{
 		printf ("\ntesting enc_type_1 with 1.000 iterations...\n");
 		printf ("-------------------------------------------------------------\n");
@@ -196,17 +199,17 @@ int main (int argc, char* argv[])
 		if (memcmp (in_hash, enc_1_md5_in, MD5_HASH_LEN) == 0)
 			printf (" => OK\n\n");
 		else
-			printf (" => FAILURE, PRNG broken?\n\n");
+			printf (" => FAILURE, PRNG broken?\n\n"), exit_code++;
 
 		printf ("output hash is: %s\n", md5_get_str (out_hash));
 		printf ("should be:      %s", md5_get_str (enc_1_md5_out));
 		if (memcmp (out_hash, enc_1_md5_out, MD5_HASH_LEN) == 0)
 			printf (" => OK\n");
 		else
-			printf (" => FAILURE\n");
+			printf (" => FAILURE\n"), exit_code++;
 	}
-		
-	if (!strcmp (argv[1], "2") || !strcmp (argv[1], "all"))
+
+	if (test_all || (argc == 2 && !strcmp (argv[1], "2")))
 	{
 		printf ("\ntesting enc_type_2 with 500.000 iterations...\n");
 		printf ("-------------------------------------------------------------\n");
@@ -245,17 +248,17 @@ int main (int argc, char* argv[])
 		if (memcmp (in_hash, enc_2_md5_in, MD5_HASH_LEN) == 0)
 			printf (" => OK\n\n");
 		else
-			printf (" => FAILURE, PRNG broken?\n\n");
+			printf (" => FAILURE, PRNG broken?\n\n"), exit_code++;
 
 		printf ("output hash is: %s\n", md5_get_str (out_hash));
 		printf ("should be:      %s", md5_get_str (enc_2_md5_out));
 		if (memcmp (out_hash, enc_2_md5_out, MD5_HASH_LEN) == 0)
 			printf (" => OK\n");
 		else
-			printf (" => FAILURE\n");
+			printf (" => FAILURE\n"), exit_code++;
 	}
 
-	if (!strcmp (argv[1], "20") || !strcmp (argv[1], "all"))
+	if (test_all || (argc == 2 && !strcmp (argv[1], "20")))
 	{
 		printf ("\ntesting enc_type_20 with 500.000 iterations...\n");
 		printf ("-------------------------------------------------------------\n");
@@ -294,17 +297,17 @@ int main (int argc, char* argv[])
 		if (memcmp (in_hash, enc_20_md5_in, MD5_HASH_LEN) == 0)
 			printf (" => OK\n\n");
 		else
-			printf (" => FAILURE, PRNG broken?\n\n");
+			printf (" => FAILURE, PRNG broken?\n\n"), exit_code++;
 
 		printf ("output hash is: %s\n", md5_get_str (out_hash));
 		printf ("should be:      %s", md5_get_str (enc_20_md5_out));
 		if (memcmp (out_hash, enc_20_md5_out, MD5_HASH_LEN) == 0)
 			printf (" => OK\n");
 		else
-			printf (" => FAILURE\n");
+			printf (" => FAILURE\n"), exit_code++;
 	}
 
-	return 0;
+	return !!exit_code;
 }
 
 

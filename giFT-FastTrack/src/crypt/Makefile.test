@@ -4,7 +4,7 @@ CC=gcc
 
 TEST_SOURCES=crypt_test.c ../md5.c enc_type_1.c enc_type_2.c enc_type_20.c
 TEST_OBJS=crypt_test.o ../md5.o enc_type_1.o enc_type_2.o enc_type_20.o
-CFLAGS=-O2 -Wall -I../
+CFLAGS=-O2 -Wall -I../ -g
 LDFLAGS=-lm
 
 all: $(TEST_OBJS)
