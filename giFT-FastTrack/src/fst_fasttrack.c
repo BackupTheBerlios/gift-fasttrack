@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.52 2004/03/03 19:56:57 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.53 2004/03/04 09:44:13 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -455,14 +455,14 @@ static int fst_giftcb_start (Protocol *proto)
 	FST_PLUGIN->username = strdup (config_get_str (FST_PLUGIN->conf,
 	                                               "main/alias=giFTed"));
 
-	/* Make sure there are no spaces in the user name. Should probably filter
-	 * other stuff too.
-	 */
-	if ((p = strchr (FST_PLUGIN->username, ' ')))
+	/* Make sure there are no spaces or other invalid chars in the user name. */
+	p = FST_PLUGIN->username;
+	string_sep_set (&p, " \t@");
+
+	if (p != FST_PLUGIN->username)
 	{
-		FST_WARN_1 ("Whitespace found in username \"%s\". Truncating at first occurrence.",
-		            FST_PLUGIN->username);
-		*p = 0;
+		FST_WARN_1 ("Invalid character '%c' found in username. Truncating to \"%s\"",
+		            ,p[-1], FST_PLUGIN->username);
 
 		if (strlen (FST_PLUGIN->username) == 0)
 		{
