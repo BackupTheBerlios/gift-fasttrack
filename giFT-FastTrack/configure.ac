@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.7 2003/06/20 20:15:30 beren12 Exp $
+# $Id: configure.ac,v 1.8 2003/06/22 12:19:47 mkern Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -196,13 +196,13 @@ dnl ###########################################################################
 echo
 echo "$PACKAGE $VERSION"
 echo
-echo "------------ core ------------"
+echo "----------- core ------------"
 echo
 echo "use ltdl................: $use_ltdl"
 echo
 echo "-----------------------------"
 echo
 echo "$PACKAGE will be installed in $plugindir/"
-echo " configs will be installed in $datadir/"
+echo "configs will be installed in $datadir/"
 echo
 echo
