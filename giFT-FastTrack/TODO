@@ -1,0 +1,6 @@
+
+- add firewalled download support
+- make node cache smarter / use udp discovery
+- implement sharing
+- make dowloading less greedier
+- rename meta data keys
