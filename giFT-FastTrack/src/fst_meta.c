@@ -1,5 +1,5 @@
 /*
- * $Id: fst_meta.c,v 1.9 2003/12/23 11:37:40 mkern Exp $
+ * $Id: fst_meta.c,v 1.10 2004/01/08 19:47:48 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -154,9 +154,12 @@ char *fst_meta_giftstr_from_packet (FSTFileTag tag, FSTPacket *data)
 	case FILE_TAG_QUALITY:
 		return stringf_dup ("%u", fst_packet_get_dynint (data) * 1000);
 
-	case FILE_TAG_RESOLUTION:
-		return stringf_dup ("%ux%u", fst_packet_get_dynint (data),
-		                             fst_packet_get_dynint (data));
+	case FILE_TAG_RESOLUTION: {
+		unsigned int width = fst_packet_get_dynint (data);
+		unsigned int height = fst_packet_get_dynint (data);
+		
+		return stringf_dup ("%ux%u", width, height);
+	}
 
 	case FILE_TAG_RATING:
 		switch (fst_packet_get_dynint (data))
