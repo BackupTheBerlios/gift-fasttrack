@@ -1,4 +1,4 @@
- $Id: README,v 1.16 2003/07/19 16:30:28 weinholt Exp $
+ $Id: README,v 1.17 2003/07/27 14:54:19 weinholt Exp $
 ---------------------
 
 This is a FastTrack plugin for giFT (www.giftproject.org)
@@ -20,7 +20,7 @@ Needed tools to build giFT-Fastrack are as follows:
 
 automake    >= 1.5 (not if you use the tarball release)
 autoconf    >= 2.5 (not if you use the tarball release)
-libtool     >= 1.4
+libtool     >= 1.4 (not if you use the tarball release)
 pkg-config
 giFT
 ltdl        (required for giFT to be able to load giFT-Fasttrack)
@@ -37,9 +37,9 @@ or
 respectively.
 (or if use fink to install it, if you have it)
 
-If you have giFT installed in a non-standard location (according to pkg-config),
-you must make sure that PKG_CONFIG_PATH is set to the directory where libgift.pc
-is located.
+If you have giFT installed in a non-standard location (according to
+pkg-config), you must make sure that PKG_CONFIG_PATH is set to the
+directory where libgift.pc is located.
 
 For example:
   export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH" (for bash)
@@ -103,21 +103,18 @@ Symptoms: *** GIFT-FATAL: couldn't load protocol /usr/lib/giFT/libFastTrack.la
 Solution: Make sure libltdl is installed (see previous problem) and
 	  rm config.cache && ./autogen.sh
 
+
 Contact
 -------
 
 Project Page:   http://developer.berlios.de/projects/gift-fasttrack/
 
-Email:          (pretender) mkern@users.berlios.de    [Developer / Project Admin]
-                (cirdan)    beren12@users.berlios.de  [Developer]
-                (weinholt)  weinholt@users.berlios.de [Developer]
-		(rasa)      rasa@users.berlios.de     [Developer / windows port]
-		(HEx)       HEx@users.berlios.de      [Developer]
-
 Mailing Lists:  gift-fasttrack-devel@lists.berlios.de    [Developer discussion]
                 gift-fasttrack-checkins@lists.berlios.de [Notifies about cvs checkins]
 
 IRC:            #giFT-FastTrack on irc.freenode.net [The best place for up to date info]
+
+See the file AUTHORS for a list of authors.
 
 
 Credits

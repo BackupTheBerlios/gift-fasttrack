@@ -1,4 +1,4 @@
-$Id: TODO,v 1.9 2003/07/14 20:18:15 mkern Exp $
+$Id: TODO,v 1.10 2003/07/27 14:54:19 weinholt Exp $
 
 - add firewalled download support
 - make node cache smarter / use udp discovery
@@ -6,7 +6,6 @@ $Id: TODO,v 1.9 2003/07/14 20:18:15 mkern Exp $
 - make dowloading less greedy, custom throttle?
 - are searches really resent to new connections? (currently commented out)
 - automatically search more supernodes?
-- make a usefull manpage? :)
-- add the fixes i made to gift's configure.ac to this project
-- we don't need names and email addresses in both AUTHORS AND README
-- replace FT_ prefix with FST_ in autogen.sh
+- make a useful manpage? :)
+- make the README clearer
+- determine if we can make LIBTOOL=glibtool for mac os x users automatic
