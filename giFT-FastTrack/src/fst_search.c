@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.31 2004/07/24 19:33:26 hex Exp $
+ * $Id: fst_search.c,v 1.32 2004/10/19 16:47:39 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -674,6 +674,16 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 
 			fst_packet_free (tagdata);
 		}
+		
+		/*
+		 * If the result has no filename drop it. This happens sometimes if we
+		 * get corrupt packets.
+		 */
+		if (!result->filename)
+		{
+			results = list_remove (results, result);
+			fst_searchresult_free (result);
+		}			
 	}
 
 	/* we parsed the packet, send all results to gift now */
