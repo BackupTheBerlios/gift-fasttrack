@@ -259,6 +259,12 @@ fi
 libgiftincdir=${prefix}/include/libgift
 AC_SUBST(libgiftincdir)
 
+plugindir=${prefix}/lib/giFT
+AC_SUBST(plugindir)
+
+giftdatadir=${prefix}/share/giFT
+AC_SUBST(giftdatadir)
+
 AC_DEFUN([FT_HEADER],
          [AS_IF([test "${ac_cv_header_$1}" = yes],
                 [AC_DEFINE([$2])],
