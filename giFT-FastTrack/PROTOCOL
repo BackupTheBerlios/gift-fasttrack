@@ -1,4 +1,4 @@
-$Id: PROTOCOL,v 1.7 2004/03/04 12:41:04 mkern Exp $
+$Id: PROTOCOL,v 1.8 2004/03/06 17:21:53 mkern Exp $
 
                        The FastTrack Protocol
                        ======================
@@ -237,7 +237,7 @@ Message types
 
   Bytes Desc
   20    file hash
-  n     checksum (packed integer)
+  n     file id (packed integer)
   n     file size (packed integer)
   n     number of tags (packed integer)
 
@@ -301,7 +301,7 @@ Message types
   1     bandwidth
   n     user and network name
   20    file hash
-  n     checksum (packed integer)
+  n     file id (packed integer)
   n     file size (packed integer)
   n     number of tags
 
@@ -309,6 +309,9 @@ Message types
   0x00. A special value of 0x02 somehow refers to earlier replies
   (just uses the user from the previous result? compares the IP with
   previous ones? FIXME!).
+  The file id is used when downloading the file with the old, gnutella like,
+  format. Kazaa uses a checksum of the hash for this but we think it's just an
+  arbitrary id at the protocol level.
 
   Then for each tag:
 
@@ -428,7 +431,8 @@ Message types
   4     unknown (0x0F 0x7B 0x6B 0x75)
   3     unknown (0x58 0xC3)
 
-  Values observed from supernode to client.
+  Values observed from client to supernode.
+  The packet from supernode to client is always empty?
 
 0x17 ??? [<-]
 
@@ -579,7 +583,7 @@ Message types
   1     media type(?)
   2     unknown (0x00, 0x00)
   20    file hash
-  n     checksum (packed integer)
+  n     file id (packed integer)
   n     file size (packed integer)
   n     number of tags (packed integer)
 
@@ -607,13 +611,16 @@ Message types
 
 0x24 ??? [=?]
 
-0x26 ??? [->, <-]
+0x26 Protocol version? [->, <-]
 
   Bytes Desc
-  2     unknown (0x00 0x00 from kazaa, 0x00 0x00 from imesh)
-  2     unknown (0x00 0x22 from kazaa, 0x00 0x1A from imesh)
-
-  Sent by supernode, client replies with same type.
+  4     version?
+  
+  Exchanged after connect. Observed values:
+    kazaa 2.6.2:     0x00000022
+    kazaa-lite 2.02: 0x0000001F
+	imesh 4.2:       0x0000001A
+    kazaa 1.5        0x00000005
 
 0x2C External IP [<-]
 
@@ -710,7 +717,7 @@ filename-based:
 
 "GET /13609/filename.ext HTTP/1.1"
 
-where the decimal number is the file checksum. Note that, unlike
+where the decimal number is the file id. Note that, unlike
 Gnutella, the requested filename must match the shared filename.
 
 Kazaa can also serve an HTML page containing a list of shared files;
@@ -836,7 +843,9 @@ Most of these need verifying.
   0x35     ?       ??? (0x02 witnessed)
   0x10003  kzhash  Used by kazaa when searching based on magnet links. Note
                    that kazaa does _not_ submit this hash together with the
-                   shares to the supernode.
+                   shares to the supernode. It is thus assumed that the
+                   supernode only uses the first 20 bytes (which are the same
+                   as 'hash') for the actual searching. Lame.
 
 All integers are packed. Strings are not terminated. Type "intint" is
 two consecutive packed integers.
