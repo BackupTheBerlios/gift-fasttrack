@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.h,v 1.8 2004/03/11 14:47:31 mkern Exp $
+ * $Id: fst_node.h,v 1.9 2004/07/14 22:03:17 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -42,6 +42,12 @@ typedef struct
 	                             investigation! */
 	unsigned int last_seen;   /* time in seconds since the epoch nodes was
 	                             last seen */
+
+	List *link;               /* where this node is in the list */
+
+	struct _FSTSession *session;      /* active session to this node, if any */
+
+	unsigned int ref;         /* reference count */
 } FSTNode;
 
 typedef struct
@@ -65,9 +71,13 @@ typedef enum
 
 /*****************************************************************************/
 
-/* alloc and init node */
-FSTNode *fst_node_create (FSTNodeKlass klass, char *host, unsigned short port,
-						  unsigned int load, unsigned int last_seen);
+/* alloc node */
+FSTNode *fst_node_new (void);
+
+/* init node */
+void fst_node_init (FSTNode *node, FSTNodeKlass klass, char *host,
+		    unsigned short port, unsigned int load,
+		    unsigned int last_seen);
 
 /* alloc and create copy of node */
 FSTNode *fst_node_create_copy (FSTNode *org_node);
@@ -94,8 +104,8 @@ void fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
 void fst_nodecache_insert (FSTNodeCache *cache, FSTNode *node,
                            FSTNodeInsertPos pos);
 
-/* remove node from node cache by host and free it */
-void fst_nodecache_remove (FSTNodeCache *cache, char *host);
+/* remove node from node cache and free it */
+void fst_nodecache_remove (FSTNodeCache *cache, FSTNode *node);
 
 /* returns _copy_ of the first node, caller must free returned copy */
 FSTNode *fst_nodecache_get_front (FSTNodeCache *cache);

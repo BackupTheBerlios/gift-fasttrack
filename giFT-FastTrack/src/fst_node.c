@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.16 2004/03/20 13:44:42 mkern Exp $
+ * $Id: fst_node.c,v 1.17 2004/07/14 22:03:17 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -17,6 +17,8 @@
 
 #include "fst_fasttrack.h"
 #include "fst_node.h"
+
+#define NODECACHE_DEBUG
 
 /*****************************************************************************/
 
@@ -43,31 +45,44 @@ static int nodecache_cmp_nodes (FSTNode *a, FSTNode *b)
 
 /*****************************************************************************/
 
-/* alloc and init node */
-FSTNode *fst_node_create (FSTNodeKlass klass, char *host, unsigned short port,
-						  unsigned int load, unsigned int last_seen)
+/* alloc node */
+FSTNode *fst_node_new (void)
 {
 	FSTNode *node = malloc (sizeof(FSTNode));
-
-	node->klass = klass;
-	node->host = strdup (host);
-	node->port = port;
-	node->load = load;
-	node->last_seen = last_seen;
+	
+	node->host = NULL;
+	node->session = NULL;
+	node->link = NULL;
+	node->ref = 1;
 
 	return node;
 }
 
-/* alloc and create copy of node */
-FSTNode *fst_node_create_copy (FSTNode *org_node)
+/* init/update node info */
+void fst_node_init (FSTNode *node, FSTNodeKlass klass, char *host,
+			unsigned short port, unsigned int load,
+			unsigned int last_seen)
 {
-	FSTNode *node = malloc (sizeof(FSTNode));
+	node->klass = klass;
+	free (node->host);
+	node->host = strdup (host);
+	node->port = port;
+	node->load = load;
+	node->last_seen = last_seen;
+}
 
-	node->klass = org_node->klass;
-	node->host = strdup (org_node->host);
-	node->port = org_node->port;
-	node->load = org_node->load;
-	node->last_seen = org_node->last_seen;
+void fst_node_ref (FSTNode *node)
+{
+	if (!node)
+		return;
+
+	node->ref++;
+}
+
+/* for backwards compatibility */
+FSTNode *fst_node_create_copy (FSTNode *node)
+{
+	fst_node_ref (node);
 
 	return node;
 }
@@ -78,8 +93,16 @@ void fst_node_free (FSTNode *node)
 	if (!node)
 		return;
 
+	assert (node->ref > 0);
+
+	if (--node->ref)
+		return;
+
+	assert (node->link == NULL);
+
 	if (node->host)
 		free (node->host);
+
 	free (node);
 }
 
@@ -99,6 +122,8 @@ FSTNodeCache *fst_nodecache_create ()
 /* remove node */
 static int nodecache_free_node (FSTNode *node, void *udata)
 {
+	node->link = NULL;
+
 	fst_node_free (node);
 	return TRUE;
 }
@@ -110,8 +135,8 @@ void fst_nodecache_free (FSTNodeCache *cache)
 		return;
 
 	cache->list = list_foreach_remove (cache->list,
-										(ListForeachFunc)nodecache_free_node,
-										NULL);
+					   (ListForeachFunc)nodecache_free_node,
+					   NULL);
 	dataset_clear (cache->hash);
 	free (cache);
 }
@@ -125,67 +150,97 @@ void fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
 {
 	FSTNode *node;
 
-	/* create node*/
-	node = fst_node_create (klass, host, port, load, last_seen);
+	node = dataset_lookupstr (cache->hash, host);
 
-	/* insert at front */
+	if (!node)
+		node = fst_node_new ();
+
+	fst_node_init (node, klass, host, port, load, last_seen);
+	
 	fst_nodecache_insert (cache, node, NodeInsertFront);
-
-	/* free node */
-	fst_node_free (node);
 }
 
-/* Insert copy of node at pos. If node is already in the cache it is moved. */
+#ifdef NODECACHE_DEBUG
+static int cmp_hosts (FSTNode *a, FSTNode *b)
+{
+	if (a->host == b->host)
+		return 0;
+	return -1;
+}
+#endif
+
+/* move node to pos. refcount unchanged */
 void fst_nodecache_insert (FSTNodeCache *cache, FSTNode *node,
                            FSTNodeInsertPos pos)
 {
-	FSTNode *node_cpy;
+#ifdef NODECACHE_DEBUG
+	FSTNode *org_node;
+	List *l;
 
-	/* remove old node if present */
-	fst_nodecache_remove (cache, node->host);
+	org_node = dataset_lookupstr (cache->hash, node->host);
+	assert (!org_node || node == org_node);
+	l = list_find_custom (cache->list, node, (CompareFunc)cmp_hosts);
+	assert ((!org_node && !l) || (org_node == l->data));
+#endif
+
+	if (node->link)
+	{
+		fst_node_ref (node);
+		fst_nodecache_remove (cache, node);
+	}
 
 	/* drop nodes with too high/low a load */
 	if (node->load < FST_NODE_MIN_LOAD || node->load > FST_NODE_MAX_LOAD)
+	{
+		fst_node_free (node);
 		return;
-
-	/* make copy of node */
-	node_cpy = fst_node_create_copy (node);
+	}
 
 	/* insert into linked list */
 	switch (pos)
 	{
 	case NodeInsertFront:
-		cache->list = list_prepend (cache->list, node_cpy);
+		cache->list = list_prepend (cache->list, node);
 		break;
 
 	case NodeInsertBack:
 		/* this involves traversing the entire list! */
-		cache->list = list_append (cache->list, node_cpy);
+		cache->list = list_append (cache->list, node);
 		break;
 
 	case NodeInsertSorted:
 		cache->list = list_insert_sorted (cache->list,
 		                                  (CompareFunc) nodecache_cmp_nodes,
-		                                  node_cpy);
+		                                  node);
 		break;
 	}
 
+	/* this is insane... despite having just inserted it, we have
+	 * no way of getting the link without searching the entire
+	 * list again! */
+	node->link = list_find (cache->list, node);
+
 	/* insert link into hash table */
-	dataset_insert (&cache->hash, node_cpy->host, strlen (node_cpy->host) + 1,
-	                node_cpy, 0);	
+	dataset_insert (&cache->hash, node->host, strlen (node->host) + 1,
+	                node, 0);	
+
+	assert (node->ref);
 }
 
-
 /* remove node from node cache by host and free it */
-void fst_nodecache_remove (FSTNodeCache *cache, char *host)
+void fst_nodecache_remove (FSTNodeCache *cache, FSTNode *node)
 {
-	FSTNode *node;
+	if (!node)
+		return;
 
-	if ( (node = dataset_lookupstr (cache->hash, host)))
+	if (node->link)
 	{
-		/* remove node */
+		/* bleah, we don't get to know if this worked or not */
 		dataset_removestr (cache->hash, node->host);
-		cache->list = list_remove (cache->list, node);
+
+		cache->list = list_remove_link (cache->list, node->link);
+		node->link = NULL;
+
 		fst_node_free (node);
 	}
 }
@@ -229,10 +284,14 @@ unsigned int fst_nodecache_sort (FSTNodeCache *cache)
 
 		/* remove node from hash table */
 		dataset_removestr (cache->hash, node->host);
+
+		/* remove list entry */
+		assert (node->link == list->next);
+		cache->list = list_remove_link (cache->list, list->next);
+		node->link = NULL;
+
 		/* free node */
 		fst_node_free (node);
-		/* remove list entry */
-		cache->list = list_remove_link (cache->list, list->next);
 	}
 
 	return list_length (cache->list);

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.27 2004/07/14 17:27:39 hex Exp $
+ * $Id: fst_session.c,v 1.28 2004/07/14 22:03:17 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -84,6 +84,8 @@ void fst_session_free (FSTSession *session)
 
 	tcp_close (session->tcpcon);
 
+	session->node->session = NULL;
+
 	fst_node_free (session->node);
 	timer_remove (session->ping_timer);
 
@@ -97,6 +99,8 @@ int fst_session_connect (FSTSession *session, FSTNode *node)
 
 	if (!session || session->state != SessNew || !node)
 		return FALSE;
+
+	assert (!node->session);
 
 	session->state = SessConnecting;
 
@@ -131,6 +135,9 @@ int fst_session_connect (FSTSession *session, FSTNode *node)
 	
 	session->tcpcon->udata = (void*)session;
 	session->node = node;
+
+	session->node->session = session;
+
 
 	input_add (session->tcpcon->fd, (void*) session, INPUT_WRITE,
 			   (InputCallback) session_connected, FST_SESSION_CONNECT_TIMEOUT);

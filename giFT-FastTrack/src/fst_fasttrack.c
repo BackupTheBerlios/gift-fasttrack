@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.71 2004/07/08 20:05:27 hex Exp $
+ * $Id: fst_fasttrack.c,v 1.72 2004/07/14 22:03:17 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -63,6 +63,8 @@ static void fst_plugin_connect_next ()
 	FSTNode *node;
 	FSTSession *sess;
 
+	int count = 0;
+
 	/* connect to head node in node cache */
 	while (!FST_PLUGIN->session || 
 	       list_length (FST_PLUGIN->sessions) < FST_ADDITIONAL_SESSIONS)
@@ -80,7 +82,24 @@ static void fst_plugin_connect_next ()
 				return;
 			}
 		}
+		
+		/* don't connect anywhere we're already connected to */
+		if (node->session)
+		{
+			/* move node to back of cache so next loop
+			 * uses a different one */
+			fst_nodecache_insert (FST_PLUGIN->nodecache, node, NodeInsertBack);
+			fst_node_free (node);
+			
+			/* we've probably run out of nodes at this point, so
+			 * wait a while until we get some more (continuing
+			 * tends to produce an infinite loop) */
+			if (count++ >= list_length (FST_PLUGIN->sessions))
+				return;
 
+			continue;
+		}
+		
 		/* don't connect to banned ips */
 		if (config_get_int (FST_PLUGIN->conf, "main/banlist_filter=0") &&
 			fst_ipset_contains (FST_PLUGIN->banlist, net_ip (node->host)))
@@ -88,7 +107,7 @@ static void fst_plugin_connect_next ()
 			FST_DBG_2 ("not connecting to banned supernode %s:%d",
 			           node->host, node->port);
 			/* remove this node from cache */
-			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+			fst_nodecache_remove (FST_PLUGIN->nodecache, node);
 			fst_node_free (node);
 			continue;
 		}
@@ -117,7 +136,7 @@ static void fst_plugin_connect_next ()
 			}
 
 			/* remove this node from cache */
-			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+			fst_nodecache_remove (FST_PLUGIN->nodecache, node);
 			fst_node_free (node);
 			continue;
 		}
@@ -184,7 +203,7 @@ static void fst_plugin_discover_callback (FSTUdpDiscover *discover,
 		{
 			FST_HEAVY_DBG_2 ("UdpNodeStateDown: %s:%d, UDP works",
 			                 node->host, node->port);
-			fst_nodecache_remove (FST_PLUGIN->nodecache, node->host);
+			fst_nodecache_remove (FST_PLUGIN->nodecache, node);
 		}
 		else
 		{
@@ -314,7 +333,7 @@ static int fst_plugin_session_callback (FSTSession *session,
 		/* remove old node from node cache */
 		if (session->node)
 		{
-			fst_nodecache_remove (FST_PLUGIN->nodecache, session->node->host);
+			fst_nodecache_remove (FST_PLUGIN->nodecache, session->node);
 		}
 
 		/* free session */
@@ -351,6 +370,9 @@ static int fst_plugin_session_callback (FSTSession *session,
 
 		FST_DBG_1 ("added %d received supernode IPs to nodes list", i);
 
+		/* now that we have some more nodes, try to continue connecting */
+		fst_plugin_connect_next ();
+
 		/* if we got this from an index node disconnect now and use a supernode */
 		if (session->node->klass == NodeKlassIndex)
 		{
@@ -380,9 +402,9 @@ static int fst_plugin_session_callback (FSTSession *session,
 		mantissa = ntohs(fst_packet_get_uint16 (msg_data));	/* mantissa of size */
 		exponent = ntohs(fst_packet_get_uint16 (msg_data));	/* exponent of size */
 
-    	if (exponent >= 30)
+		if (exponent >= 30)
 			FST_PLUGIN->stats->size = mantissa << (exponent - 30);
-    	else
+		else
 			FST_PLUGIN->stats->size = mantissa >> (30 - exponent);
 
 		/* what follows in the packet is the number of files and their size
@@ -785,10 +807,16 @@ static void fst_giftcb_destroy (Protocol *proto)
 	/* put currently used supernode at the front of the node cache */
 	if (FST_PLUGIN->session && FST_PLUGIN->session->state == SessEstablished)
 	{
+#if 0
 		fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
 		                   FST_PLUGIN->session->node->host,
 		                   FST_PLUGIN->session->node->port,
 		                   0, time (NULL));
+#else
+		fst_nodecache_insert (FST_PLUGIN->nodecache, 
+				      FST_PLUGIN->session->node,
+				      NodeInsertFront);
+#endif
 
 		FST_DBG_2 ("added current supernode %s:%d back into node cache",
 		           FST_PLUGIN->session->node->host,

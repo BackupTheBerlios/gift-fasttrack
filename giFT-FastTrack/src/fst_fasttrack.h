@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.51 2004/07/08 18:49:41 hex Exp $
+ * $Id: fst_fasttrack.h,v 1.52 2004/07/14 22:03:17 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -152,7 +152,7 @@ typedef uint32_t fst_uint32;
 #define FST_USER_NAME (FST_PLUGIN->username)
 
 /* max number of nodes we save in nodes file */
-#define FST_MAX_NODESFILE_SIZE 400
+#define FST_MAX_NODESFILE_SIZE 40000
 
 /* Nodes with a load below FST_NODE_MIN_LOAD or above FST_NODE_MAX_LOAD are
  * thrown out. This is done because I'm not sure if we should connect to high
