@@ -1,5 +1,5 @@
 /*
- * $Id: fst_meta.h,v 1.4 2003/06/29 10:34:33 mkern Exp $
+ * $Id: fst_meta.h,v 1.5 2003/07/04 03:54:45 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -35,7 +35,7 @@ typedef enum
 	FILE_TAG_LANGUAGE	= 0x0a,
 	FILE_TAG_KEYWORDS	= 0x0c,
 	FILE_TAG_RESOLUTION	= 0x0d,
-    FILE_TAG_CATEGORY		= 0x0e,
+    FILE_TAG_CATEGORY	= 0x0e,
 	FILE_TAG_BITDEPTH	= 0x11,
 	FILE_TAG_QUALITY	= 0x15,
     FILE_TAG_VERSION	= 0x18,
@@ -43,26 +43,26 @@ typedef enum
 	FILE_TAG_RATING		= 0x1d,
     FILE_TAG_SIZE		= 0x21,
 
-	FILE_TAG_TYPE		= 0x12, // "movie", "video clip", "amateur", ...
-	FILE_TAG_CODEC		= 0x1c, // "divx"
-	FILE_TAG_OS			= 0x10, // "Windows 95/98"
+	FILE_TAG_TYPE		= 0x12, /* "movie", "video clip", "amateur", ... */
+	FILE_TAG_CODEC		= 0x1c, /* "divx" */
+	FILE_TAG_OS			= 0x10, /* "Windows 95/98" */
 } FSTFileTag;
 
 typedef struct
 {
-	char *name;			// human readable tag name
-	char *value;		// human readable tag value
+	char *name;			/* human readable tag name */
+	char *value;		/* human readable tag value */
 } FSTMetaTag;
 
 /*****************************************************************************/
 
-// alloc and init tag
+/* alloc and init tag */
 FSTMetaTag *fst_metatag_create (char *name, char *value);
 
-// free tag
+/* free tag */
 void fst_metatag_free (FSTMetaTag *tag);
 
-// alloc and init tag from protocol data
+/* alloc and init tag from protocol data */
 FSTMetaTag *fst_metatag_create_from_filetag (FSTFileTag filetag, FSTPacket *data);
 
 /*****************************************************************************/

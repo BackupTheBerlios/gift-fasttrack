@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http.c,v 1.3 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_http.c,v 1.4 2003/07/04 03:54:45 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -20,7 +20,7 @@
 
 /*****************************************************************************/
 
-// alloc and init request
+/* alloc and init request */
 FSTHttpRequest *fst_http_request_create (char *method, char *uri)
 {
 	FSTHttpRequest *request = malloc (sizeof (FSTHttpRequest));
@@ -32,10 +32,10 @@ FSTHttpRequest *fst_http_request_create (char *method, char *uri)
 	return request;
 }
 
-// free request
+/* free request */
 void fst_http_request_free (FSTHttpRequest *request)
 {
-	if(!request)
+	if (!request)
 		return;
 
 	free (request->method);
@@ -45,7 +45,7 @@ void fst_http_request_free (FSTHttpRequest *request)
 	free (request);
 }
 
-// add header to request
+/* add header to request */
 void fst_http_request_set_header (FSTHttpRequest *request, char *name, char *value)
 {
 	dataset_insertstr (&request->headers, name, value);
@@ -57,21 +57,21 @@ void http_reply_compile_header (ds_data_t *key, ds_data_t *value, FSTPacket *pac
 	fst_packet_put_ustr (packet, line, strlen (line));
 }
 
-// compile request and append it to packet
+/* compile request and append it to packet */
 int fst_http_request_compile (FSTHttpRequest *request, FSTPacket *packet)
 {
 	char *line;
 
-	// compile first line
+	/* compile first line */
 	line = malloc (strlen (request->uri) + strlen (request->method) + 16);
 	sprintf (line, "%s %s HTTP/1.1\r\n", request->method, request->uri);
 	fst_packet_put_ustr (packet, line, strlen (line));
 	free (line);
 
-	// add headers
+	/* add headers */
 	dataset_foreach (request->headers, DS_FOREACH(http_reply_compile_header), (void*)packet);
 
-	// add empty line for header termination
+	/* add empty line for header termination */
 	fst_packet_put_ustr (packet, "\r\n", 2);
 
 	return TRUE;
@@ -79,7 +79,7 @@ int fst_http_request_compile (FSTHttpRequest *request, FSTPacket *packet)
 
 /*****************************************************************************/
 
-// alloc an init reply
+/* alloc an init reply */
 FSTHttpReply *fst_http_reply_create ()
 {
 	FSTHttpReply *reply = malloc (sizeof (FSTHttpReply));
@@ -91,25 +91,25 @@ FSTHttpReply *fst_http_reply_create ()
 	return reply;
 }
 
-// free reply
+/* free reply */
 void fst_http_reply_free (FSTHttpReply *reply)
 {
-	if(!reply)
+	if (!reply)
 		return;
 
-	if(reply->code_str)
+	if (reply->code_str)
 		free (reply->code_str);
 	dataset_clear (reply->headers);
 
 	free (reply);
 }
 
-// retrieve header, do not modify/free returned string!
+/* retrieve header, do not modify/free returned string! */
 char *fst_http_reply_get_header (FSTHttpReply *reply, char *name)
 {
 	char *value, *low_name;
 
-	if(!reply->headers)
+	if (!reply->headers)
 		return NULL;
 
 	low_name = strdup (name);
@@ -120,58 +120,58 @@ char *fst_http_reply_get_header (FSTHttpReply *reply, char *name)
 	return value;
 }
 
-// parses reply and moves packet->read_ptr to first byte of http body
+/* parses reply and moves packet->read_ptr to first byte of http body */
 int fst_http_reply_parse (FSTHttpReply *reply, FSTPacket *packet)
 {
 	char *header, *tmp, *p, *line;
 	int i, len;
 
-	// free previously used stuff
+	/* free previously used stuff */
 	dataset_clear (reply->headers);
 	reply->headers = dataset_new (DATASET_HASH);
-	if(reply->code_str)
+	if (reply->code_str)
 	{
 		free (reply->code_str);
 		reply->code_str = NULL;
 	}
 
-	// check if packet contains entire header
+	/* check if packet contains entire header */
 	p = packet->read_ptr;
 	len = fst_packet_remaining(packet) - 2;
 
-	// what a mess
-	for(i=0; ; i++, p++)
+	/* what a mess :-p */
+	for(i = 0; ; i++, p++)
 	{
-		if(p[0] == '\r' && p[1] == '\n')
+		if (p[0] == '\r' && p[1] == '\n')
 		{
-			if(p[2] == 0x0a)	// "\r\n\n", kazaa weirdness
+			if (p[2] == 0x0a)	/* "\r\n\n", kazaa weirdness */
 			{
 				i += 3;
 				break;
 			}
-			if(len - i >= 2 && p[2] == '\r' && p[3] == '\n')
+			if (len - i >= 2 && p[2] == '\r' && p[3] == '\n')
 			{
 				i += 4;
 				break;
 			}
 		}
-		if(i == len)
+		if (i == len)
 			return FALSE;
 	}
 
-	// create working copy of header
+	/* create working copy of header */
 	header = tmp = fst_packet_get_str (packet, i);
 
-	// parse first line
-	if((line = string_sep_set (&tmp, "\r\n")))
+	/* parse first line */
+	if ( (line = string_sep_set (&tmp, "\r\n")))
 	{
 		string_sep (&line, " ");						/* shift past HTTP/1.1 */
 		reply->code = ATOI (string_sep (&line, " "));	/* shift past 200 */
 		reply->code_str = strdup (line);
 	}
 
-	// parse header fields
-	while((line = string_sep_set (&tmp, "\r\n")))
+	/* parse header fields */
+	while ( (line = string_sep_set (&tmp, "\r\n")))
 	{
 		p = string_sep (&line, ": ");
 
@@ -188,4 +188,3 @@ int fst_http_reply_parse (FSTHttpReply *reply, FSTPacket *packet)
 }
 
 /*****************************************************************************/
-

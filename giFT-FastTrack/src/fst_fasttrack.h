@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.15 2003/06/29 16:14:06 beren12 Exp $
+ * $Id: fst_fasttrack.h,v 1.16 2003/07/04 03:54:45 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -28,7 +28,7 @@
 
 #define FILE_LINE_FUNC __FILE__,__LINE__,__PRETTY_FUNCTION__
 
-/* The default shall be debugging on, until a stable release is made */
+/* The default shall be debugging on, unless it is a stable release */
 #ifdef DEBUG
 #define FST_DBG(fmt)			FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt)
 #define FST_DBG_1(fmt,a)		FST_PROTO->trace(FST_PROTO,FILE_LINE_FUNC,fmt,a)

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http.h,v 1.3 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_http.h,v 1.4 2003/07/04 03:54:45 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -43,30 +43,30 @@ typedef struct
 
 /*****************************************************************************/
 
-// alloc and init request
+/* alloc and init request */
 FSTHttpRequest *fst_http_request_create (char *method, char *uri);
 
-// free request
+/* free request */
 void fst_http_request_free (FSTHttpRequest *request);
 
-// add header to request
+/* add header to request */
 void fst_http_request_set_header (FSTHttpRequest *request, char *name, char *value);
 
-// compile request and append it to packet
+/* compile request and append it to packet */
 int fst_http_request_compile (FSTHttpRequest *request, FSTPacket *packet);
 
 /*****************************************************************************/
 
-// alloc an init reply
+/* alloc an init reply */
 FSTHttpReply *fst_http_reply_create ();
 
-// free reply
+/* free reply */
 void fst_http_reply_free (FSTHttpReply *reply);
 
-// retrieve header, do not modify/free returned string!
+/* retrieve header, do not modify/free returned string! */
 char *fst_http_reply_get_header (FSTHttpReply *reply, char *name);
 
-// parses reply and moves packet->read_ptr to first byte of http body
+/* parses reply and moves packet->read_ptr to first byte of http body */
 int fst_http_reply_parse (FSTHttpReply *reply, FSTPacket *packet);
 
 /*****************************************************************************/

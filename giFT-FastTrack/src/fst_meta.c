@@ -1,5 +1,5 @@
 /*
- * $Id: fst_meta.c,v 1.6 2003/06/29 10:34:33 mkern Exp $
+ * $Id: fst_meta.c,v 1.7 2003/07/04 03:54:45 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -20,10 +20,10 @@
 
 /*****************************************************************************/
 
-// alloc and init tag
+/* alloc and init tag */
 FSTMetaTag *fst_metatag_create (char *name, char *value)
 {
-	FSTMetaTag *tag = malloc (sizeof(FSTMetaTag));
+	FSTMetaTag *tag = malloc (sizeof (FSTMetaTag));
 
 	tag->name = strdup (name);
 	tag->value = strdup (value);
@@ -31,10 +31,10 @@ FSTMetaTag *fst_metatag_create (char *name, char *value)
 	return tag;
 }
 
-// free tag
+/* free tag */
 void fst_metatag_free (FSTMetaTag *tag)
 {
-	if(!tag)
+	if (!tag)
 		return;
 
 	free (tag->name);
@@ -42,39 +42,39 @@ void fst_metatag_free (FSTMetaTag *tag)
 	free (tag);
 }
 
-// alloc and init tag from protocol data
+/* alloc and init tag from protocol data */
 FSTMetaTag *fst_metatag_create_from_filetag (FSTFileTag filetag, FSTPacket *data)
 {
 	FSTMetaTag *tag;
 	char buf[64];
 	char *name = NULL, *value = NULL;
 
-	switch(filetag)
+	switch (filetag)
 	{
 	case FILE_TAG_YEAR:
 		name = "year";
 		sprintf (buf, "%d", fst_packet_get_dynint (data));
-		value = strdup(buf);
+		value = strdup (buf);
 		break;
 	case FILE_TAG_QUALITY:
 		name = "bitrate";
 		sprintf (buf, "%d", fst_packet_get_dynint (data) * 1000);
-		value = strdup(buf);
+		value = strdup (buf);
 		break;
 	case FILE_TAG_RESOLUTION:
 		name = "resolution";
 		sprintf (buf, "%dx%d", fst_packet_get_dynint (data), fst_packet_get_dynint (data));
-		value = strdup(buf);
+		value = strdup (buf);
 		break;
 	case FILE_TAG_BITDEPTH:
 		name = "bitdepth";
 		sprintf (buf, "%d", fst_packet_get_dynint (data));
-		value = strdup(buf);
+		value = strdup (buf);
 		break;
 	case FILE_TAG_TIME:
 		name = "duration";
 		sprintf (buf, "%d", fst_packet_get_dynint (data));
-		value = strdup(buf);
+		value = strdup (buf);
 		break;
 
 	case FILE_TAG_FILENAME:
@@ -146,7 +146,7 @@ FSTMetaTag *fst_metatag_create_from_filetag (FSTFileTag filetag, FSTPacket *data
 		name = value = NULL;
 	}
 
-	if(!value || !name)
+	if (!value || !name)
 		return NULL;
 
 	tag = fst_metatag_create (name, value);
