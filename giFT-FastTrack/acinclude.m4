@@ -53,3 +53,18 @@ AC_DEFUN(PKG_CHECK_MODULES, [
      ifelse([$4], , AC_MSG_ERROR([Library requirements ($2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them.]), [$4])
   fi
 ])
+
+
+AC_DEFUN(AC_HAVE_INADDR_NONE,
+[AC_CACHE_CHECK([whether INADDR_NONE is defined], ac_cv_have_inaddr_none,
+ [AC_TRY_COMPILE(
+  [#include <sys/types.h>
+   #include <netinet/in.h>],
+  [ return INADDR_NONE; ],
+  ac_cv_have_inaddr_none=yes,
+  ac_cv_have_inaddr_none=no)])
+ if test $ac_cv_have_inaddr_none != yes; then
+   AC_DEFINE(INADDR_NONE, 0xffffffff, [Define to value of INADDR_NONE if not provided by your system header files.])
+ fi])
+
+

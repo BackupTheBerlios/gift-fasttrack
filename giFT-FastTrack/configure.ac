@@ -1,6 +1,6 @@
 # -*- sh -*-
 
-# $Id: configure.ac,v 1.31 2004/03/07 23:16:30 mkern Exp $
+# $Id: configure.ac,v 1.32 2004/03/20 23:39:05 mkern Exp $
 
 dnl ###########################################################################
 dnl Process this file with autoconf to produce a configure script.
@@ -9,7 +9,7 @@ dnl ###########################################################################
 AC_PREREQ(2.52)
 
 AC_INIT(giFT-FastTrack, 0.8.6, gift-fasttrack-devel@lists.berlios.de, giFT-FastTrack)
-AC_REVISION($Revision: 1.31 $)
+AC_REVISION($Revision: 1.32 $)
 AC_CONFIG_SRCDIR([src/fst_fasttrack.h])
 
 AM_INIT_AUTOMAKE
@@ -55,6 +55,7 @@ dnl ###########################################################################
 AC_C_CONST
 AC_HEADER_TIME
 AC_STRUCT_TM
+AC_HAVE_INADDR_NONE
 
 dnl ###########################################################################
 dnl Checks for library functions.
