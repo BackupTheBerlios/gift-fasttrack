@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.11 2003/10/14 17:36:37 mkern Exp $
+ * $Id: fst_session.c,v 1.12 2003/10/14 19:17:58 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -235,7 +235,7 @@ static void session_connected(int fd, input_id input, FSTSession *session)
 
 	/* go on with handshake */
 	session->state = SessHandshaking;
-	session->out_cipher->enc_type = 0xA9; /* the type we prefer to use */
+	session->out_cipher->enc_type = 0x00; /* we prefer no encryption at all */
 	session->out_cipher->seed = 0x0FACB1238; /* random number? */
 
 	FST_HEAVY_DBG_1 ("requesting outgoing enc_type: 0x%02x",
