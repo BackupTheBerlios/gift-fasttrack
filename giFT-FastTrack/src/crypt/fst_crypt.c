@@ -1,7 +1,8 @@
 /*
- * $Id: fst_crypt.c,v 1.5 2003/06/28 20:17:34 beren12 Exp $
+ * $Id: fst_crypt.c,v 1.6 2003/08/13 21:16:09 weinholt Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
+ * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
  * http://developer.berlios.de/projects/gift-fasttrack
  *
  * This program is free software; you can redistribute it and/or modify it
