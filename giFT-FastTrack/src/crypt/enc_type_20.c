@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_20.c,v 1.6 2003/07/21 22:57:58 hex Exp $
+ * $Id: enc_type_20.c,v 1.7 2003/07/22 02:03:53 weinholt Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -204,8 +204,6 @@ void major_1 (u32 *key, u32 seed)
 		major_25 (key, seed);
 	}
 
-	seed += my_sin(seed) ? 0x160df35d : seed;
-
 	if(type == 3)
 	{
 		key[2] ^= my_sin(key[13]) ? 0xfd08092 : key[10];
@@ -220,6 +218,7 @@ void major_1 (u32 *key, u32 seed)
 		major_4 (key, key[8]);
 	}
 
+	seed += my_sin(seed) ? 0x160df35d : seed;
 	seed &= key[19] | 0xe00682c6;
 
 	if(type == 1)
@@ -244,8 +243,6 @@ void major_1 (u32 *key, u32 seed)
 		key[13] *= ROR(key[3], 5);
 		major_3 (key, key[14]);
 	}
-
-	seed += key[15] ^ 0x1777bc26;
 
 	if(type == 4)
 	{
@@ -332,7 +329,7 @@ void major_2 (u32 *key, u32 seed)
 		major_3 (key, key[15]);
 	}
 
-	key[16] &= seed -0x1badcb5;
+	key[16] &= seed - 0x1badcb5;
 
 	if(type == 15)
 	{
@@ -434,9 +431,7 @@ void major_2 (u32 *key, u32 seed)
 void major_3 (u32 *key, u32 seed)
 {
 	int type = (key[5] ^ seed ^ key[12]) % 10;
-	u32 a = 0x3074a456;
 
-	a += 0xe7812af4;
 	seed *= key[6] | 0x4723b25;
 
 	if(type == 0)
@@ -455,7 +450,6 @@ void major_3 (u32 *key, u32 seed)
 		minor_36 (key);
 	}
 
-	a += 0xf3de60a6;
 	seed += key[12] * 0x19;
 
 	if(type == 1)
@@ -465,7 +459,7 @@ void major_3 (u32 *key, u32 seed)
 		major_23 (key, seed);
 	}
 
-	seed += key[7] + a;
+	seed += key[7] + 0xbd42ff0;
 
 	if(type == 2)
 	{
@@ -474,7 +468,6 @@ void major_3 (u32 *key, u32 seed)
 		major_24 (key, seed);
 	}
 
-	a += 0x93fd548f;
 	key[15] -= key[0] ^ 0x16bee8c4;
 
 	if(type == 4)
@@ -484,7 +477,7 @@ void major_3 (u32 *key, u32 seed)
 		major_19 (key, seed);
 	}
 
-	key[18] ^= key[11] + a;
+	key[18] ^= key[11] + 0x9fd1847f;
 
 	if(type == 6)
 	{
@@ -493,7 +486,6 @@ void major_3 (u32 *key, u32 seed)
 		major_25 (key, seed);
 	}
 
-	a += 0xe45f06fe;
 	ROLEQ(key[14], key[19]);
 
 	if(type == 8)
@@ -512,17 +504,12 @@ void major_3 (u32 *key, u32 seed)
 		major_4 (key, seed);
 	}
 
-	a += 0xce7dcf3a;
-	seed ^= key[16] < 0x33671de9 ? key[16] : key[17];
-
 	if(type == 7)
 	{
 		minor_22;
 		TRY(minor_3);
 		major_18 (key, key[5]);
 	}
-
-	seed &= seed << 6;
 
 	if(type == 3)
 	{
@@ -535,7 +522,6 @@ void major_3 (u32 *key, u32 seed)
 void major_4 (u32 *key, u32 seed)
 {
 	int type = key[6] % 7;
-	u32 a = 0x775fd18;
 
 	seed ^= ROL(key[3], 18);
 
@@ -547,7 +533,6 @@ void major_4 (u32 *key, u32 seed)
 	}
 
 	key[15] += seed * 0x32;
-	a += 0xee31a212;
 	key[5] += 0xc93495e4 - key[14];
 
 	if(type == 2)
@@ -557,7 +542,7 @@ void major_4 (u32 *key, u32 seed)
 		minor_36 (key);
 	}
 
-	key[12] *= my_cos(key[14]) ? a : key[17];
+	key[12] *= my_cos(key[14]) ? 0xf5a79f2a : key[17];
 
 	if(type == 0)
 	{
@@ -566,8 +551,7 @@ void major_4 (u32 *key, u32 seed)
 		major_23 (key, key[8]);
 	}
 
-	a += 0xea83bbf0;
-	key[6] &= key[7] | a;
+	key[6] &= key[7] | 0xe02b5b1a;
 	key[11] ^= my_cos(key[0]) ? 0x3a2c762b : seed;
 
 	if(type == 4)
@@ -577,7 +561,6 @@ void major_4 (u32 *key, u32 seed)
 		major_24 (key, seed);
 	}
 
-	a += 0xedc3d0d6;
 	key[3] -= my_sqrt(key[9]);
 
 	if(type == 5)
@@ -587,8 +570,7 @@ void major_4 (u32 *key, u32 seed)
 		major_19 (key, key[18]);
 	}
 
-	seed &= my_cos(key[7]) ? a : key[3];
-	a += 0xc2688371;
+	seed &= my_cos(key[7]) ? 0xcdef2bf0 : key[3];
 	key[0] -= key[15] * 0x43;
 
 	if(type == 1)
@@ -599,8 +581,7 @@ void major_4 (u32 *key, u32 seed)
 	}
 
 	key[1] -=  ROR(key[18], 19);
-	a += 0xd993439c;
-	key[17] ^= my_sin(key[14]) ? a : key[16];
+	key[17] ^= my_sin(key[14]) ? 0x69eaf2fd : key[16];
 
 	if(type == 0)
 	{
@@ -613,7 +594,6 @@ void major_4 (u32 *key, u32 seed)
 void major_5 (u32 *key, u32 seed)
 {
 	int type = (key[13] ^ key[6] ^ key[16]) & 15;
-	u32 a = 0xfe1d15;
 
 	if(type == 7)
 	{
@@ -622,8 +602,7 @@ void major_5 (u32 *key, u32 seed)
 		major_17 (key, key[15]);
 	}
 
-	a += 0xdfa1459a;
-	key[2] ^= key[15] - a;
+	key[2] ^= key[15] - 0xe09f62af;
 
 	if(type == 15)
 	{
@@ -655,7 +634,6 @@ void major_5 (u32 *key, u32 seed)
 		major_3 (key, key[4]);
 	}
 
-	a += 0xf5224fea;
 	seed += key[16] < 0x4dfe57f8 ? key[16] : key[17];
 
 	if(type == 2)
@@ -668,7 +646,7 @@ void major_5 (u32 *key, u32 seed)
 		major_16 (key, key[10]);
 	}
 
-	key[5] += key[6] + a;
+	key[5] += key[6] + 0xd5c1b299;
 
 	if(type == 10)
 	{
@@ -684,8 +662,7 @@ void major_5 (u32 *key, u32 seed)
 		major_14 (key, key[8]);
 	}
 
-	a += 0xe4fb84fb;
-	key[1] += my_sin(seed) ? a : seed;
+	key[1] += my_sin(seed) ? 0xbabd3794 : seed;
 
 	if(type == 6)
 	{
@@ -701,7 +678,7 @@ void major_5 (u32 *key, u32 seed)
 		major_9 (key, seed);
 	}
 
-	key[3] |= my_cos(key[3]) ? a : key[17];
+	key[3] |= my_cos(key[3]) ? 0xbabd3794 : key[17];
 
 	if(type == 9)
 	{
@@ -717,8 +694,7 @@ void major_5 (u32 *key, u32 seed)
 		major_17 (key, seed);
 	}
 
-	a += 0xf79e94b9;
-	seed ^= key[2] * a;
+	seed ^= key[2] * 0xb25bcc4d;
 
 	if(type == 11)
 	{
@@ -750,8 +726,7 @@ void major_5 (u32 *key, u32 seed)
 		major_3 (key, key[17]);
 	}
 
-	a += 0xf697757a;
-	key[15] += a - key[1];
+	key[15] += 0xa8f341c7 - key[1];
 
 	if(type == 0)
 	{
@@ -773,7 +748,6 @@ void major_5 (u32 *key, u32 seed)
 void major_6 (u32 *key, u32 seed)
 {
 	int type = key[17] % 15;
-	u32 a = 0x10572198;
 
 	if(type == 0)
 	{
@@ -782,8 +756,7 @@ void major_6 (u32 *key, u32 seed)
 		major_24 (key, key[8]);
 	}
 
-	a += 0xd1ae1094;
-	key[11] -= my_sin(key[9]) ? a : key[7];
+	key[11] -= my_sin(key[9]) ? 0xe205322c : key[7];
 
 	if(type == 13)
 	{
@@ -808,7 +781,6 @@ void major_6 (u32 *key, u32 seed)
 		major_17 (key, seed);
 	}
 
-	a += 0xe6300abd;
 	ROLEQ(key[16], my_sqrt(key[17]));
 
 	if(type == 2)
@@ -826,7 +798,6 @@ void major_6 (u32 *key, u32 seed)
 		major_18 (key, seed);
 	}
 
-	a += 0xa4cd3449;
 	seed = key[6] ^ seed ^ 0x202ab323;
 
 	if(type == 9)
@@ -852,7 +823,6 @@ void major_6 (u32 *key, u32 seed)
 		major_21 (key, key[13]);
 	}
 
-	a += 0xe2773b9c;
 	key[0] -= key[11] ^ 0x1284af29;
 
 	if(type == 4)
@@ -878,7 +848,6 @@ void major_6 (u32 *key, u32 seed)
 		major_14 (key, key[16]);
 	}
 
-	a += 0xfaa9c69b;
 	key[9] |= key[9] ^ 0x2ad7629;
 
 	if(type == 10)
@@ -888,7 +857,7 @@ void major_6 (u32 *key, u32 seed)
 		major_24 (key, seed);
 	}
 
-	key[4] *= key[12] * a;
+	key[4] *= key[12] * 0x4a237369;
 
 	if(type == 12)
 	{
@@ -904,7 +873,6 @@ void major_6 (u32 *key, u32 seed)
 		major_25 (key, key[1]);
 	}
 
-	a += 0xd268da5f;
 	seed *= key[4] + 0x76e5a087;
 
 	if(type == 3)
@@ -918,7 +886,6 @@ void major_6 (u32 *key, u32 seed)
 void major_7 (u32 *key, u32 seed)
 {
 	int type = (key[10] ^ key[11] ^ key[18]) & 15;
-	u32 a = 0xc6ef5e80;
 
 	if(type == 3)
 	{
@@ -934,7 +901,7 @@ void major_7 (u32 *key, u32 seed)
 		major_14 (key, key[12]);
 	}
 
-	key[8] |= a + key[1];
+	key[8] |= 0xc6ef5e80 + key[1];
 
 	if(type == 2)
 	{
@@ -957,7 +924,7 @@ void major_7 (u32 *key, u32 seed)
 		major_2 (key, key[3]);
 	}
 
-	key[15] -= a + key[19];
+	key[15] -= 0xc6ef5e80 + key[19];
 
 	if(type == 4)
 	{
@@ -980,7 +947,6 @@ void major_7 (u32 *key, u32 seed)
 		major_11 (key, key[19]);
 	}
 
-	a += 0xfdc73e57;
 	seed -= key[0] ^ 0x3b61016b;
 
 	if(type == 4)
@@ -1020,8 +986,7 @@ void major_7 (u32 *key, u32 seed)
 		major_1 (key, seed);
 	}
 
-	a += 0xfb777bc8;
-	seed -= key[14] * a;
+	seed -= key[14] * 0xc02e189f;
 
 	if(type == 0)
 	{
@@ -1067,7 +1032,6 @@ void major_7 (u32 *key, u32 seed)
 		major_12 (key, key[5]);
 	}
 
-	a += 0xcb22b4b2;
 	seed ^= key[18] ^ 0xe6830c9;
 
 	if(type == 6)
@@ -1091,7 +1055,7 @@ void major_7 (u32 *key, u32 seed)
 		major_22 (key, key[17]);
 	}
 
-	key[0] ^= my_sin(seed) ? a : key[8];
+	key[0] ^= my_sin(seed) ? 0x8b50cd51 : key[8];
 
 	if(type == 11)
 	{
@@ -1107,7 +1071,6 @@ void major_7 (u32 *key, u32 seed)
 		major_10 (key, key[16]);
 	}
 
-	a += 0xb011aa26;
 	seed += key[1] * 0x3e;
 
 	if(type == 6)
@@ -1124,13 +1087,12 @@ void major_7 (u32 *key, u32 seed)
 		major_14 (key, seed);
 	}
 
-	key[1] ^= key[2] & a;
+	key[1] ^= key[2] & 0x3b627777;
 }
 
 void major_8 (u32 *key, u32 seed)
 {
 	int type = (key[2] ^ seed ^ key[17]) & 15;
-	u32 a = 0x16332817;
 
 	if(type == 7)
 	{
@@ -1146,8 +1108,7 @@ void major_8 (u32 *key, u32 seed)
 		major_16 (key, key[15]);
 	}
 
-	a += 0xcd45850f;
-	seed -= ROR(key[2], a);
+	seed -= ROR(key[2], 6);
 
 	if(type == 5)
 	{
@@ -1179,7 +1140,6 @@ void major_8 (u32 *key, u32 seed)
 		major_9 (key, seed);
 	}
 
-	a += 0xe62a6fb0;
 	key[3] ^= key[7] + 0x137c9f7d;
 
 	if(type == 0)
@@ -1203,7 +1163,7 @@ void major_8 (u32 *key, u32 seed)
 		major_12 (key, key[12]);
 	}
 
-	key[11] += key[17] < a ? key[17] : key[4];
+	key[11] += key[17] < 0xc9a31cd6 ? key[17] : key[4];
 
 	if(type == 4)
 	{
@@ -1219,8 +1179,7 @@ void major_8 (u32 *key, u32 seed)
 		major_13 (key, key[13]);
 	}
 
-	a += 0xf3f6d9ae;
-	seed *= key[12] + a;
+	seed *= key[12] + 0xbd99f684;
 
 	if(type == 7)
 	{
@@ -1259,8 +1218,7 @@ void major_8 (u32 *key, u32 seed)
 		major_14 (key, seed);
 	}
 
-	a += 0xe743b2d6;
-	seed ^= key[11] < a ? key[11] : key[2];
+	seed ^= key[11] < 0xa4dda95a ? key[11] : key[2];
 
 	if(type == 6)
 	{
@@ -1292,7 +1250,6 @@ void major_8 (u32 *key, u32 seed)
 		major_5 (key, seed);
 	}
 
-	a += 0xee69160e;
 	key[17] += my_sqrt(key[12]);
 
 	if(type == 10)
@@ -1321,14 +1278,12 @@ void major_8 (u32 *key, u32 seed)
 		major_22 (key, key[19]);
 	}
 
-	a += 0xd8c0d94b;
-	ROLEQ(key[2], a ^ seed);
+	ROLEQ(key[2], 0x6c0798b3 ^ seed);
 }
 
 void major_9 (u32 *key, u32 seed)
 {
 	int type = key[8] & 15;
-	u32 a = 0x3a6d8ff;
 
 	if(type == 10)
 	{
@@ -1336,9 +1291,6 @@ void major_9 (u32 *key, u32 seed)
 		key[7] &= key[13] ^ 0x21aaf758;
 		major_19 (key, key[0]);
 	}
-
-	a += 0xdf6fc3de;
-	seed |= seed + 0x20029bc7;
 
 	if(type == 3)
 	{
@@ -1370,7 +1322,6 @@ void major_9 (u32 *key, u32 seed)
 		major_18 (key, key[13]);
 	}
 
-	a += 0xefb98ee8;
 	key[10] &= key[6] - 0x1286a10;
 
 	if(type == 12)
@@ -1387,6 +1338,7 @@ void major_9 (u32 *key, u32 seed)
 		major_3 (key, key[13]);
 	}
 
+	seed |= seed + 0x20029bc7;
 	ROREQ(key[14], ROL(seed, 8));
 
 	if(type == 9)
@@ -1396,7 +1348,6 @@ void major_9 (u32 *key, u32 seed)
 		major_21 (key, key[5]);
 	}
 
-	a += 0xfa873e57;
 	seed += 0x176cf052 - key[12];
 
 	if(type == 15)
@@ -1429,7 +1380,6 @@ void major_9 (u32 *key, u32 seed)
 		major_6 (key, seed);
 	}
 
-	a += 0xf183ce5d;
 	key[13] *= key[2] * 0x65;
 
 	if(type == 0)
@@ -1455,7 +1405,6 @@ void major_9 (u32 *key, u32 seed)
 		major_17 (key, key[18]);
 	}
 
-	a += 0xebe46864;
 	key[17] &= seed * 0x30;
 
 	if(type == 7)
@@ -1478,7 +1427,6 @@ void major_9 (u32 *key, u32 seed)
 void major_10 (u32 *key, u32 seed)
 {
 	int type = (key[4] ^ key[12] ^ key[17]) & 15;
-	u32 a = 0x7a66df8;
 
 	if(type == 9)
 	{
@@ -1494,8 +1442,14 @@ void major_10 (u32 *key, u32 seed)
 		major_1 (key, key[2]);
 	}
 
-	a += 0xfc318a14;
-	key[9] += key[11] < a ? key[11] : key[9];
+	key[9] += key[11] < 0x3d7f80c ? key[11] : key[9];
+
+	if (type == 2)
+	{
+		key[12] += key[6] + 0x21d7bf61;
+		key[14] |= key[3] ^ 0x4345732;
+		major_9 (key, key[1]);
+	}
 
 	if(type == 6)
 	{
@@ -1509,13 +1463,6 @@ void major_10 (u32 *key, u32 seed)
 		TRY(minor_7);
 		key[18] *= key[10] + 0x466e09cf;
 		major_6 (key, key[12]);
-	}
-
-	if(type == 2)
-	{
-		key[12] += key[6] + 0x21d7bf61;
-		key[14] |= key[3] ^ 0x4345732;
-		major_9 (key, key[1]);
 	}
 
 	key[10] *= my_cos(seed) ? 0x16b578ee : key[2];
@@ -1534,7 +1481,6 @@ void major_10 (u32 *key, u32 seed)
 		major_5 (key, key[10]);
 	}
 
-	a += 0xebded5c1;
 	key[17] += seed * 0x4d;
 
 	if(type == 1)
@@ -1542,6 +1488,9 @@ void major_10 (u32 *key, u32 seed)
 		minor_26;
 		key[19] ^= my_cos(key[9]) ? 0x57337b8 : key[14];
 		major_12 (key, seed);
+		key[19] ^= key[15] ^ 0x3574ed3;
+		key[10] += 0x9f2550bd;
+		major_13 (key, seed);
 	}
 
 	if(type == 14)
@@ -1549,13 +1498,6 @@ void major_10 (u32 *key, u32 seed)
 		TRY(minor_8);
 		minor_31 (0x7);
 		major_11 (key, key[19]);
-	}
-
-	if(type == 1)
-	{
-		key[19] ^= key[15] ^ 0x3574ed3;
-		key[10] += 0x9f2550bd;
-		major_13 (key, seed);
 	}
 
 	ROLEQ(seed, key[7] * 0xd);
@@ -1577,7 +1519,6 @@ void major_10 (u32 *key, u32 seed)
 		major_16 (key, key[18]);
 	}
 
-	a += 0xf428ad3b;
 	key[4] += my_sin(key[0]) ? 0x1873296 : key[1];
 
 	if(type == 10)
@@ -1596,18 +1537,18 @@ void major_10 (u32 *key, u32 seed)
 
 	key[12] += 0x1c0bd6db - key[11];
 
-	if(type == 7)
-	{
-		TRY(minor_7);
-		minor_26;
-		major_6 (key, key[14]);
-	}
-
 	if(type == 2)
 	{
 		key[13] *= 0x17b441db;
 		TRY(minor_12 (0x8951503f));
 		major_9 (key, key[19]);
+	}
+
+	if(type == 7)
+	{
+		TRY(minor_7);
+		minor_26;
+		major_6 (key, key[14]);
 	}
 
 	if(type == 11)
@@ -1617,15 +1558,7 @@ void major_10 (u32 *key, u32 seed)
 		major_2 (key, key[8]);
 	}
 
-	a += 0x9b6e0949;
 	key[18] -= key[6] * 0x2c;
-
-	if(type == 7)
-	{
-		key[18] *= key[10] + 0x466e09cf;
-		minor_29;
-		major_5 (key, key[15]);
-	}
 
 	if(type == 0)
 	{
@@ -1641,24 +1574,14 @@ void major_10 (u32 *key, u32 seed)
 		major_11 (key, key[10]);
 	}
 
+	if(type == 7)
+	{
+		key[18] *= key[10] + 0x466e09cf;
+		minor_29;
+		major_5 (key, key[15]);
+	}
+
 	key[6] ^= key[16] ^ 0x354e354d;
-
-	if(type == 15)
-	{
-		key[9] |= key[7] ^ 0x2a19119f;
-		minor_28;
-		major_13 (key, seed);
-	}
-
-	if(type == 8)
-	{
-		key[14] |= key[3] ^ 0x4345732;
-		minor_32 (0x8a0e1ad7);
-		major_22 (key, key[8]);
-	}
-
-	a += 0xbc5c43b8;
-	seed += a ^ key[17];
 
 	if(type == 0)
 	{
@@ -1674,13 +1597,24 @@ void major_10 (u32 *key, u32 seed)
 		major_16 (key, key[10]);
 	}
 
-	key[3] += key[13] + a;
+	if(type == 8) {
+		key[14] |= key[3] ^ 0x4345732;
+		minor_32 (0x8a0e1ad7);
+		major_22 (key, key[8]);
+	}
+
+	if(type == 15) {
+		key[9] |= key[7] ^ 0x2a19119f;
+		minor_28;
+		major_13 (key, seed);
+	}
+
+	key[3] += key[13] + 0x3ba9c809;
 }
 
 void major_11 (u32 *key, u32 seed)
 {
 	int type = (key[6] ^ seed ^ key[14]) & 15;
-	u32 a = 0x1e171745;
 
 	if(type == 2)
 	{
@@ -1696,7 +1630,6 @@ void major_11 (u32 *key, u32 seed)
 		major_15 (key, key[13]);
 	}
 
-	a += 0xfea91d85;
 	key[14] &= seed * 0x3f;
 
 	if(type == 10)
@@ -1729,7 +1662,6 @@ void major_11 (u32 *key, u32 seed)
 		major_1 (key, key[5]);
 	}
 
-	a += 0xec342555;
 	key[11] ^= seed - 0x3c17609c;
 
 	if(type == 1)
@@ -1769,7 +1701,6 @@ void major_11 (u32 *key, u32 seed)
 		major_5 (key, seed);
 	}
 
-	a += 0xd7d6ea5d;
 	key[18] &= key[17] + 0x21012257;
 
 	if(type == 14)
@@ -1802,7 +1733,6 @@ void major_11 (u32 *key, u32 seed)
 		major_3 (key, seed);
 	}
 
-	a += 0xa7dc3618;
 	key[8] ^= key[11] * 0x7b;
 
 	if(type == 4)
@@ -1819,7 +1749,7 @@ void major_11 (u32 *key, u32 seed)
 		major_16 (key, key[9]);
 	}
 
-	key[0] += key[13] + a;
+	key[0] += key[13] + 0x88a77a94;
 
 	if(type == 0)
 	{
@@ -1835,7 +1765,6 @@ void major_11 (u32 *key, u32 seed)
 		major_14 (key, key[18]);
 	}
 
-	a += 0xc847e2da;
 	seed *= key[8] - 0x44260e37;
 
 	if(type == 3)
@@ -1852,13 +1781,12 @@ void major_11 (u32 *key, u32 seed)
 		major_9 (key, seed);
 	}
 
-	key[2] &= ROL(key[19], a);
+	key[2] &= ROL(key[19], 14);
 }
 
 void major_12 (u32 *key, u32 seed)
 {
 	int type = (key[7] ^ seed ^ key[18]) & 15;
-	u32 a = 0x9e24650;
 
 	if(type == 15)
 	{
@@ -1867,7 +1795,6 @@ void major_12 (u32 *key, u32 seed)
 		major_4 (key, key[17]);
 	}
 
-	a += 0xd768a22a;
 	key[8] |= seed + 0xe43fc6b;
 
 	if(type == 1)
@@ -1900,7 +1827,6 @@ void major_12 (u32 *key, u32 seed)
 		major_21 (key, key[8]);
 	}
 
-	a += 0xa8ee2bb8;
 	key[1] ^= key[14] * 0x16;
 
 	if(type == 0)
@@ -1926,8 +1852,7 @@ void major_12 (u32 *key, u32 seed)
 		major_14 (key, key[7]);
 	}
 
-	a += 0xf9dadd84;
-	ROREQ(key[6], key[9] * a);
+	ROREQ(key[6], key[9] * 0x8413f1b6);
 
 	if(type == 3)
 	{
@@ -1959,7 +1884,6 @@ void major_12 (u32 *key, u32 seed)
 		major_5 (key, key[7]);
 	}
 
-	a += 0xbbbb0c69;
 	key[6] |= my_sqrt(seed);
 
 	if(type == 2)
@@ -1985,7 +1909,6 @@ void major_12 (u32 *key, u32 seed)
 		major_15 (key, key[3]);
 	}
 
-	a += 0xcbf2b7ba;
 	key[2] &= seed;
 
 	if(type == 3)
@@ -2002,7 +1925,7 @@ void major_12 (u32 *key, u32 seed)
 		major_21 (key, key[14]);
 	}
 
-	seed += key[9] - a;
+	seed += key[9] - 0xbc1b5d9;
 
 	if(type == 14)
 	{
@@ -2011,7 +1934,6 @@ void major_12 (u32 *key, u32 seed)
 		major_16 (key, seed);
 	}
 
-	a += 0xdcbe2049;
 	key[18] += key[11] * 0x5b;
 
 	if(type == 2)
@@ -2028,13 +1950,12 @@ void major_12 (u32 *key, u32 seed)
 		major_14 (key, seed);
 	}
 
-	key[4] ^= key[4] - a;
+	key[4] ^= key[4] - 0xe87fd622;
 }
 
 void major_13 (u32 *key, u32 seed)
 {
 	int type = (key[4] ^ seed ^ key[18]) & 15;
-	u32 a = 0x26334b11;
 
 	if(type == 12)
 	{
@@ -2082,7 +2003,6 @@ void major_13 (u32 *key, u32 seed)
 		major_14 (key, key[3]);
 	}
 
-	a += 0xc4e4b2e0;
 	key[19] -= seed ^ 0x42b04005;
 
 	if(type == 8)
@@ -2115,8 +2035,7 @@ void major_13 (u32 *key, u32 seed)
 		major_5 (key, key[7]);
 	}
 
-	a += 0xffbfae59;
-	seed += key[17] | a;
+	seed += key[17] | 0xead7ac4a;
 
 	if(type == 1)
 	{
@@ -2148,7 +2067,6 @@ void major_13 (u32 *key, u32 seed)
 		major_3 (key, seed);
 	}
 
-	a += 0xe6d8117d;
 	key[4] += key[2] ^ 0x1579499;
 
 	if(type == 10)
@@ -2181,8 +2099,7 @@ void major_13 (u32 *key, u32 seed)
 		major_14 (key, seed);
 	}
 
-	a += 0xdcef2ff8;
-	key[10] -= key[10] | a;
+	key[10] -= key[10] | 0xae9eedbf;
 
 	if(type == 6)
 	{
@@ -2198,7 +2115,7 @@ void major_13 (u32 *key, u32 seed)
 		major_9 (key, key[19]);
 	}
 
-	seed += key[17] ^ a;
+	seed += key[17] ^ 0xae9eedbf;
 
 	if(type == 7)
 	{
@@ -2220,7 +2137,6 @@ void major_13 (u32 *key, u32 seed)
 void major_14 (u32 *key, u32 seed)
 {
 	int type = (key[8] ^ seed ^ key[11]) % 14;
-	u32 a = 0xf74450ff;
 
 	if(type == 0)
 	{
@@ -2229,7 +2145,7 @@ void major_14 (u32 *key, u32 seed)
 		major_23 (key, key[19]);
 	}
 
-	seed -= seed ^ a;
+	seed -= seed ^ 0xf74450ff;
 
 	if(type == 1)
 	{
@@ -2238,7 +2154,7 @@ void major_14 (u32 *key, u32 seed)
 		major_24 (key, seed);
 	}
 
-	key[13] -= my_cos(key[3]) ? a : key[4];
+	key[13] -= my_cos(key[3]) ? 0xf74450ff : key[4];
 
 	if(type == 9)
 	{
@@ -2247,7 +2163,6 @@ void major_14 (u32 *key, u32 seed)
 		major_19 (key, seed);
 	}
 
-	a += 0xd1cac405;
 	key[9] ^= key[6] * 0x59;
 
 	if(type == 7)
@@ -2264,7 +2179,7 @@ void major_14 (u32 *key, u32 seed)
 		major_17 (key, key[7]);
 	}
 
-	key[1] ^= my_sin(seed) ? a : key[17];
+	key[1] ^= my_sin(seed) ? 0xc90f1504 : key[17];
 
 	if(type == 13)
 	{
@@ -2273,7 +2188,6 @@ void major_14 (u32 *key, u32 seed)
 		major_4 (key, key[4]);
 	}
 
-	a += 0xd200d425;
 	key[17] += key[13] < 0xac24eb8 ? key[13] : key[9];
 
 	if(type == 5)
@@ -2292,7 +2206,6 @@ void major_14 (u32 *key, u32 seed)
 		major_15 (key, key[0]);
 	}
 
-	a += 0xeb81800d;
 	key[4] += seed + 0xf65efbd;
 
 	if(type == 10)
@@ -2309,7 +2222,7 @@ void major_14 (u32 *key, u32 seed)
 		major_21 (key, seed);
 	}
 
-	key[4] ^= ROL(key[8], a);
+	key[4] ^= ROL(key[8], 22);
 
 	if(type == 6)
 	{
@@ -2318,7 +2231,6 @@ void major_14 (u32 *key, u32 seed)
 		major_16 (key, key[13]);
 	}
 
-	a += 0xdf0fa672;
 	seed *= key[6] + 0x6bbeb974;
 
 	if(type == 2)
@@ -2328,7 +2240,7 @@ void major_14 (u32 *key, u32 seed)
 		major_1 (key, key[6]);
 	}
 
-	key[16] -= key[2] * a;
+	key[16] -= key[2] * 0x65a10fa8;
 
 	if(type == 12)
 	{
@@ -2359,7 +2271,6 @@ void major_14 (u32 *key, u32 seed)
 void major_15 (u32 *key, u32 seed)
 {
 	int type = (key[17] ^ seed ^ key[19]) % 9;
-	u32 a = 0xf9976b51;
 
 	ROREQ(key[19], key[19] + 0xa);
 
@@ -2379,7 +2290,6 @@ void major_15 (u32 *key, u32 seed)
 		minor_36 (key);
 	}
 
-	a += 0xb231d4bd;
 	key[13] ^= key[15] + 0x19ad9d3;
 
 	if(type == 0)
@@ -2398,8 +2308,7 @@ void major_15 (u32 *key, u32 seed)
 		major_24 (key, key[12]);
 	}
 
-	a += 0xd6800e99;
-	seed ^= key[12] ^ a;
+	seed ^= key[12] ^ 0x82494ea7;
 
 	if(type == 0)
 	{
@@ -2408,7 +2317,7 @@ void major_15 (u32 *key, u32 seed)
 		major_19 (key, key[6]);
 	}
 
-	ROLEQ(key[0], a & seed);
+	ROLEQ(key[0], 0x82494ea7 & seed);
 
 	if(type == 7)
 	{
@@ -2417,7 +2326,6 @@ void major_15 (u32 *key, u32 seed)
 		major_25 (key, key[6]);
 	}
 
-	a += 0xbc7cde7c;
 	key[18] ^= key[9] - 0x5606038;
 
 	if(type == 3)
@@ -2427,7 +2335,7 @@ void major_15 (u32 *key, u32 seed)
 		major_17 (key, key[8]);
 	}
 
-	key[9] |= my_sin(key[7]) ? a : key[6];
+	key[9] |= my_sin(key[7]) ? 0x3ec62d23 : key[6];
 
 	if(type == 2)
 	{
@@ -2447,7 +2355,6 @@ void major_15 (u32 *key, u32 seed)
 void major_16 (u32 *key, u32 seed)
 {
 	int type = (key[11] ^ seed ^ key[5]) % 12;
-	u32 a = 0x16bfb62c;
 
 	if(type == 5)
 	{
@@ -2456,8 +2363,7 @@ void major_16 (u32 *key, u32 seed)
 		minor_37 (key);
 	}
 
-	a += 0xf43d9880;
-	key[4] ^= seed - a;
+	key[4] ^= seed - 0xafd4eac;
 
 	if(type == 2)
 	{
@@ -2466,7 +2372,7 @@ void major_16 (u32 *key, u32 seed)
 		minor_36 (key);
 	}
 
-	key[15] -= a ^ seed;
+	key[15] -= 0xafd4eac ^ seed;
 
 	if(type == 0)
 	{
@@ -2475,7 +2381,6 @@ void major_16 (u32 *key, u32 seed)
 		major_23 (key, key[4]);
 	}
 
-	a += 0xc1c9f0b0;
 	key[8] ^= my_sqrt(key[16]);
 
 	if(type == 3)
@@ -2492,8 +2397,6 @@ void major_16 (u32 *key, u32 seed)
 		major_19 (key, key[6]);
 	}
 
-	seed -= seed & 0x179da692;
-
 	if(type == 4)
 	{
 		TRY(minor_8);
@@ -2501,7 +2404,6 @@ void major_16 (u32 *key, u32 seed)
 		major_25 (key, key[0]);
 	}
 
-	a += 0xff6e78c7;
 	key[8] ^= key[15] * 0x5f;
 
 	if(type == 0)
@@ -2511,7 +2413,8 @@ void major_16 (u32 *key, u32 seed)
 		major_17 (key, key[9]);
 	}
 
-	key[6] &= my_sin(seed) ? a : key[14];
+	seed -= seed & 0x179da692;
+	key[6] &= my_sin(seed) ? 0xcc35b823 : key[14];
 
 	if(type == 9)
 	{
@@ -2527,13 +2430,10 @@ void major_16 (u32 *key, u32 seed)
 		major_18 (key, seed);
 	}
 
-	a += 0xfcc12c95;
-	seed -= my_cos(key[19]) ? 0xc818c81 : key[19];
-
 	if(type == 7)
 	{
 		key[12] += 0x5e6f4861;
-		key[18] -=  key[13] ^ 0x154abcdf;
+		key[18] -= key[13] ^ 0x154abcdf;
 		major_15 (key, key[14]);
 	}
 
@@ -2546,8 +2446,7 @@ void major_16 (u32 *key, u32 seed)
 		major_3 (key, key[17]);
 	}
 
-	a += 0xc4c948f6;
-	key[5] &= ROR(key[0], a);
+	key[5] &= ROR(key[0], 14);
 
 	if(type == 8)
 	{
@@ -2563,13 +2462,12 @@ void major_16 (u32 *key, u32 seed)
 		minor_37 (key);
 	}
 
-	key[12] |= ROL(key[7], a);
+	key[12] |= ROL(key[7], 14);
 }
 
 void major_17 (u32 *key, u32 seed)
 {
 	int type = (key[8] ^ key[7] ^ key[12]) % 6;
-	u32 a = 0xb87e62ab;
 
 	key[1] |= key[4] ^ 0x10104d4;
 
@@ -2580,7 +2478,6 @@ void major_17 (u32 *key, u32 seed)
 		minor_37 (key);
 	}
 
-	a += 0xc39ce241;
 	seed = ((seed ^ 0x1ea9da8) + seed) * key[18] * 0xd;
 
 	if(type == 0)
@@ -2591,7 +2488,6 @@ void major_17 (u32 *key, u32 seed)
 	}
 
 	key[14] += key[12] * 0x19;
-	a += 0xeb82854b;
 	key[2] -= my_sqrt(key[5]);
 
 	if(type == 4)
@@ -2601,8 +2497,7 @@ void major_17 (u32 *key, u32 seed)
 		major_23 (key, seed);
 	}
 
-	key[6] &= key[4] - a;
-	a += 0xd6381793;
+	key[6] &= key[4] - 0x679dca37;
 	key[1] ^= key[16] + 0x988db31;
 
 	if(type == 0)
@@ -2612,9 +2507,8 @@ void major_17 (u32 *key, u32 seed)
 		major_24 (key, key[6]);
 	}
 
-	key[6] += ROR(seed, a);
-	a += 0xec144aec;
-	seed -= key[0] < a ? key[0] : key[3];
+	key[6] += ROR(seed, 10);
+	seed -= key[0] < 0x29ea2cb6 ? key[0] : key[3];
 
 	if(type == 2)
 	{
@@ -2624,8 +2518,7 @@ void major_17 (u32 *key, u32 seed)
 	}
 
 	seed *= my_sqrt(seed);
-	a += 0xf730c712;
-	key[5] *= my_cos(seed) ? a : key[19];
+	key[5] *= my_cos(seed) ? 0x211af3c8 : key[19];
 
 	if(type == 5)
 	{
@@ -2638,9 +2531,8 @@ void major_17 (u32 *key, u32 seed)
 void major_18 (u32 *key, u32 seed)
 {
 	int type = (key[14] ^ key[11] ^ key[17]) & 7;
-	u32 a = 0x128c2b75;
 
-	key[11] ^= ROR(key[13], a);
+	key[11] ^= ROR(key[13], 21);
 
 	if(type == 5)
 	{
@@ -2658,7 +2550,6 @@ void major_18 (u32 *key, u32 seed)
 		minor_36 (key);
 	}
 
-	a += 0xc7be5cf7;
 	key[11] -= my_sqrt(key[9]);
 	key[12] += 0x17267c5b - key[11];
 
@@ -2669,7 +2560,6 @@ void major_18 (u32 *key, u32 seed)
 		major_23 (key, key[0]);
 	}
 
-	a += 0xc741f5fc;
 	key[17] ^= seed ^ 0x35eddea4;
 
 	if(type == 0)
@@ -2688,8 +2578,7 @@ void major_18 (u32 *key, u32 seed)
 		major_19 (key, key[6]);
 	}
 
-	a += 0xb5c971a6;
-	key[19] ^= key[3] < a ? key[3] : key[1];
+	key[19] ^= key[3] < 0x5755f00e ? key[3] : key[1];
 	key[15] ^= key[12] * 0x17;
 
 	if(type == 7)
@@ -2699,7 +2588,6 @@ void major_18 (u32 *key, u32 seed)
 		major_25 (key, key[9]);
 	}
 
-	a += 0xb8879326;
 	key[10] += 0x395f1d29 - seed;
 
 	if(type == 0)
@@ -2709,9 +2597,8 @@ void major_18 (u32 *key, u32 seed)
 		major_17 (key, key[16]);
 	}
 
-	ROLEQ(key[1], ROL(key[8], a));
-	a += 0xb9e33a61;
-	seed -= key[9] ^ a;
+	ROLEQ(key[1], ROL(key[8], 20));
+	seed -= key[9] ^ 0xc9c0bd95;
 
 	if(type == 6)
 	{
@@ -2726,7 +2613,6 @@ void major_18 (u32 *key, u32 seed)
 void major_19 (u32 *key, u32 seed)
 {
 	int type = (key[18] ^ key[6] ^ key[15]) & 3;
-	u32 a = 0xe42c799d;
 
 	seed *= key[15] * 0x3c02927;
 	ROREQ(seed, seed * 0x7);
@@ -2738,9 +2624,8 @@ void major_19 (u32 *key, u32 seed)
 		minor_37 (key);
 	}
 
-	a += 0xd4fa2213;
 	seed ^= key[6] ^ 0xc1fcda0;
-	key[5] -= my_cos(key[6]) ? a : key[10];
+	key[5] -= my_cos(key[6]) ? 0xb9269bb0 : key[10];
 
 	if(type == 0)
 	{
@@ -2749,7 +2634,6 @@ void major_19 (u32 *key, u32 seed)
 		minor_36 (key);
 	}
 
-	a += 0xb1a3e457;
 	seed *= key[19] + 0x11500e47;
 	key[3] ^= ROL(key[4], 20);
 
@@ -2760,7 +2644,6 @@ void major_19 (u32 *key, u32 seed)
 		major_23 (key, key[15]);
 	}
 
-	a += 0xc6b6b08a;
 	key[13] -= my_sqrt(seed);
 	ROREQ(seed, my_cos(seed) ? 7 : key[10]);
 	key[16] = key[15] * key[16] * 0x4a;
@@ -2776,7 +2659,6 @@ void major_19 (u32 *key, u32 seed)
 void major_21 (u32 *key, u32 seed)
 {
 	int type = (key[1] ^ key[0] ^ key[16]) % 11;
-	u32 a = 0xcb1d507c;
 
 	if(type == 2)
 	{
@@ -2794,7 +2676,7 @@ void major_21 (u32 *key, u32 seed)
 		minor_36 (key);
 	}
 
-	key[17] ^= ROL(key[18], a);
+	key[17] ^= ROL(key[18], 28);
 
 	if(type == 4)
 	{
@@ -2803,7 +2685,6 @@ void major_21 (u32 *key, u32 seed)
 		major_23 (key, key[7]);
 	}
 
-	a += 0xbeb660bf;
 	key[0] ^= my_sqrt(key[12]);
 
 	if(type == 0)
@@ -2822,8 +2703,7 @@ void major_21 (u32 *key, u32 seed)
 		major_19 (key, key[10]);
 	}
 
-	a += 0xfd85df53;
-	key[8] -= my_cos(key[12]) ? a : seed;
+	key[8] -= my_cos(key[12]) ? 0x8759908e : seed;
 
 	if(type == 7)
 	{
@@ -2841,7 +2721,6 @@ void major_21 (u32 *key, u32 seed)
 		major_17 (key, seed);
 	}
 
-	a += 0xf9805d1e;
 	key[15] += my_cos(key[11]) ? 0x1bec01f : seed;
 
 	if(type == 5)
@@ -2851,7 +2730,7 @@ void major_21 (u32 *key, u32 seed)
 		major_4 (key, key[15]);
 	}
 
-	ROREQ(key[1], a * key[16]);
+	ROREQ(key[1], 0x80d9edac * key[16]);
 
 	if(type == 0)
 	{
@@ -2860,7 +2739,6 @@ void major_21 (u32 *key, u32 seed)
 		major_18 (key, seed);
 	}
 
-	a += 0xda780d6d;
 	key[7] &= key[15] * 0xa8f285;
 
 	if(type == 10)
@@ -2877,7 +2755,7 @@ void major_21 (u32 *key, u32 seed)
 		major_3 (key, key[10]);
 	}
 
-	key[3] *= my_sin(key[8]) ? a : key[2];
+	key[3] *= my_sin(key[8]) ? 0x5b51fb19 : key[2];
 
 	if(type == 6)
 	{
@@ -2892,7 +2770,6 @@ void major_21 (u32 *key, u32 seed)
 void major_22 (u32 *key, u32 seed)
 {
 	int type = (key[5] ^ key[0] ^ seed) & 15;
-	u32 a = 0x7c36f793;
 
 	if(type == 3)
 	{
@@ -2908,7 +2785,6 @@ void major_22 (u32 *key, u32 seed)
 		major_21 (key, key[2]);
 	}
 
-	a += 0xfb3de877;
 	key[14] ^= ROL(key[16], 22);
 
 	if(type == 12)
@@ -2948,7 +2824,6 @@ void major_22 (u32 *key, u32 seed)
 		major_9 (key, key[16]);
 	}
 
-	a += 0xff46fc82;
 	key[18] &= my_sqrt(key[9]);
 
 	if(type == 5)
@@ -2988,8 +2863,7 @@ void major_22 (u32 *key, u32 seed)
 		major_13 (key, seed);
 	}
 
-	a += 0xd2750177;
-	key[13] ^= a ^ seed;
+	key[13] ^= 0x4930de03 ^ seed;
 
 	if(type == 2)
 	{
@@ -3028,7 +2902,6 @@ void major_22 (u32 *key, u32 seed)
 		major_14 (key, key[2]);
 	}
 
-	a += 0xf215c83c;
 	seed -= ROR(key[8], 17);
 
 	if(type == 15)
@@ -3045,7 +2918,7 @@ void major_22 (u32 *key, u32 seed)
 		major_9 (key, key[16]);
 	}
 
-	ROREQ(key[14], seed - a);
+	ROREQ(key[14], seed - 0x3b46a63f);
 
 	if(type == 11)
 	{
@@ -3068,8 +2941,7 @@ void major_22 (u32 *key, u32 seed)
 		major_12 (key, key[14]);
 	}
 
-	a += 0xce762e07;
-	key[8] ^= ROR(seed, a);
+	key[8] ^= ROR(seed, 6);
 
 	if(type == 14)
 	{
@@ -3078,7 +2950,7 @@ void major_22 (u32 *key, u32 seed)
 		major_11 (key, seed);
 	}
 
-	key[0] += my_sin(key[0]) ? a : key[14];
+	key[0] += my_sin(key[0]) ? 0x9bcd446 : key[14];
 }
 
 void major_23 (u32 *key, u32 seed)
@@ -3129,8 +3001,6 @@ void major_24 (u32 *key, u32 seed)
 		minor_37 (key);
 	}
 
-	seed += key[3] ^ 0xff342d3c;
-	ROLEQ(seed, my_sin(key[11]) ? 17 : key[0]);
 	key[5] += my_sin(key[16]) ? 0x3af2a8e2 : key[16];
 
 	if(type == 0)
@@ -3142,12 +3012,10 @@ void major_24 (u32 *key, u32 seed)
 
 	key[13] ^= my_cos(key[16]) ? 0xf6951daa : key[1];
 	key[18] |= key[17] & 0x6361a322;
-	seed += my_sqrt(key[10]);
 
 	if(type == 1)
 	{
-		key[13] *= ROR(key[3], 5);
-		key[13] *= 0xb25cb20f;
+		key[13] *= ROR(key[3], 5) * 0xb25cb20f;
 		major_23 (key, key[15]);
 	}
 }
@@ -3176,6 +3044,7 @@ void major_25 (u32 *key, u32 seed)
 	}
 
 	ROREQ(seed, my_sqrt(seed));
+	seed ^= 0xc63d7671 * seed;
 	key[17] += key[19] * 0x7a;
 
 	if(type == 0)
@@ -3186,7 +3055,6 @@ void major_25 (u32 *key, u32 seed)
 	}
 
 	ROREQ(key[18], my_cos(key[6]) ? 0x11 : key[1]);
-	seed ^= 0xc63d7671 * seed;
 
 	if(type == 4)
 	{
