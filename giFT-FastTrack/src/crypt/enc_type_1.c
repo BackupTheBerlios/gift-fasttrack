@@ -1,5 +1,5 @@
 /*
- * $Id: enc_type_1.c,v 1.4 2003/06/28 14:29:35 beren12 Exp $
+ * $Id: enc_type_1.c,v 1.5 2003/06/28 17:07:54 beren12 Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -34,9 +34,9 @@
 	typedef unsigned long long u64;
 #endif /* WIN32 */
 
-#define addCarryOf (x,y)		(((x)+(y)) < (x) || ((x)+(y)) < (y))
-#define subCarryOf (x,y)		((x) < (y))
-#define negCarryOf (x)			((0-x) != 0)
+#define addCarryOf (x,y)		( ( (x)+(y)) < (x) || ( (x)+(y)) < (y))
+#define subCarryOf (x,y)		( (x) < (y))
+#define negCarryOf (x)			( (0-x) != 0)
 
 static unsigned int cipher_table[] =
 {
@@ -74,8 +74,8 @@ static void my_allmul (unsigned int al, unsigned int ah, unsigned int bl, unsign
 {
 	u64 a,b,o;
 
-	a = (((u64)ah) << 32) | al;
-	b = (((u64)bh) << 32) | bl;
+	a = ( ( (u64)ah) << 32) | al;
+	b = ( ( (u64)bh) << 32) | bl;
 	o = a * b;
 	*ol = (unsigned int)(o & 0xFFFFFFFF);
 	*oh = (unsigned int)(o >> 32);
@@ -85,8 +85,8 @@ static void my_aulldiv (unsigned int al, unsigned int ah, unsigned int bl, unsig
 {
 	u64 a,b,o;
 
-	a = (((u64)ah) << 32) | al;
-	b = (((u64)bh) << 32) | bl;
+	a = ( ( (u64)ah) << 32) | al;
+	b = ( ( (u64)bh) << 32) | bl;
 	o = a / b;
 	*ol = (unsigned int)(o & 0xFFFFFFFF);
 	*oh = (unsigned int)(o >> 32);
@@ -115,10 +115,10 @@ void enc_1_mix (unsigned int *table /*ecx*/, unsigned int *in_key /*stack1*/, un
 	unsigned int 	buf1[0x40];
 	unsigned int	buf2[0x40];
 
-	memcpy (buf2, in_key, 0 - negCarryOf(cnt) + 0x100);
+	memcpy (buf2, in_key, 0 - negCarryOf (cnt) + 0x100);
 
 	if (cnt != 0)
-		((unsigned char*)buf2)[0xFF] = 1;
+		( (unsigned char*)buf2)[0xFF] = 1;
 
 	enc_1_sub1 (buf1, (unsigned char*)buf2);
 
@@ -186,7 +186,7 @@ void enc_1_sub4 (unsigned int *src /*ecx*/, unsigned char *dst /*stack1*/, unsig
 		return;
  
 	for (i = 0; i < cnt; i++, dst++)
-		*dst = (unsigned char)(src[i>>2] >> (unsigned char)((i & 3) << 3));
+		*dst = (unsigned char)(src[i>>2] >> (unsigned char)( (i & 3) << 3));
 	
 }
 
