@@ -1,5 +1,5 @@
 /*
- * $Id: fst_meta.h,v 1.3 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_meta.h,v 1.4 2003/06/29 10:34:33 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -35,7 +35,7 @@ typedef enum
 	FILE_TAG_LANGUAGE	= 0x0a,
 	FILE_TAG_KEYWORDS	= 0x0c,
 	FILE_TAG_RESOLUTION	= 0x0d,
-    FILE_TAG_GENRE		= 0x0e,
+    FILE_TAG_CATEGORY		= 0x0e,
 	FILE_TAG_BITDEPTH	= 0x11,
 	FILE_TAG_QUALITY	= 0x15,
     FILE_TAG_VERSION	= 0x18,

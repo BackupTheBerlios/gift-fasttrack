@@ -1,5 +1,5 @@
 /*
- * $Id: fst_meta.c,v 1.5 2003/06/26 18:34:37 mkern Exp $
+ * $Id: fst_meta.c,v 1.6 2003/06/29 10:34:33 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -105,8 +105,8 @@ FSTMetaTag *fst_metatag_create_from_filetag (FSTFileTag filetag, FSTPacket *data
 		name = "keywords";
 		value = fst_packet_get_str (data, fst_packet_remaining (data));
 		break;
-	case FILE_TAG_GENRE:
-		name = "genre";
+	case FILE_TAG_CATEGORY:
+		name = "category";
 		value = fst_packet_get_str (data, fst_packet_remaining (data));
 		break;
 	case FILE_TAG_VERSION:
