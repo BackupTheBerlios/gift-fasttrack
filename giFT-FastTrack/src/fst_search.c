@@ -1,5 +1,5 @@
 /*
- * $Id: fst_search.c,v 1.28 2004/03/24 14:27:41 mkern Exp $
+ * $Id: fst_search.c,v 1.29 2004/03/27 19:49:09 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -416,6 +416,7 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 
 	if (msg_type == SessMsgQueryEnd)
 	{
+		int good_replies;
 		fst_id = ntohs(fst_packet_get_uint16 (msg_data));
 
 		if (! (search = fst_searchlist_lookup_id (searchlist, fst_id)))
@@ -425,11 +426,15 @@ int fst_searchlist_process_reply (FSTSearchList *searchlist,
 			return FALSE;
 		}
 
+		good_replies = search->replies - search->fw_replies - search->banlist_replies;
+
 		FST_DBG_4 ("received end of search for fst_id %d, %d replies, %d firewalled, %d banned",
 				   fst_id, search->replies, search->fw_replies, search->banlist_replies);
 
 		/* check if we need to auto search more */
-		if (search->search_more > 0 && search->type == SearchTypeSearch)
+		if (search->search_more > 0 &&
+		    search->type == SearchTypeSearch &&
+			good_replies < FST_MAX_SEARCH_RESULTS)
 		{
 			/* send off another query */
 			FST_DBG_2 ("auto searching more (%d) for fst_id %d",

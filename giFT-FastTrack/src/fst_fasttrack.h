@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.48 2004/03/20 13:44:42 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.49 2004/03/27 19:49:09 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -161,8 +161,11 @@ typedef uint32_t fst_uint32;
 #define FST_NODE_MIN_LOAD 10
 #define FST_NODE_MAX_LOAD 90
 
-/* max number of results we want to be returned per search */
-#define FST_MAX_SEARCH_RESULTS 128
+/*
+ * The maximum number of results we return per search. This is sent to the
+ * supernode and if we have more results than this we won't auto search more.
+ */
+#define FST_MAX_SEARCH_RESULTS 1000
 
 /* application strings for http */
 #define FST_HTTP_SERVER "giFT-FastTrack " VERSION
