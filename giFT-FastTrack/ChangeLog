@@ -1,4 +1,8 @@
- $Id: ChangeLog,v 1.28 2004/12/19 14:49:00 mkern Exp $
+ $Id: ChangeLog,v 1.29 2004/12/28 16:34:57 mkern Exp $
+
+2004-12-28  Markus Kern <mkern@users.berlios.de>
+
+	* Fixed crash on firewalled source abortion.
 
 2004-12-19  Markus Kern <mkern@users.berlios.de>
 

@@ -1,5 +1,5 @@
 /*
- * $Id: fst_download.c,v 1.27 2004/12/19 13:25:09 mkern Exp $
+ * $Id: fst_download.c,v 1.28 2004/12/28 16:34:57 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -33,6 +33,35 @@ static FSTSession *session_from_ip (in_addr_t ip);
 
 /*****************************************************************************/
 
+/* We need cannot directly abort sources from fst_giftcb_download_start so we
+ * use this timer.
+ */
+static BOOL abort_source_func (Source *source)
+{
+	assert (source);
+	assert (source->udata == NULL);
+
+	/* this will call fst_giftcb_source_remove */
+	FST_PROTO->source_abort (FST_PROTO, source->chunk->transfer, source);
+
+	return FALSE; /* Remove timer. */
+}
+
+static void async_abort_source (Source *source)
+{
+	if (source->udata)
+	{
+		/* If there is still a http client around remove it now. */
+		FST_HEAVY_DBG_1 ("scheduling removal of source %s", source->url);
+		fst_http_client_free (source->udata);
+		source->udata = NULL;
+	}
+
+	/* Abort source immediately after we returned to event loop. */
+	timer_add (0, (TimerCallback)abort_source_func, source);
+}
+
+
 /* called by gift to start downloading of a chunk */
 int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 							   Source *source)
@@ -45,7 +74,7 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 	{
 		/* this url is broken, remove the source */
 		FST_WARN_1 ("malformed url \"%s\", removing source", source->url);
-		FST_PROTO->source_abort (FST_PROTO, source->chunk->transfer, source);
+		async_abort_source (source);
 		return FALSE;
 	}
 
@@ -77,13 +106,8 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 			FST_DBG_1 ("No supernode for sending push, removing source %s",
 			           source->url);
 
-			/* this will call fst_giftcb_source_remove */
-			FST_PROTO->source_abort (FST_PROTO, source->chunk->transfer, source);
-
-			/* Need to return TRUE because gift fill otherwise access the already
-			 * removed source in download.c::activate_chunk and crash.
-			 */
-			return TRUE;
+			async_abort_source (source);
+			return FALSE;
 		}
 
 		fst_source_free (src);
@@ -99,13 +123,8 @@ int fst_giftcb_download_start (Protocol *p, Transfer *transfer, Chunk *chunk,
 			fst_pushlist_remove (FST_PLUGIN->pushlist, push);
 			fst_push_free (push);
 
-			/* this will call fst_giftcb_source_remove */
-			FST_PROTO->source_abort (FST_PROTO, source->chunk->transfer, source);
-
-			/* Need to return TRUE because gift fill otherwise access the already
-			 * removed source in download.c::activate_chunk and crash.
-			 */
-			return TRUE;
+			async_abort_source (source);
+			return FALSE;
 		}
 
 		FST_PROTO->source_status (FST_PROTO, source, SOURCE_WAITING, "Sent push");
