@@ -89,8 +89,15 @@ int fst_session_connect(FSTSession *session, FSTNode *node)
 	FST_DBG_3 ("connecting to %s(%s):%d", node->host, net_ip_str(*((in_addr_t*)he->h_addr_list[0])), node->port);
 
 	session->tcpcon = tcp_open (*((in_addr_t*)he->h_addr_list[0]), node->port, FALSE);
-	session->tcpcon->udata = (void*)session;
 
+	if (!session->tcpcon)
+	{
+		session->state = SessDisconnected;
+		FST_DBG_1 ("ERROR: tcp_open() failed for %s. no route to host?", node->host);
+		return FALSE;
+	}
+	
+	session->tcpcon->udata = (void*)session;
 	session->node = node;
 
 	input_add (session->tcpcon->fd, (void*)session, INPUT_WRITE, (InputCallback) session_connected, FST_SESSION_CONNECT_TIMEOUT);
