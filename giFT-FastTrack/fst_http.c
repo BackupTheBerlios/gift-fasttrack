@@ -49,14 +49,12 @@ void fst_http_request_set_header (FSTHttpRequest *request, char *name, char *val
 }
 
 
-int http_reply_compile_header (Dataset *headers, DatasetNode *header, FSTPacket *packet)
+void http_reply_compile_header (ds_data_t *key, ds_data_t *value, FSTPacket *packet)
 {
-	char *line = malloc (strlen (header->key) + strlen (header->value) + 16);
-	sprintf (line, "%s: %s\r\n", (char*)header->key, (char*)header->value);
+	char *line = malloc (strlen (key->data) + strlen (value->data) + 16);
+	sprintf (line, "%s: %s\r\n", (char*)key->data, (char*)value->data);
 	fst_packet_put_ustr (packet, line, strlen (line));
 	free (line);
-
-	return FALSE; // don't remove
 }
 
 // compile request and append it to packet
@@ -71,7 +69,7 @@ int fst_http_request_compile (FSTHttpRequest *request, FSTPacket *packet)
 	free (line);
 
 	// add headers
-	dataset_foreach (request->headers, (DatasetForeach)http_reply_compile_header, (void*)packet);
+	dataset_foreach (request->headers, (DatasetForeachFn)http_reply_compile_header, (void*)packet);
 
 	// add empty line for header termination
 	fst_packet_put_ustr (packet, "\r\n", 2);
