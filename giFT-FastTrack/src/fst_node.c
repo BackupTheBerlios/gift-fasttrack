@@ -1,5 +1,5 @@
 /*
- * $Id: fst_node.c,v 1.14 2004/03/11 14:47:31 mkern Exp $
+ * $Id: fst_node.c,v 1.15 2004/03/20 13:15:56 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -130,6 +130,9 @@ void fst_nodecache_add (FSTNodeCache *cache, FSTNodeKlass klass, char *host,
 
 	/* insert at front */
 	fst_nodecache_insert (cache, node, NodeInsertFront);
+
+	/* free node */
+	fst_node_free (node);
 }
 
 /* Insert copy of node at pos. If node is already in the cache it is moved. */
