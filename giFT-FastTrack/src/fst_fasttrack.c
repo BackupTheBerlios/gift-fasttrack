@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.83 2005/07/03 18:44:00 hex Exp $
+ * $Id: fst_fasttrack.c,v 1.84 2005/07/03 20:56:30 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -75,6 +75,9 @@ static void fst_plugin_connect_next ()
 	int count = 0, nsessions;
 
 	nsessions = config_get_int (FST_PLUGIN->conf, "main/additional_sessions=0");
+
+	if (nsessions > FST_MAX_ADDITIONAL_SESSIONS)
+		nsessions = FST_MAX_ADDITIONAL_SESSIONS;
 
 	/* connect to head node in node cache */
 	while (!FST_PLUGIN->session || 
