@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.82 2004/12/28 15:53:23 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.83 2005/07/03 18:44:00 hex Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -41,12 +41,6 @@ static int fst_plugin_session_callback (FSTSession *session,
  * Note: the connect control flow is wicked. modify with extreme care.
  */
 
-static BOOL fst_plugin_netfail_timer (void *udata)
-{
-	fst_plugin_connect_next ();
-	return FALSE;
-}
-
 static int save_nodes (void)
 {
 	char *nodesfile;
@@ -65,8 +59,8 @@ static int save_nodes (void)
 
 /*
  * We need to check if FST_ADDITIONAL_SESSIONS has changed
- * periodically. TODO: this can probably replace
- * fst_plugin_netfail_timer.
+ * periodically. Also used if connecting has been postponed for any
+ * other reason.
  */
 static BOOL fst_plugin_try_connect (void *udata)
 {
@@ -81,9 +75,6 @@ static void fst_plugin_connect_next ()
 	int count = 0, nsessions;
 
 	nsessions = config_get_int (FST_PLUGIN->conf, "main/additional_sessions=0");
-
-	if (nsessions > FST_MAX_ADDITIONAL_SESSIONS)
-		nsessions = FST_MAX_ADDITIONAL_SESSIONS;
 
 	/* connect to head node in node cache */
 	while (!FST_PLUGIN->session || 
@@ -164,23 +155,19 @@ static void fst_plugin_connect_next ()
 			sess = NULL;
 
 			/* TODO: check if name resolution in fst_session_connect() failed */
-			if (1)
-			{
-				/* network down, wait a while before retrying */
-				FST_WARN_1 ("Internet connection seems down, sleeping for %d seconds.",
-				            FST_SESSION_NETFAIL_INTERVAL / SECONDS);
 
-				timer_add (FST_SESSION_NETFAIL_INTERVAL,
-				           fst_plugin_netfail_timer,NULL);
-
-				fst_node_release (node);
-				return;
-			}
-
-			/* remove this node from cache */
-			fst_nodecache_remove (FST_PLUGIN->nodecache, node);
+			/* network down, wait a while before retrying */
+			FST_WARN_1 ("Internet connection seems down, sleeping...",
+				    FST_SESSION_NETFAIL_INTERVAL / SECONDS);
+			
+			/* move node to back of cache so next loop uses a different one; this
+			   won't help if the network really is down, but might under other
+			   circumstances */
+			fst_nodecache_move (FST_PLUGIN->nodecache, node, NodeInsertBack);
 			fst_node_release (node);
-			continue;
+
+			/* just wait until fst_plugin_try_connect() is next called */
+			return;
 		}
 
 		/* move node to back of cache so next loop uses a different one */
