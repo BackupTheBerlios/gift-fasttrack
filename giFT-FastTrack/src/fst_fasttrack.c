@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.84 2005/07/03 20:56:30 hex Exp $
+ * $Id: fst_fasttrack.c,v 1.85 2005/07/09 11:48:32 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -136,6 +136,17 @@ static void fst_plugin_connect_next ()
 			continue;
 		}
 
+		/* don't connect to invalid ips */
+		if (!fst_utils_ip_routable (net_ip (node->host)))
+		{
+			FST_DBG_2 ("not connecting to unroutable node %s:%d",
+			           node->host, node->port);
+			/* remove this node from cache */
+			fst_nodecache_remove (FST_PLUGIN->nodecache, node);
+			fst_node_release (node);
+			continue;
+		}
+
 		/* don't connect to banned ips */
 		if (config_get_int (FST_PLUGIN->conf, "main/banlist_filter=0") &&
 			fst_ipset_contains (FST_PLUGIN->banlist, net_ip (node->host)))
@@ -164,8 +175,8 @@ static void fst_plugin_connect_next ()
 				    FST_SESSION_NETFAIL_INTERVAL / SECONDS);
 			
 			/* move node to back of cache so next loop uses a different one; this
-			   won't help if the network really is down, but might under other
-			   circumstances */
+			 * won't help if the network really is down, but might under other
+			 * circumstances */
 			fst_nodecache_move (FST_PLUGIN->nodecache, node, NodeInsertBack);
 			fst_node_release (node);
 
@@ -369,10 +380,10 @@ static int fst_plugin_session_callback (FSTSession *session,
 	/* FastTrack messages */
 	case SessMsgNodeList:
 	{
-		int i;
+		int added_nodes = 0;
 		time_t now = time (NULL); 
 
-		for (i=0; fst_packet_remaining (msg_data) >= 8; i++)
+		while (fst_packet_remaining (msg_data) >= 8)
 		{
 			unsigned long ip		= fst_packet_get_uint32 (msg_data);			
 			unsigned short port		= ntohs (fst_packet_get_uint16 (msg_data));	
@@ -392,12 +403,20 @@ static int fst_plugin_session_callback (FSTSession *session,
 #endif
 #endif
 
-			node = fst_nodecache_add (FST_PLUGIN->nodecache, NodeKlassSuper,
-							   net_ip_str (ip), port, load, now - last_seen * 60);
+			/* Only add routable ips to cache */
+			if (fst_utils_ip_routable ((in_addr_t)ip))
+			{
+				node = fst_nodecache_add (FST_PLUGIN->nodecache,
+				                          NodeKlassSuper,
+				                          net_ip_str (ip), port, load,
+				                          now - last_seen * 60);
 				      
-			if (node && last_seen == 0)
-				fst_peer_insert (FST_PLUGIN->peers, session->node,
-					      &session->peers, node);
+				if (node && last_seen == 0)
+					fst_peer_insert (FST_PLUGIN->peers, session->node,
+					                 &session->peers, node);
+	
+				added_nodes++;
+			}
 		}
 
 #ifdef DUMP_NODES
@@ -407,7 +426,7 @@ static int fst_plugin_session_callback (FSTSession *session,
 		/* sort the cache again */
 		fst_nodecache_sort (FST_PLUGIN->nodecache);
 
-		FST_DBG_1 ("added %d received supernode IPs to nodes list", i);
+		FST_DBG_1 ("added %d received supernode IPs to nodes list", added_nodes);
 
 		/* save some new nodes for next time (but not too often) */
 		if (FST_PLUGIN->session == session)
@@ -538,7 +557,7 @@ static int fst_plugin_session_callback (FSTSession *session,
 
 	case SessMsgProtocolVersion:
 	{
-		/* Note: We are not really sure if this the protocol version. */
+		/* Note: We are not really sure if this is the protocol version. */
 		FSTPacket *packet;
 		fst_uint32 version;
 

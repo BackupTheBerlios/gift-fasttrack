@@ -1,4 +1,9 @@
- $Id: ChangeLog,v 1.29 2004/12/28 16:34:57 mkern Exp $
+ $Id: ChangeLog,v 1.30 2005/07/09 11:48:30 mkern Exp $
+
+2005-07-09  Markus Kern <mkern@users.berlios.de>
+
+	* Don't add reserved ips to cache and remove them on connect when they
+	  are there.
 
 2004-12-28  Markus Kern <mkern@users.berlios.de>
 

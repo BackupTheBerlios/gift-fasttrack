@@ -1,5 +1,5 @@
 /*
- * $Id: fst_utils.c,v 1.15 2004/12/18 18:27:05 hex Exp $
+ * $Id: fst_utils.c,v 1.16 2005/07/09 11:48:32 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * Portions Copyright (C) 2001 Shtirlitz <shtirlitz@unixwarez.net>
@@ -386,6 +386,7 @@ BOOL fst_utils_ip_routable (in_addr_t ip)
 	    ((ip & 0xffff0000) == 0xc0a80000) || /* 192.168.0.0 */
 	    ((ip & 0xfff00000) == 0xac100000) || /* 172.16-31.0.0 */
 	    ((ip & 0xff000000) == 0x0a000000) || /* 10.0.0.0 */
+	    ((ip & 0xE0000000) == 0xE0000000) || /* Classes D,E,F */
 		(ip == 0) ||
 		(ip == INADDR_NONE)) /* invalid ip */
 	{
