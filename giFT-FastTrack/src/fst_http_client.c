@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.c,v 1.14 2005/03/09 21:16:02 mkern Exp $
+ * $Id: fst_http_client.c,v 1.15 2006/01/29 20:05:38 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -401,6 +401,12 @@ static void client_read_header (int fd, input_id input, FSTHttpClient *client)
 		return;
 	}
 
+	/* Add new input handler before calling client_write_data since that may
+	 * actually cancel the download via a giFT callback if the data cannot be
+	 * written to disk. client->tcpcon will then be NULL.
+	 */
+	input_add (client->tcpcon->fd, (void*)client, INPUT_READ,
+			   (InputCallback)client_read_body, HTCL_DATA_TIMEOUT);
 
 	if (client->data_len > 0)
 	{
@@ -410,10 +416,6 @@ static void client_read_header (int fd, input_id input, FSTHttpClient *client)
 			return;
 		}
 	}
-
-	/* read body data */
-	input_add (client->tcpcon->fd, (void*)client, INPUT_READ,
-			   (InputCallback)client_read_body, HTCL_DATA_TIMEOUT);
 }
 
 static void client_read_body (int fd, input_id input, FSTHttpClient *client)

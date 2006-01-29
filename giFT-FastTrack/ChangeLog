@@ -1,4 +1,8 @@
- $Id: ChangeLog,v 1.30 2005/07/09 11:48:30 mkern Exp $
+ $Id: ChangeLog,v 1.31 2006/01/29 20:05:37 mkern Exp $
+
+2006-01-29  Markus Kern <mkern@users.berlios.de>
+
+	* Fixed crash when giFT cannot write downloaded data to disk.
 
 2005-07-09  Markus Kern <mkern@users.berlios.de>
 
