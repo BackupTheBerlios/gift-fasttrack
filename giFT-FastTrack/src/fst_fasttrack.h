@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.55 2004/11/10 20:07:05 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.56 2006/08/17 14:36:43 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -229,6 +229,11 @@ typedef uint32_t fst_uint32;
  */
 #define FST_MAX_ADDITIONAL_SESSIONS 10
 
+/* If defined we are also sending our share to every additional supernode
+ * connection and not just the primary one. 
+ */
+/* #define FST_SHARE_ON_ADDITIONAL_SESSIONS */
+
 /*****************************************************************************/
 
 typedef struct
@@ -287,7 +292,6 @@ typedef struct
 									 */
 
 	int allow_sharing;				/* cache for allow_sharing config key */
-	int shared_files;               /* number of currently shared files */
 
 	timer_id retry_timer;
 	

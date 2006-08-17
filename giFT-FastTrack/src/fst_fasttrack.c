@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.85 2005/07/09 11:48:32 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.86 2006/08/17 14:36:43 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -172,7 +172,7 @@ static void fst_plugin_connect_next ()
 
 			/* network down, wait a while before retrying */
 			FST_WARN_1 ("Internet connection seems down, sleeping...",
-				    FST_SESSION_NETFAIL_INTERVAL / SECONDS);
+			            FST_SESSION_NETFAIL_INTERVAL / SECONDS);
 			
 			/* move node to back of cache so next loop uses a different one; this
 			 * won't help if the network really is down, but might under other
@@ -348,8 +348,6 @@ static int fst_plugin_session_callback (FSTSession *session,
 		if (FST_PLUGIN->session == session)
 		{
 			FST_PLUGIN->session = NULL;
-			/* reset external ip because we wait with sharing until we get it again */
-			FST_PLUGIN->external_ip = 0;
 		}
 		else if ((item = list_find (FST_PLUGIN->sessions, session)))
 		{
@@ -535,18 +533,13 @@ static int fst_plugin_session_callback (FSTSession *session,
 		/* upload our shares to supernode.
 		 * we do this here because we have to make sure we are accessible
 		 * from the outside since we don't push yet.
-		 *
-		 * Note: The entire shares code assumes FST_PLUGIN->session is the
-		 * supernode we share on so only share there.
 		 */
-		if (session == FST_PLUGIN->session)
+		if (fst_share_do_share (session))
 		{
-			if (fst_share_do_share ())
-			{
-				FST_DBG ("registering shares with new supernode");
-				if (!fst_share_register_all ())
-					FST_DBG ("registering shares with new supernode failed");
-			}
+			FST_DBG_1 ("registering shares with new supernode %s",
+			           session->node->host);
+			if (!fst_share_register_all (session))
+				FST_DBG ("registering shares with new supernode failed");
 		}
 
 		/* resend queries for all running searches */
@@ -819,7 +812,6 @@ static int fst_giftcb_start (Protocol *proto)
 	/* cache allow_sharing key */
 	FST_PLUGIN->allow_sharing = config_get_int (FST_PLUGIN->conf,
 	                                            "main/allow_sharing=0");
-	FST_PLUGIN->shared_files = 0;
 
 #if 0
 	/*

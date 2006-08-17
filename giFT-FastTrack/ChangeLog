@@ -1,4 +1,8 @@
- $Id: ChangeLog,v 1.31 2006/01/29 20:05:37 mkern Exp $
+ $Id: ChangeLog,v 1.32 2006/08/17 14:36:42 mkern Exp $
+
+2006-08-17  Markus Kern <mkern@users.berlios.de>
+
+	* Cleaned up shares submission. Still needs work and testing though.
 
 2006-01-29  Markus Kern <mkern@users.berlios.de>
 

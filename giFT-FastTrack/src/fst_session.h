@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.h,v 1.11 2004/11/10 20:00:57 mkern Exp $
+ * $Id: fst_session.h,v 1.12 2006/08/17 14:36:43 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -78,6 +78,7 @@ struct _FSTSession
 
 	FSTSessionState state;
 	int was_established;		/* TRUE if session was ever fully established */
+	int shared_files;           /* number of shares sent to this supernode */
 
 	TCPC *tcpcon;				/* tcp connection */
 	FSTNode *node;				/* copy of node this session is connected to */

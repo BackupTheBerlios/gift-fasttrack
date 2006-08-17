@@ -1,5 +1,5 @@
 /*
- * $Id: fst_share.c,v 1.10 2004/03/20 13:08:55 mkern Exp $
+ * $Id: fst_share.c,v 1.11 2006/08/17 14:36:43 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -31,9 +31,9 @@ extern Dataset *share_index (unsigned long *files, double *size);
 
 /*****************************************************************************/
 
-static int share_register_file (Share *share);
+static int share_register_file (Share *share, FSTSession *session);
 
-static int share_unregister_file (Share *share);
+static int share_unregister_file (Share *share, FSTSession *session);
 
 /*****************************************************************************/
 
@@ -57,27 +57,55 @@ void fst_giftcb_share_free (Protocol *p, Share *share, void *data)
 /* called by giFT when share is added */
 BOOL fst_giftcb_share_add (Protocol *p, Share *share, void *data)
 {
-	if (!fst_share_do_share ())
-		return FALSE;
-	
-	if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
-		return FALSE;
+	FSTSession *session = FST_PLUGIN->session;
+	List *item;
 
-	if (FST_PLUGIN->shared_files >= FST_MAX_SHARED_FILES)
+	/* register share with primary supernode */
+	if (fst_share_do_share (session))
 	{
-		FST_HEAVY_DBG_1 ("not registering share %s (clipped)", share->path);
-		return FALSE;
+		if (session->shared_files < FST_MAX_SHARED_FILES)
+		{
+			FST_HEAVY_DBG_2 ("registering share %s with primary supernode %s",
+			                 share->path, session->node->host);
+
+			if (!share_register_file (share, session))
+				FST_DBG_1 ("registering share %s failed", share->path);
+			else
+				session->shared_files++;
+		}
+		else
+		{
+			FST_HEAVY_DBG_2 ("not registering share %s with primary supernode %s (clipped)",
+			                 share->path, session->node->host);
+		}
 	}
 
-	FST_HEAVY_DBG_1 ("registering share %s", share->path);
-
-	if (!share_register_file (share))
+#ifdef FST_SHARE_ON_ADDITIONAL_SESSIONS
+	/* register share with supplemental supernodes */
+	for (item = FST_PLUGIN->sessions; item; item = item->next)
 	{
-		FST_DBG_1 ("registering share %s failed", share->path);
-		return FALSE;
-	}
+		session = (FSTSession*)item->data;
 
-	FST_PLUGIN->shared_files++;
+		if (!fst_share_do_share (session))
+			continue;
+
+		if (session->shared_files < FST_MAX_SHARED_FILES)
+		{
+			FST_HEAVY_DBG_2 ("registering share %s with supplemental supernode %s",
+			                 share->path, session->node->host);
+
+			if (!share_register_file (share, session))
+				FST_DBG_1 ("registering share %s failed", share->path);
+			else
+				session->shared_files++;
+		}
+		else
+		{
+			FST_HEAVY_DBG_2 ("not registering share %s with supplemental supernode %s (clipped)",
+			                 share->path, session->node->host);
+		}
+	}
+#endif
 
 	return TRUE;
 }
@@ -85,29 +113,57 @@ BOOL fst_giftcb_share_add (Protocol *p, Share *share, void *data)
 /* called by giFT when share is removed */
 BOOL fst_giftcb_share_remove (Protocol *p, Share *share, void *data)
 {
-	if (!fst_share_do_share ())
-		return FALSE;
+	FSTSession *session = FST_PLUGIN->session;
+	List *item;
 
-	if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
-		return TRUE; /* removed since we didn't share anyway */
+	/* TODO: only try to remove files we actually uploaded to supernode */
 
-	/* TODO: only remove files we actually uploaded to supernode */
-
-	if (FST_PLUGIN->shared_files <= 0)
+	/* register share from primary supernode */
+	if (fst_share_do_share (session))
 	{
-		FST_HEAVY_DBG_1 ("not unregistering share %s (clipped)", share->path);
-		return TRUE;
+		if (session->shared_files > 0)
+		{
+			FST_HEAVY_DBG_2 ("unregistering share %s from primary supernode %s",
+			                 share->path, session->node->host);
+
+			if (!share_unregister_file (share, session))
+				FST_DBG_1 ("unregistering share %s failed", share->path);
+			else
+				session->shared_files--;
+		}
+		else
+		{
+			FST_HEAVY_DBG_2 ("not unregistering share %s from primary supernode %s (clipped)",
+			                 share->path, session->node->host);
+		}
 	}
 
-	FST_HEAVY_DBG_1 ("unregistering share %s", share->path);
-
-	if (!share_unregister_file (share))
+#ifdef FST_SHARE_ON_ADDITIONAL_SESSIONS
+	/* unregister share from supplemental supernodes */
+	for (item = FST_PLUGIN->sessions; item; item = item->next)
 	{
-		FST_DBG_1 ("unregistering share %s failed", share->path);
-		return FALSE;
-	}
+		session = (FSTSession*)item->data;
 
-	FST_PLUGIN->shared_files--;
+		if (!fst_share_do_share (session))
+			continue;
+
+		if (session->shared_files > 0)
+		{
+			FST_HEAVY_DBG_2 ("unregistering share %s from supplemental supernode %s",
+			                 share->path, session->node->host);
+
+			if (!share_unregister_file (share, session))
+				FST_DBG_1 ("unregistering share %s failed", share->path);
+			else
+				session->shared_files--;
+		}
+		else
+		{
+			FST_HEAVY_DBG_2 ("not unregistering share %s from supplemental supernode %s (clipped)",
+			                 share->path, session->node->host);
+		}
+	}
+#endif
 
 	return TRUE;
 }
@@ -121,18 +177,33 @@ void fst_giftcb_share_sync (Protocol *p, int begin)
 /* called by giFT when user hides shares */
 void fst_giftcb_share_hide (Protocol *p)
 {
-	FST_HEAVY_DBG ("hiding shares...");
+	FSTSession *session = FST_PLUGIN->session;
+	List *item;
 
-	if (!fst_share_do_share ())
-		return;
+	FST_DBG ("hiding shares by removing them from supernode(s)");
 
-	if (FST_PLUGIN->session && FST_PLUGIN->session->state == SessEstablished)
+	/* unregister shares with primary supernode */
+	if (fst_share_do_share (session))
 	{
-		FST_DBG ("hiding shares by removing them from supernode");
-
-		if (!fst_share_unregister_all ())
-			FST_DBG ("uregistering all shares failed");
+		if (!fst_share_unregister_all (session))
+			FST_DBG_1 ("unregistering all shares from primary supernode %s failed",
+			           session->node->host);
 	}
+
+#ifdef FST_SHARE_ON_ADDITIONAL_SESSIONS
+	/* unregister shares with supplemental supernodes */
+	for (item = FST_PLUGIN->sessions; item; item = item->next)
+	{
+		session = (FSTSession*)item->data;
+
+		if (!fst_share_do_share (session))
+			continue;
+
+		if (!fst_share_unregister_all (session))
+			FST_DBG_1 ("unregistering all shares from supplemental supernode %s failed",
+			           session->node->host);
+	}
+#endif
 
 	FST_PLUGIN->hide_shares = TRUE;
 }
@@ -140,26 +211,49 @@ void fst_giftcb_share_hide (Protocol *p)
 /* called by giFT when user shows shares */
 void fst_giftcb_share_show (Protocol *p)
 {
-	FST_HEAVY_DBG ("showing shares...");
+	FSTSession *session = FST_PLUGIN->session;
+	List *item;
+
+	FST_DBG ("showing shares by registering them with supernode");
+
+	/* register shares with primary supernode */
+	if (fst_share_do_share (session))
+	{
+		if (!fst_share_register_all (session))
+			FST_DBG_1 ("registering all shares from primary supernode %s failed",
+			           session->node->host);
+	}
+
+#ifdef FST_SHARE_ON_ADDITIONAL_SESSIONS
+	/* register shares with supplemental supernodes */
+	for (item = FST_PLUGIN->sessions; item; item = item->next)
+	{
+		session = (FSTSession*)item->data;
+
+		if (!fst_share_do_share (session))
+			continue;
+
+		if (!fst_share_register_all (session))
+			FST_DBG_1 ("registering all shares from supplemental supernode %s failed",
+			           session->node->host);
+	}
+#endif
 
 	FST_PLUGIN->hide_shares = FALSE;
-	
-	if (!fst_share_do_share ())
-		return;
-
-	if (FST_PLUGIN->session && FST_PLUGIN->session->state == SessEstablished)
-	{
-		FST_DBG ("showing shares by registering them with supernode");
-
-		if (!fst_share_register_all ())
-			FST_DBG ("registering all shares failed");
-	}
 }
 
 /*****************************************************************************/
 
-int fst_share_do_share ()
+int fst_share_do_share (FSTSession *session)
 {
+	if (!session || session->state != SessEstablished)
+		return FALSE;
+
+#if !defined(FST_SHARE_ON_ADDITIONAL_SESSIONS)
+	if (FST_PLUGIN->session != session)
+		return FALSE;
+#endif
+
 	if (!FST_PLUGIN->server)
 		return FALSE;
 		
@@ -177,21 +271,27 @@ int fst_share_do_share ()
 	return TRUE;
 }
 
+typedef struct
+{
+	FSTSession *session;
+	int succeeded;
+	int failed;
+} ShareRegisterParam;
 
 static int share_register_all_iter (ds_data_t *key, ds_data_t *value,
-                                    int *all_ok)
+                                    ShareRegisterParam *reg_param)
 {
 	Share *share = value->data;
 
-	if (!share_register_file (share))
+	if (!share_register_file (share, reg_param->session))
 	{
-		*all_ok = FALSE;
+		reg_param->failed++;
 		return DS_BREAK;
 	}
+	reg_param->succeeded++;
+	reg_param->session->shared_files++;
 
-	FST_PLUGIN->shared_files++;
-
-	if (FST_PLUGIN->shared_files >= FST_MAX_SHARED_FILES)
+	if (reg_param->session->shared_files >= FST_MAX_SHARED_FILES)
 	{
 		FST_DBG_1 ("clipping shares at FST_MAX_SHARED_FILES (%d)",
 		           FST_MAX_SHARED_FILES);
@@ -202,31 +302,30 @@ static int share_register_all_iter (ds_data_t *key, ds_data_t *value,
 }
 
 /* send all shares to supernode */
-int fst_share_register_all ()
+int fst_share_register_all (FSTSession *session)
 {
 	Dataset *shares;
-	int all_ok = TRUE;
-
-	if (!fst_share_do_share ())
+	ShareRegisterParam reg_param;
+	
+	if (!fst_share_do_share (session))
 		return FALSE;
-
-	if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
-	{
-		FST_DBG ("tried to register shares with no connection to supernode");
-		return FALSE;
-	}
 
 	/* FIXME: this isnt technically accessible by plugins! */
 	if (!(shares = share_index (NULL, NULL)))
 		return FALSE;
 
+	reg_param.session = session;
+	reg_param.succeeded = 0;
+	reg_param.failed = 0;
+
 	/* loop max FST_MAX_SHARED_FILES shares and send them to the supernode */
 	dataset_foreach_ex (shares, DS_FOREACH_EX(share_register_all_iter),
-	                    (void*)&all_ok);
+	                    (void*)&reg_param);
 
-	if (!all_ok)
+	if (reg_param.failed > 0)
 	{
-		FST_DBG ("not all shares could be registered with supernode");
+		FST_DBG_2 ("Failed to register %d files with supernode, %d succeeded",
+		           reg_param.failed, reg_param.succeeded);
 		return FALSE;
 	}
 
@@ -234,38 +333,32 @@ int fst_share_register_all ()
 }
 
 static int share_unregister_all_iter (ds_data_t *key, ds_data_t *value,
-                                      int *all_ok)
+                                      ShareRegisterParam *reg_param)
 {
 	Share *share = value->data;
 
-	if (!share_unregister_file (share))
+	if (!share_unregister_file (share, reg_param->session))
 	{
-		*all_ok = FALSE;
+		reg_param->failed++;
 		return DS_BREAK;
 	}
+	reg_param->succeeded++;
+	reg_param->session->shared_files--;
 
-	FST_PLUGIN->shared_files--;
-
-	if (FST_PLUGIN->shared_files <= 0)
+	if (reg_param->session->shared_files <= 0)
 		return DS_BREAK;
 
 	return DS_CONTINUE;
 }
 
 /* remove all shares from supernode */
-int fst_share_unregister_all ()
+int fst_share_unregister_all (FSTSession *session)
 {
 	Dataset *shares;
-	int all_ok = TRUE;
+	ShareRegisterParam reg_param;
 
-	if (!fst_share_do_share ())
+	if (!fst_share_do_share (session))
 		return FALSE;
-
-	if (!FST_PLUGIN->session || FST_PLUGIN->session->state != SessEstablished)
-	{
-		FST_DBG ("tried to unregister shares with no connection to supernode");
-		return FALSE;
-	}
 
 	/* FIXME: this isnt technically accessible by plugins! */
 	if (!(shares = share_index (NULL, NULL)))
@@ -273,21 +366,26 @@ int fst_share_unregister_all ()
 
 	/* TODO: only remove files we actually uploaded to supernode */
 
+	reg_param.session = session;
+	reg_param.succeeded = 0;
+	reg_param.failed = 0;
+
 	/* Loop max FST_MAX_SHARED_FILES shares and remove them from supernode.
 	 * Note: If giFT has rearranged the shares index since we transmitted the files
 	 * we may not remove all files.
 	 */
-	if (FST_PLUGIN->shared_files > 0)
+	if (session->shared_files > 0)
 	{
 		dataset_foreach_ex (shares, DS_FOREACH_EX(share_unregister_all_iter),
-			                (void*)&all_ok);
+			                (void*)&reg_param);
 	}
 
-	FST_PLUGIN->shared_files = 0;
+	session->shared_files = 0;
 
-	if (!all_ok)
+	if (reg_param.failed > 0)
 	{
-		FST_DBG ("not all shares could be unregistered from supernode");
+		FST_DBG_2 ("Failed to unregister %d files from supernode, %d succeeded",
+		           reg_param.failed, reg_param.succeeded);
 		return FALSE;
 	}
 
@@ -341,7 +439,7 @@ static void share_add_filename (Share *share, ShareAddTagParam *tag_param)
 }
 
 
-static int share_register_file (Share *share)
+static int share_register_file (Share *share, FSTSession *session)
 {
 	FSTPacket *packet;
 	Hash *gift_hash;
@@ -418,7 +516,7 @@ static int share_register_file (Share *share)
 
 
 	/* now send it */
-	if (!fst_session_send_message (FST_PLUGIN->session, SessMsgShareFile, packet))
+	if (!fst_session_send_message (session, SessMsgShareFile, packet))
 	{
 		fst_packet_free (packet);
 		return FALSE;
@@ -428,7 +526,7 @@ static int share_register_file (Share *share)
 	return TRUE;
 }
 
-static int share_unregister_file (Share *share)
+static int share_unregister_file (Share *share, FSTSession *session)
 {
 	FSTPacket *packet;
 	Hash *gift_hash;
@@ -490,7 +588,7 @@ static int share_unregister_file (Share *share)
 
 
 	/* now send it */
-	if (!fst_session_send_message (FST_PLUGIN->session, SessMsgUnshareFile, packet))
+	if (!fst_session_send_message (session, SessMsgUnshareFile, packet))
 	{
 		fst_packet_free (packet);
 		return FALSE;

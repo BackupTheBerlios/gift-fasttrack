@@ -1,5 +1,5 @@
 /*
- * $Id: fst_share.h,v 1.1 2003/11/28 14:50:15 mkern Exp $
+ * $Id: fst_share.h,v 1.2 2006/08/17 14:36:43 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -46,13 +46,13 @@ void fst_giftcb_share_show (Protocol *p);
 /*****************************************************************************/
 
 /* return TRUE if it makes sense to share at call time */
-int fst_share_do_share ();
+int fst_share_do_share (FSTSession *session);
 
 /* send all shares to supernode */
-int fst_share_register_all ();
+int fst_share_register_all (FSTSession *session);
 
 /* remove all shares from supernode */
-int fst_share_unregister_all ();
+int fst_share_unregister_all (FSTSession *session);
 
 /*****************************************************************************/
 

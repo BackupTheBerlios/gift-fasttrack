@@ -1,5 +1,5 @@
 /*
- * $Id: fst_session.c,v 1.33 2004/11/11 14:31:56 mkern Exp $
+ * $Id: fst_session.c,v 1.34 2006/08/17 14:36:43 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -59,6 +59,7 @@ FSTSession *fst_session_create (FSTSessionCallback callback)
 
 	session->state = SessNew;
 	session->was_established = FALSE;
+	session->shared_files = 0;
 	session->in_xinu = 0x51;
 	session->out_xinu = 0x51;
 
