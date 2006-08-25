@@ -1,4 +1,10 @@
- $Id: ChangeLog,v 1.32 2006/08/17 14:36:42 mkern Exp $
+ $Id: ChangeLog,v 1.33 2006/08/25 17:57:39 mkern Exp $
+
+2006-08-25  Markus Kern <mkern@users.berlios.de>
+
+	* Limit maximum concurrent supernode connection attempts. (This has no
+	  new effects under the default config since we never reach a significant
+	  number of TCP connections because of the UDP discovery we use instead).
 
 2006-08-17  Markus Kern <mkern@users.berlios.de>
 

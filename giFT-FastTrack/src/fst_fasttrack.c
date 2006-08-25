@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.c,v 1.86 2006/08/17 14:36:43 mkern Exp $
+ * $Id: fst_fasttrack.c,v 1.87 2006/08/25 17:57:42 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -72,16 +72,27 @@ static void fst_plugin_connect_next ()
 {
 	FSTNode *node;
 	FSTSession *sess;
-	int count = 0, nsessions;
+	List *l;
+	int count = 0, nsessions, nconnecting = 0;
 
 	nsessions = config_get_int (FST_PLUGIN->conf, "main/additional_sessions=0");
 
 	if (nsessions > FST_MAX_ADDITIONAL_SESSIONS)
 		nsessions = FST_MAX_ADDITIONAL_SESSIONS;
 
+	/* determine number of currently connecting sessions */
+	nconnecting = (FST_PLUGIN->session && FST_PLUGIN->session->state != SessEstablished) ? 1 : 0;
+	for (l = FST_PLUGIN->sessions; l; l = l->next)
+	{
+		assert (l->data);
+		if (((FSTSession*)l->data)->state != SessEstablished)
+			nconnecting++;
+	}
+
 	/* connect to head node in node cache */
-	while (!FST_PLUGIN->session || 
-	       list_length (FST_PLUGIN->sessions) <= nsessions)
+	while ((!FST_PLUGIN->session || 
+	       list_length (FST_PLUGIN->sessions) <= nsessions) && 
+	       nconnecting <= FST_SESSION_MAX_CONCURRENT_ATTEMPTS)
 	{
 		if (!(node = fst_nodecache_get_front (FST_PLUGIN->nodecache)))
 		{
@@ -198,10 +209,11 @@ static void fst_plugin_connect_next ()
 		{
 			FST_PLUGIN->sessions = list_prepend (FST_PLUGIN->sessions, sess);
 		}
+		nconnecting++;
 	}
 
 	/* don't ping if we're currently connected */
-	if (FST_PLUGIN->stats->sessions)
+	if (FST_PLUGIN->stats->sessions > 0)
 		return;
 
 	/* We started a connection attempt with the head node from nodecache.

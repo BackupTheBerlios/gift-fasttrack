@@ -1,5 +1,5 @@
 /*
- * $Id: fst_fasttrack.h,v 1.56 2006/08/17 14:36:43 mkern Exp $
+ * $Id: fst_fasttrack.h,v 1.57 2006/08/25 17:57:42 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -210,6 +210,9 @@ typedef uint32_t fst_uint32;
 
 /* timeout for sessions pings */
 #define FST_SESSION_PING_TIMEOUT	(20*SECONDS)
+
+/* max concurrent connection attempts when looking for supernode */
+#define FST_SESSION_MAX_CONCURRENT_ATTEMPTS 20
 
 /* Sometimes we connect to a splitted segment of the network. While these
  * segments usually find their way back on the main network after a short time
