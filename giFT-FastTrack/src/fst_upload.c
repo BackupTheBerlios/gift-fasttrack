@@ -1,5 +1,5 @@
 /*
- * $Id: fst_upload.c,v 1.12 2004/03/11 14:05:00 mkern Exp $
+ * $Id: fst_upload.c,v 1.13 2006/08/27 16:16:32 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -141,7 +141,9 @@ int fst_upload_process_request (FSTHttpServer *server, TCPC *tcpcon,
 	if (auth == UPLOAD_AUTH_MAX ||
 		auth == UPLOAD_AUTH_MAX_PERUSER)
 	{
-		FST_DBG_1 ("No upload slot available for %s", upload->user);
+		FST_DBG_2 ("No upload slot available for %s (%s)", upload->user,
+		           (auth == UPLOAD_AUTH_MAX_PERUSER) ?
+		           "AUTH_MAX_PERUSER" : "AUTH_MAX");
 		upload_send_error_reply (tcpcon, 503);
 		fst_upload_free (upload);
 		return TRUE;
@@ -322,8 +324,9 @@ static void upload_send_error_reply (TCPC *tcpcon, int code)
 		if ((reply_str = fst_http_header_compile (reply)))
 		{
 #ifdef LOG_HTTP_HEADERS
-	FST_HEAVY_DBG_3 ("sending http reply to %s:%d:\r\n%s",
-	                 net_ip_str(tcpcon->host), tcpcon->port, reply_str->str);
+			FST_HEAVY_DBG_3 ("sending http reply to %s:%d:\r\n%s",
+			                 net_ip_str(tcpcon->host), tcpcon->port,
+			                 reply_str->str);
 #endif
 
 			if (tcp_writestr (tcpcon, reply_str->str) < 0)
