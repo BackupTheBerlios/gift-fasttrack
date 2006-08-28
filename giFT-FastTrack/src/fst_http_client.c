@@ -1,5 +1,5 @@
 /*
- * $Id: fst_http_client.c,v 1.15 2006/01/29 20:05:38 mkern Exp $
+ * $Id: fst_http_client.c,v 1.16 2006/08/28 17:22:22 mkern Exp $
  *
  * Copyright (C) 2003 giFT-FastTrack project
  * http://developer.berlios.de/projects/gift-fasttrack
@@ -484,7 +484,7 @@ static int client_write_data (FSTHttpClient *client)
 		{
 			/* Who sends HTTP replies without Connection header? */
 			FST_DBG_3 ("HTTP reply without Connection header from %s:%d (%s)",
-			           net_ip_str (client->host), client->port,
+			           client->host, client->port,
 			           fst_http_header_get_field (client->reply,"Server"));
 		}
 
